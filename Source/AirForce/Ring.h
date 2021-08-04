@@ -17,6 +17,8 @@
 class UStaticMeshComponent;
 class UColorLightComponent;
 class UNiagaraComponent;
+class APlayerDrone;
+class UCurveFloat;
 
 UCLASS(HideCategories = (Input, Rendering, Replication, LOD, Cooking))
 class AIRFORCE_API ARing : public AActor
@@ -57,10 +59,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Ring")
 		bool m_bIsPassed;							//‚±‚ÌƒŠƒ“ƒO‚ª’Ê‰ß‚³‚ê‚½‚©”»’è
 
-	ADroneBase* m_Drone;
+	APlayerDrone* m_pDrone;
 
 	UPROPERTY(EditAnywhere, Category = "Ring")
 		float m_MakeInvisibleCnt;
 	UPROPERTY(EditAnywhere, Category = "Ring")
 		float m_MakeInvisibleTime;
+	UPROPERTY(EditAnywhere, Category = "Ring")
+		UCurveFloat* m_pScaleCurve;
 };

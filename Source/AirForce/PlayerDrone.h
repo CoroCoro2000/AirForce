@@ -127,6 +127,10 @@ protected:
 		float m_CameraTargetLength;											//プレイヤーとカメラの距離
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
 		float m_FieldOfView;												//カメラの視野角
+	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
+		FVector m_CameraSocketOffset;										//カメラの位置
+	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
+		FVector m_CameraMoveLimit;															//カメラの移動できる上限
 	//-------------------------------------------------------------------------------------------------------
 private:
 	UPROPERTY(EditAnywhere)

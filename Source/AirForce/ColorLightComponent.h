@@ -114,10 +114,10 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "ColorManager")
 		//カラー情報
 		FCOLOR_STATE m_ColorState;
-	UPROPERTY(VisibleAnywhere, Category = "Rainbow", meta = (EditCondition = "bRainbowLoop"))
+	UPROPERTY(VisibleAnywhere, Category = "Rainbow")
 		//次の色に切り替わるまでの時間カウント
 		float m_ColorChangeCnt;
-	UPROPERTY(EditAnywhere, Category = "Rainbow", meta = (EditCondition = "bRainbowLoop"))
+	UPROPERTY(EditAnywhere, Category = "Rainbow")
 		//次の色に切り替わるまでの時間
 		float m_ColorChangeTime;
 };

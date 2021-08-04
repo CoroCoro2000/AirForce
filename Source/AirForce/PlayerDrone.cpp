@@ -5,9 +5,9 @@
 // 作成者			:19CU0105 池村凌太
 // 更新内容		:
 //------------------------------------------------------------------------
-// 更新者			:19CU0104 池田翔一郎
+// 更新者		:19CU0104 池田翔一郎
 // 更新内容		:2021/06/07 ドローンの軌跡エフェクトを追加
-//						:2021/06/16 ドローンの羽の回転処理の追加
+//				:2021/06/16 ドローンの羽の回転処理の追加
 //------------------------------------------------------------------------
 
 //インクルード
@@ -33,8 +33,10 @@ APlayerDrone::APlayerDrone()
 	: m_GameMode(GAMEMODE::GAMEMODE_TPS)
 	, m_pSpringArm(NULL)
 	, m_pCamera(NULL)
-	, m_CameraTargetLength(60.f)
+	, m_CameraTargetLength(90.f)
 	, m_FieldOfView(90.f)
+	, m_CameraSocketOffset(FVector::ZeroVector)
+	, m_CameraMoveLimit(FVector(10.f, 40.f, 20.f))
 	, m_pLightlineEffect(NULL)
 	, m_bCanControl(true)
 	, m_AxisValue{ 0.f, 0.f, 0.f, 0.f }
@@ -382,9 +384,6 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 		}
 		
 
-
-
-
 		//FVector direction = GetActorUpVector();
 
 		FVector d = m_pBodyMesh->GetUpVector() * m_Acceleration;
@@ -438,7 +437,12 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 
 	FRotator Camera = FRotator::ZeroRotator;
 	Camera.Pitch = GetActorRotation().Pitch * -1.f;
+
+	FVector Direction = m_pBodyMesh->GetUpVector();
+
 	m_pSpringArm->SetRelativeRotation(Camera.Quaternion());
+
+
 	//UE_LOG(LogTemp, Warning, TEXT("W"));
 
 	//FRotator CameraR = FRotator(
