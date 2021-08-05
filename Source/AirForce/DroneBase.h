@@ -152,10 +152,18 @@ public:
 #define RF_WING 1
 #define LB_WING 2
 #define RB_WING 3
+//浮力の状態
+#define BUOYANCY_HOVERING 0.f
 //現在のFPSを計測
 #define FPS (1.f / DeltaTime)
 //フレームレートが低下しても移動量に影響が無いよう補正する値
 #define MOVE_CORRECTION (60.f / FPS)
+//--------------------------------------------------------------------
+//#define DEGUG_ACCEL					//加速度のデバッグ
+//#define DEBUG_GRAVITY				//重力のデバッグ
+//#define DEBUG_WING					//羽のデバッグ
+#define DEBUG_OVERLAP_BEGIN	//オーバーラップ開始時のデバッグ
+#define DEBUG_OVERLAP_END		//オーバーラップ終了時のデバッグ
 //--------------------------------------------------------------------
 
 UCLASS()
@@ -185,8 +193,10 @@ public:
 
 	//オーバーラップ時に呼ばれるイベント関数を登録
 	UFUNCTION()
-		virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
+		virtual void OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	//オーバーラップしていたアクターから離れた瞬間呼ばれるイベント関数
+	UFUNCTION()
+		virtual void OnComponentOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 public:
 	//重力加速度の取得
 	float GetGravitationalAcceleration()const { return m_GravityScale * m_DescentTime * m_DescentTime / 2.f; }
@@ -220,6 +230,9 @@ protected:
 
 	//羽の回転更新処理
 	virtual void UpdateWingRotation(const float& DeltaTime);
+
+	//重力更新処理
+	float UpdateGravity(const float& DeltaTime);
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Mesh|Body")
@@ -295,6 +308,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Flag")
 		bool m_isControl;								//操作可能フラグ
+
+	UPROPERTY(EditAnywhere, Category = "Flag")
+		bool m_isFloating;								//操作可能フラグ
 
 	UPROPERTY(VisibleAnywhere, Category = "Ring")
 		int m_RingAcquisition;							//リング獲得数

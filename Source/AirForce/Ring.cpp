@@ -142,6 +142,8 @@ bool ARing::isDraw()
 	{
 		return false;
 	}
+#ifdef DEBUG_HIT
+#endif // DEBUG_HIT
 
 	return  (m_RingNumber - m_pDrone->GetRingAcquisition() <= m_RingDrawUpNumber ? true : false);
 }

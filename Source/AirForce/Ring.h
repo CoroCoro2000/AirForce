@@ -20,6 +20,8 @@ class UNiagaraComponent;
 class APlayerDrone;
 class UCurveFloat;
 
+#define DEBUG_HIT
+
 UCLASS(HideCategories = (Input, Rendering, Replication, LOD, Cooking))
 class AIRFORCE_API ARing : public AActor
 {
@@ -59,7 +61,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Ring")
 		bool m_bIsPassed;							//‚±‚ÌƒŠƒ“ƒO‚ª’Ê‰ß‚³‚ê‚½‚©”»’è
 
-	APlayerDrone* m_pDrone;
+	UPROPERTY(EditAnywhere, Category = "Ring")
+		APlayerDrone* m_pDrone;
 
 	UPROPERTY(EditAnywhere, Category = "Ring")
 		float m_MakeInvisibleCnt;

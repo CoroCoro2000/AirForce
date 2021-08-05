@@ -1,4 +1,4 @@
-   //------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // ファイル名	:PlayerDrone.cpp
 // 概要				:プレイヤーのドローンクラス
 // 作成日			:2021/04/19
@@ -12,6 +12,7 @@
 
 //インクルード
 #include "PlayerDrone.h"
+#include "DroneBase.h"
 #include "DroneBullet.h"
 #include "Components/InputComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -19,14 +20,10 @@
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "DrawDebugHelpers.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "UObject/ConstructorHelpers.h"
-
-//#define DEBUG
-//#define DEBUG_WING			//羽のデバッグ
-//#define DEBUG_CAMERA			//羽のデバッグ
+#include "DrawDebugHelpers.h"
 
 //コンストラクタ
 APlayerDrone::APlayerDrone()
@@ -350,52 +347,60 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 {
 	Super::UpdateSpeed(DeltaTime);
 
-	//NULLチェック
-	if (!m_pBodyMesh) { return; }
-
-	//浮力の大きさ
-	float Buoyancy = 0.f;
-	for (FWing* pWing : m_pWings)
-	{
-		if (pWing)
-		{
-			Buoyancy += pWing->AccelState;
-		}
-	}
-	Buoyancy /= (float)WING_ARRAY_MAX;
-	
-
-	if (m_pBodyMesh)
-	{
-		//ドローンの上向きベクトル*羽の回転量*重力を推進力に設定
-		FVector Propulsion = GetActorUpVector() * (Buoyancy + 1.f) * Gravity.Size();
-
-		//羽の加速度があるなら
-		if (Buoyancy + 1.f > 1.f)
-		{
-			if (m_Acceleration < 7.f)
-			{
-				m_Acceleration += Buoyancy * DeltaTime;
-			}
-		}
-		else
-		{
-			m_Acceleration *= 58.5f  * DeltaTime;
-		}
-		
-
-		//FVector direction = GetActorUpVector();
-
-		FVector d = m_pBodyMesh->GetUpVector() * m_Acceleration;
-
-		//ドローンメッシュのの上向きのベクトルに推進力の設定
-		AddActorWorldOffset(d, true);
-		m_Speed = d.Size();
-		//ワールド座標の下向きのベクトルに重力を設定
-		AddActorWorldOffset(Gravity, true);
-		//ドローンメッシュのの向きのベクトルに遠心力を設定
-		//AddActorLocalOffset(Centrifugalforce, true);
-	}
+//	//NULLチェック
+//	if (!m_pBodyMesh) { return; }
+//
+//	//浮力の大きさ
+//	float Buoyancy = 0.f;
+//	for (FWing* pWing : m_pWings)
+//	{
+//		if (pWing)
+//		{
+//			Buoyancy += pWing->AccelState;
+//		}
+//	}
+//	Buoyancy /= (float)WING_ARRAY_MAX;
+//	
+//	float accelPower = 0.8f * m_AxisValue[(int)INPUT_AXIS::THROTTLE];
+//
+//	if (m_pBodyMesh)
+//	{
+//		//ドローンの上向きベクトル*羽の回転量*重力を推進力に設定
+//		FVector Propulsion = GetActorUpVector() * (Buoyancy + 1.f) * Gravity.Size();
+//
+//		//羽の加速度があるなら
+//		if (Buoyancy + 1.f > 1.f)
+//		{
+//			if (m_Acceleration < 7.f)
+//			{
+//				m_Acceleration += accelPower * DeltaTime;
+//			}
+//		}
+//		else
+//		{
+//			m_Acceleration *= 59.f  * DeltaTime;
+//		}
+//		
+//
+//		//FVector direction = GetActorUpVector();
+//
+//		FVector d = m_pBodyMesh->GetUpVector() * m_Acceleration;
+//
+//		//移動
+//		AddActorWorldOffset(d, true);
+//		m_Speed = d.Size();
+//		//ワールド座標の下向きのベクトルに重力を設定
+//		FVector gravity = FVector(0.f, 0.f, UpdateGravity(DeltaTime));
+//		AddActorWorldOffset(gravity, true);
+//		
+//		//移動量を保持
+//		m_Velocity = d;
+//
+//#ifdef DEGUG_ACCEL
+//		UE_LOG(LogTemp, Warning, TEXT("m_Velocity%s"), *m_Velocity.ToString());
+//#endif // DEBUG_ACCEL
+//
+//	}
 }
 
 //重心移動処理
@@ -443,18 +448,6 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	m_pSpringArm->SetRelativeRotation(Camera.Quaternion());
 
 
-	//UE_LOG(LogTemp, Warning, TEXT("W"));
-
-	//FRotator CameraR = FRotator(
-	//	-15.f * m_AxisValue[(int)INPUT_AXIS::ELEVATOR],
-	//	0.f,
-	//	0.f);
-
-	//m_pCamera->SetRelativeRotation(CameraR.Quaternion());
-
-
-
-	//m_pCamera->SetRelativeLocation(BodyBackward * 40.f);
 }
 
 //カメラとの遮蔽物のコリジョン判定
