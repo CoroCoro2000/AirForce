@@ -220,7 +220,7 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 	//浮力がホバリング状態より小さい時
 	else if (Buoyancy < BUOYANCY_HOVERING)
 	{
-		if (m_Acceleration > BUOYANCY_HOVERING)
+		if (m_Acceleration > -1.f)
 		{
 			m_Acceleration += Buoyancy * DeltaTime;
 		}
@@ -247,9 +247,10 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 #endif
 	//重力を抜いた移動量を保持する
 	m_Velocity = Propulsion;
-	m_Speed = m_Velocity.Size();
 	//重力を加算
 	Propulsion.Z += UpdateGravity(DeltaTime);
+
+	m_Speed = Propulsion.Size();
 
 	AddActorWorldOffset(Propulsion * MOVE_CORRECTION, true);
 
@@ -297,7 +298,6 @@ float ADroneBase::UpdateGravity(const float& DeltaTime)
 #ifdef DEBUG_GRAVITY
 	UE_LOG(LogTemp, Warning, TEXT("newGravity%f"), newGravity);
 #endif // DEBUG_GRAVITY
-
 
 	return newGravity;
 }
