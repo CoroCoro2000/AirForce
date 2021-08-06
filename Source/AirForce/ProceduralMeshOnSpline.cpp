@@ -1,0 +1,104 @@
+//--------------------------------------------------------------------------------------------
+// ファイル名		:ProceduralMeshOnSpline.cpp
+// 概要				:スプライン上に指定数のメッシュを自動生成するアクタークラス
+// 作成日			:2021/08/06
+// 作成者			:19CU0105 池村凌太
+// 更新内容			:
+//--------------------------------------------------------------------------------------------
+//インクルード
+#include "ProceduralMeshOnSpline.h"
+#include "Components/SplineComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
+
+// Sets default values
+AProceduralMeshOnSpline::AProceduralMeshOnSpline()
+	: m_pSpline(NULL)
+	, m_pMeshes(NULL)
+	, m_MeshCount(1)
+	, m_MeshRelativeRotation(FRotator::ZeroRotator)
+	, m_bLockRotationPitch(false)
+	, m_bLockRotationYaw(false)
+	, m_bLockRotationRoll(false)
+{
+	//処理はエディタ上でしか実行されない為、Tickは切る
+	PrimaryActorTick.bCanEverTick = false;
+
+	//スプライン生成
+	m_pSpline = CreateDefaultSubobject<USplineComponent>(TEXT("Spline"));
+	if (m_pSpline)
+	{
+		RootComponent = m_pSpline;
+	}
+
+	//メッシュコンポーネント生成
+	m_pMeshes = CreateDefaultSubobject<UInstancedStaticMeshComponent>("Meshes");
+	if (m_pMeshes && m_pSpline)
+	{
+		m_pMeshes->SetupAttachment(m_pSpline);
+	}
+}
+
+// Called when the game starts or when spawned
+void AProceduralMeshOnSpline::BeginPlay()
+{
+	Super::BeginPlay();
+	
+}
+
+// Called every frame
+void AProceduralMeshOnSpline::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
+//スプライン上にメッシュを生成する処理
+void AProceduralMeshOnSpline::CreateMeshOnSpline()
+{
+	//NULLチェック
+	if (!m_pSpline || !m_pMeshes) { return; }
+
+	if ((int)m_pMeshes->GetInstanceCount() > 0)
+	{
+		//変更前に描画されていたすべてのインスタンスを削除
+		m_pMeshes->ClearInstances();
+	}
+
+	//スプラインの長さを取得
+	const float splineLength = m_pSpline->GetSplineLength();
+
+	//配置するメッシュの数だけ生成処理を行う
+	for (int index = 0; index < m_MeshCount; ++index)
+	{
+		//スプライン上のどの位置ににメッシュを生成するか決める
+		const float rate = (float)index / (float)m_MeshCount;
+		const float distance = rate * splineLength;
+		const FVector MeshLocation = m_pSpline->GetLocationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local);
+		FRotator MeshRotation = m_pSpline->GetRotationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local);
+
+		//回転軸がロックされている場合、スプラインに沿って回転しないようにする
+		MeshRotation.Pitch *= (m_bLockRotationPitch) ? 0.f : 1.f;
+		MeshRotation.Yaw *= (m_bLockRotationYaw) ? 0.f : 1.f;
+		MeshRotation.Roll *= (m_bLockRotationRoll) ? 0.f : 1.f;
+
+		//配置するメッシュのトランスフォームを設定
+		const FTransform MeshTransform = FTransform(MeshRotation + m_MeshRelativeRotation, MeshLocation);
+
+		//メッシュインスタンスの追加、配置
+		m_pMeshes->AddInstance(MeshTransform);
+
+#ifdef DEBUG_TRANSFORM
+		UE_LOG(LogTemp, Warning, TEXT("MeshTransform:%s"), *MeshTransform.ToString());
+#endif // DEBUG_TRANSFORM
+	}
+#ifdef DEBUG_INSTANCECOUNT
+	UE_LOG(LogTemp, Warning, TEXT("MeshInctanceCount:%i"), m_pMeshes->GetInstanceCount());
+#endif // DEBUG_INCTANCECOUNT
+}
+
+//エディタ上で配置時、または内部の値が変更された時に呼び出される関数
+void AProceduralMeshOnSpline::OnConstruction(const FTransform& Transform)
+{
+	//スプライン上にメッシュを生成
+	CreateMeshOnSpline();
+}
