@@ -1,4 +1,4 @@
-   //------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // ファイル名	:PlayerDrone.cpp
 // 概要				:プレイヤーのドローンクラス
 // 作成日			:2021/04/19
@@ -12,6 +12,7 @@
 
 //インクルード
 #include "PlayerDrone.h"
+#include "DroneBase.h"
 #include "DroneBullet.h"
 #include "Components/InputComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -19,14 +20,10 @@
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "DrawDebugHelpers.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "UObject/ConstructorHelpers.h"
-
-//#define DEBUG
-//#define DEBUG_WING			//羽のデバッグ
-//#define DEBUG_CAMERA			//羽のデバッグ
+#include "DrawDebugHelpers.h"
 
 //コンストラクタ
 APlayerDrone::APlayerDrone()
@@ -92,12 +89,12 @@ void APlayerDrone::BeginDestory()
 {
 	Super::BeginDestroy();
 
-	for (FWing* pWing : m_pWings)
+	for (TSharedPtr<FWing> pWing : m_pWings)
 	{
 		//領域の開放
-		if (pWing)
+		if (pWing.IsValid())
 		{
-			delete pWing;
+			pWing.Reset();
 		}
 	}
 }
@@ -217,9 +214,9 @@ void APlayerDrone::UpdateWingAccle()
 	//入力がなければ終了
 	if ((RightAxis.IsZero() && LeftAxis.IsZero()) || !m_isControl)
 	{
-		for (FWing* pWing : m_pWings)
+		for (TSharedPtr<FWing> pWing : m_pWings)
 		{
-			if (pWing) 
+			if (pWing.IsValid()) 
 			{
 				pWing->AccelState = 0.f;
 			}
@@ -230,9 +227,9 @@ void APlayerDrone::UpdateWingAccle()
 	//両方の入力がある場合
 	if (!RightAxis.IsZero() && !LeftAxis.IsZero())
 	{
-		for (FWing* pWing : m_pWings)
+		for (TSharedPtr<FWing> pWing : m_pWings)
 		{
-			if (pWing)
+			if (pWing.IsValid())
 			{
 				//PPAP
 				pWing->AccelState = RightInputValueToWingAcceleration(pWing->GetWingNumber()) + LeftInputValueToWingAcceleration(pWing->GetWingNumber());
@@ -244,9 +241,9 @@ void APlayerDrone::UpdateWingAccle()
 	//右スティックのみの場合
 	if (!RightAxis.IsZero())
 	{
-		for (FWing* pWing : m_pWings)
+		for (TSharedPtr<FWing> pWing : m_pWings)
 		{
-			if (pWing)
+			if (pWing.IsValid())
 			{
 				pWing->AccelState = RightInputValueToWingAcceleration(pWing->GetWingNumber());
 			}
@@ -255,9 +252,9 @@ void APlayerDrone::UpdateWingAccle()
 	//左スティックのみの場合
 	else if (!LeftAxis.IsZero())
 	{
-		for (FWing* pWing : m_pWings)
+		for (TSharedPtr<FWing> pWing : m_pWings)
 		{
-			if (pWing)
+			if (pWing.IsValid())
 			{
 				pWing->AccelState = LeftInputValueToWingAcceleration(pWing->GetWingNumber());
 			}
@@ -275,9 +272,9 @@ void APlayerDrone::UpdateWingRotation(const float& DeltaTime)
 		0.f, 1.f);
 
 	//毎秒m_rpsMax * WingAccel回分回転するために毎フレーム羽を回す角度を求める
-	for (FWing* pWing : m_pWings)
+	for (TSharedPtr<FWing> pWing : m_pWings)
 	{
-		if (pWing)
+		if (pWing.IsValid())
 		{
 			//羽の加速度を0から1の範囲に修正し、正規化する
 			const float NormalizeAccelSize = FMath::Clamp((pWing->AccelState + 1.f) / 3.f, 0.f, 1.f);
@@ -311,9 +308,9 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 
 	//NULLチェック
 	if (!m_pBodyMesh) { return; }
-	for (FWing* pWing : m_pWings)
+	for (TSharedPtr<FWing> pWing : m_pWings)
 	{
-		if (!pWing) { return; }
+		if (!pWing.IsValid()) { return; }
 	}
 
 	//羽の回転量からドローンの角速度の最大値を設定
@@ -350,52 +347,6 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 {
 	Super::UpdateSpeed(DeltaTime);
 
-	//NULLチェック
-	if (!m_pBodyMesh) { return; }
-
-	//浮力の大きさ
-	float Buoyancy = 0.f;
-	for (FWing* pWing : m_pWings)
-	{
-		if (pWing)
-		{
-			Buoyancy += pWing->AccelState;
-		}
-	}
-	Buoyancy /= (float)WING_ARRAY_MAX;
-	
-
-	if (m_pBodyMesh)
-	{
-		//ドローンの上向きベクトル*羽の回転量*重力を推進力に設定
-		FVector Propulsion = GetActorUpVector() * (Buoyancy + 1.f) * Gravity.Size();
-
-		//羽の加速度があるなら
-		if (Buoyancy + 1.f > 1.f)
-		{
-			if (m_Acceleration < 7.f)
-			{
-				m_Acceleration += Buoyancy * DeltaTime;
-			}
-		}
-		else
-		{
-			m_Acceleration *= 58.5f  * DeltaTime;
-		}
-		
-
-		//FVector direction = GetActorUpVector();
-
-		FVector d = m_pBodyMesh->GetUpVector() * m_Acceleration;
-
-		//ドローンメッシュのの上向きのベクトルに推進力の設定
-		AddActorWorldOffset(d, true);
-		m_Speed = d.Size();
-		//ワールド座標の下向きのベクトルに重力を設定
-		AddActorWorldOffset(Gravity, true);
-		//ドローンメッシュのの向きのベクトルに遠心力を設定
-		//AddActorLocalOffset(Centrifugalforce, true);
-	}
 }
 
 //重心移動処理
@@ -443,18 +394,6 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	m_pSpringArm->SetRelativeRotation(Camera.Quaternion());
 
 
-	//UE_LOG(LogTemp, Warning, TEXT("W"));
-
-	//FRotator CameraR = FRotator(
-	//	-15.f * m_AxisValue[(int)INPUT_AXIS::ELEVATOR],
-	//	0.f,
-	//	0.f);
-
-	//m_pCamera->SetRelativeRotation(CameraR.Quaternion());
-
-
-
-	//m_pCamera->SetRelativeLocation(BodyBackward * 40.f);
 }
 
 //カメラとの遮蔽物のコリジョン判定

@@ -10,6 +10,7 @@
 #include "DroneBase.h"
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Utility/GameUtility.h"
 
 //コンストラクタ
 ADroneBase::ADroneBase()
@@ -27,15 +28,16 @@ ADroneBase::ADroneBase()
 	, m_OldRotation(FRotator::ZeroRotator)
 	, m_SpeedPerSecondMax(50.f)
 	, m_Acceleration(0.f)
-	, m_DroneWeight(0.15f)
+	, m_DroneWeight(0.3f)
 	, m_Velocity(FVector::ZeroVector)
 	, Centrifugalforce(FVector::ZeroVector)
 	, m_AngularVelocity(FVector::ZeroVector)
 	, Gravity(FVector::ZeroVector)
-	, m_GravityScale(9.8f)
+	, m_GravityScale(0.98f)
 	, m_DescentTime(0.f)
 	, m_CenterOfGravity(FVector::ZeroVector)
 	, m_isControl(false)
+	, m_isFloating(true)
 	, m_RingAcquisition(0)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
@@ -53,7 +55,6 @@ ADroneBase::ADroneBase()
 		RootComponent = m_pBodyMesh;
 		m_pBodyMesh->SetStaticMesh(pBodyMesh.Object);
 	}
-
 
 	//羽のメッシュアセットを探索
 	//右ねじと左ねじの羽を取得する
@@ -75,9 +76,9 @@ ADroneBase::ADroneBase()
 			(index == 0) ? -45.f : 45.f :
 			(index == 2) ? 45.f : -45.f;
 
-
 		//配列の追加(識別番号、羽のメッシュ)
-		m_pWings.Add(new FWing(index, CreateDefaultSubobject<UStaticMeshComponent>(WingName)));
+		TSharedPtr<FWing> pWing = CGameUtility::CreateSharedPtr<FWing>(FWing(index, CreateDefaultSubobject<UStaticMeshComponent>(WingName)));
+		m_pWings.Add(pWing);
 
 		if (!m_pWings[index]) { return; }
 		if (!m_pWings[index]->GetWingMesh()) { return; }
@@ -92,28 +93,21 @@ ADroneBase::ADroneBase()
 	}
 }
 
-//デストラクタ
-ADroneBase::~ADroneBase()
-{
-	for (FWing* pWing : m_pWings)
-	{
-		//領域の開放
-		if (pWing)
-		{
-			delete pWing;
-		}
-	}
-}
-
 //ゲーム開始時に1度だけ処理
 void ADroneBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	m_pDroneBoxComp->OnComponentBeginOverlap.AddDynamic(this,&ADroneBase::OnOverlapBegin);
+
+	if (m_pDroneBoxComp)
+	{
+		//オーバーラップ時のイベント関数をバインド
+		m_pDroneBoxComp->OnComponentBeginOverlap.AddDynamic(this, &ADroneBase::OnComponentOverlapBegin);
+		m_pDroneBoxComp->OnComponentEndOverlap.AddDynamic(this, &ADroneBase::OnComponentOverlapEnd);
+	}
 
 	//質量*重力加速度を重力に設定
-	Gravity = FVector(0.f, 0.f, m_DroneWeight * m_GravityScale * -1.f);
+	Gravity = FVector(0.f, 0.f, m_DroneWeight * m_GravityScale);
 }
 
 //このオブジェクトが破棄されるときに呼び出される関数
@@ -121,12 +115,12 @@ void ADroneBase::BeginDestory()
 {
 	Super::BeginDestroy();
 
-	for (FWing* pWing : m_pWings)
+	for (TSharedPtr<FWing> pWing : m_pWings)
 	{
 		//領域の開放
-		if (pWing)
+		if (pWing.IsValid())
 		{
-			delete pWing;
+			pWing.Reset();
 		}
 	}
 }
@@ -185,30 +179,153 @@ void ADroneBase::UpdateRotation(const float& DeltaTime)
 //速度更新処理
 void ADroneBase::UpdateSpeed(const float& DeltaTime)
 {
-	//現在と1フレーム前の移動量から１フレーム間の移動量を計算
-	m_PrevCurrentLocation = m_CurrentLocation;
-	m_CurrentLocation = GetActorLocation();
+	if (!m_pBodyMesh) { return; }
+
+	const FVector Direction = m_pBodyMesh->GetUpVector();
+	//浮力の大きさを測る
+	float Buoyancy = 0.f;
+	for (TSharedPtr<FWing> pWing : m_pWings)
+	{
+		if (pWing.IsValid())
+		{
+			Buoyancy += pWing->AccelState;
+		}
+	}
+	Buoyancy /= (float)WING_ARRAY_MAX;
+
+#ifdef DEGUG_ACCEL
+	UE_LOG(LogTemp, Warning, TEXT("Buoyancy:%f"), Buoyancy);
+#endif
+
+	//浮力がホバリング状態より大きいとき
+	if (Buoyancy > BUOYANCY_HOVERING)
+	{
+		if (m_Acceleration < 5.f)
+		{
+			m_Acceleration += Buoyancy * DeltaTime;
+		}
+	}
+	//浮力がホバリング状態より小さい時
+	else if (Buoyancy < BUOYANCY_HOVERING)
+	{
+		if (m_Acceleration > -2.f)
+		{
+			m_Acceleration += Buoyancy * DeltaTime;
+		}
+	}
+	//浮力が重力と釣り合う時(ホバリング状態)
+	else if (Buoyancy == 0.f)
+	{
+		m_Acceleration *= 59.f * DeltaTime;
+	}
+
+	//推進力の設定
+	FVector Propulsion = Direction * (m_Acceleration + Gravity.Z);
+
+	//傾きがある時
+	if (Direction.Z < 1.f)
+	{
+		float Centrifugal = 1.f - Direction.Z;
+		Propulsion.X += Direction.X * Centrifugal;
+		Propulsion.Y += Direction.Y * Centrifugal;
+	}
+
+#ifdef DEGUG_ACCEL
+	UE_LOG(LogTemp, Warning, TEXT("Propulsion:%s"), *Propulsion.ToString());
+#endif
+	//重力を抜いた移動量を保持する
+	m_Velocity = Propulsion;
+	//重力を加算
+	Propulsion.Z += UpdateGravity(DeltaTime);
+
+	m_Speed = Propulsion.Size();
+
+	//移動処理
+	AddActorWorldOffset(Propulsion * MOVE_CORRECTION, true);
+
+#ifdef DEGUG_ACCEL
+	UE_LOG(LogTemp, Warning, TEXT("Move:%s"), *Propulsion.ToString());
+#endif
+
 }
 
 //移動処理
 void ADroneBase::UpdateMove(const float& DeltaTime)
 {
-	//ドローンの傾きを向きベクトルに変換
-	const FVector unitDirection = GetActorRotation().Vector();
 
-	//UE_LOG(LogTemp, Warning, TEXT("GetWingNormalizeAccele%f"), GetWingNormalizeAccele());
 }
 
 //羽の回転更新処理
 void ADroneBase::UpdateWingRotation(const float& DeltaTime)
 {
 }
-//オーバーラップ開始時に呼ばれる処理
-void ADroneBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+
+//重力更新処理
+float ADroneBase::UpdateGravity(const float& DeltaTime)
 {
-	  //タグがPlayerだった場合
-	if (OtherActor->ActorHasTag(TEXT("Ring")))
+	float newGravity = Gravity.Z;
+	const float UpForce = m_pBodyMesh->GetUpVector().Z;
+	//上向きの力がない時
+	if (UpForce < 0.f)
 	{
-		m_RingAcquisition++;
+		//重力加速度を計算
+		newGravity = (m_DescentTime * m_DescentTime * (-m_GravityScale) * 0.5f) + (m_DescentTime * m_Velocity.Z);
+
+		//空中にいるなら
+		if (m_isFloating)
+		{
+			//落下時間を増加
+			m_DescentTime += DeltaTime;
+		}
+	}
+	else
+	{
+		m_DescentTime = 0.f;
+		newGravity *= -1.f;
+	}
+
+#ifdef DEBUG_GRAVITY
+	UE_LOG(LogTemp, Warning, TEXT("newGravity%f"), newGravity);
+#endif // DEBUG_GRAVITY
+
+
+	return newGravity;
+}
+
+//オーバーラップ開始時に呼ばれる処理
+void ADroneBase::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor != this)
+	{
+		//タグがPlayerだった場合
+		if (OtherActor->ActorHasTag(TEXT("Ring")))
+		{
+			m_RingAcquisition++;
+		}
+		
+		//リング以外とオーバーラップした時
+		if (!OtherActor->ActorHasTag(TEXT("Ring")))
+		{
+			m_isFloating = false;
+		}
+	}
+#ifdef DEBUG_OVERLAP_BEGIN
+	UE_LOG(LogTemp, Warning, TEXT("OverlapBegin"));
+#endif // DEBUG_OVERLAP_BEGIN
+}
+
+//オーバーラップしていたアクターから離れた瞬間呼ばれるイベント関数
+void ADroneBase::OnComponentOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor != this)
+	{
+		//リング以外のオーバーラップしていたアクターから離れた時
+		if (!OtherActor->ActorHasTag(TEXT("Ring")))
+		{
+			m_isFloating = true;
+		}
+#ifdef DEBUG_OVERLAP_END
+		UE_LOG(LogTemp, Warning, TEXT("OverlapEnd"));
+#endif // DEBUG_OVERLAP_END
 	}
 }

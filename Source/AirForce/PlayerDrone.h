@@ -40,6 +40,10 @@ enum class INPUT_AXIS :uint8
 	LADDER					UMETA(DisplayName = "INPUT_LADDER"),
 };
 
+//--------------------------------------------------------------------
+//#define DEBUG_CAMERA			//カメラのデバッグ
+//--------------------------------------------------------------------
+
 UCLASS()
 class AIRFORCE_API APlayerDrone : public ADroneBase
 {
@@ -48,8 +52,6 @@ class AIRFORCE_API APlayerDrone : public ADroneBase
 public:
 	//コンストラクタ
 	APlayerDrone();
-	//デストラクタ
-	virtual ~APlayerDrone() {}
 protected:
 	//ゲーム開始時に1度だけ処理
 	virtual void BeginPlay() override;

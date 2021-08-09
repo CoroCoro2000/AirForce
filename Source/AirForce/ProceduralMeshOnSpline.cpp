@@ -20,7 +20,7 @@ AProceduralMeshOnSpline::AProceduralMeshOnSpline()
 	, m_bLockRotationYaw(false)
 	, m_bLockRotationRoll(false)
 {
-	//処理はエディタ上でしか実行されない為、Tickは切る
+	//処理はエディタ上でしか実行しない為、Tickは無効にする
 	PrimaryActorTick.bCanEverTick = false;
 
 	//スプライン生成
@@ -53,14 +53,14 @@ void AProceduralMeshOnSpline::Tick(float DeltaTime)
 }
 
 //スプライン上にメッシュを生成する処理
-void AProceduralMeshOnSpline::CreateMeshOnSpline()
+void AProceduralMeshOnSpline::UpdateMeshOnSpline()
 {
 	//NULLチェック
 	if (!m_pSpline || !m_pMeshes) { return; }
 
 	if ((int)m_pMeshes->GetInstanceCount() > 0)
 	{
-		//変更前に描画されていたすべてのインスタンスを削除
+		//変更前のメッシュ情報を削除
 		m_pMeshes->ClearInstances();
 	}
 
@@ -73,19 +73,19 @@ void AProceduralMeshOnSpline::CreateMeshOnSpline()
 		//スプライン上のどの位置ににメッシュを生成するか決める
 		const float rate = (float)index / (float)m_MeshCount;
 		const float distance = rate * splineLength;
-		const FVector MeshLocation = m_pSpline->GetLocationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local);
-		FRotator MeshRotation = m_pSpline->GetRotationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local);
+		const FVector initLocation = m_pSpline->GetLocationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local);
+		FRotator initRotation = m_pSpline->GetRotationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local);
 
 		//回転軸がロックされている場合、スプラインに沿って回転しないようにする
-		MeshRotation.Pitch *= (m_bLockRotationPitch) ? 0.f : 1.f;
-		MeshRotation.Yaw *= (m_bLockRotationYaw) ? 0.f : 1.f;
-		MeshRotation.Roll *= (m_bLockRotationRoll) ? 0.f : 1.f;
+		initRotation.Pitch *= (m_bLockRotationPitch) ? 0.f : 1.f;
+		initRotation.Yaw *= (m_bLockRotationYaw) ? 0.f : 1.f;
+		initRotation.Roll *= (m_bLockRotationRoll) ? 0.f : 1.f;
 
 		//配置するメッシュのトランスフォームを設定
-		const FTransform MeshTransform = FTransform(MeshRotation + m_MeshRelativeRotation, MeshLocation);
+		const FTransform initTransform = FTransform(initRotation + m_MeshRelativeRotation, initLocation);
 
-		//メッシュインスタンスの追加、配置
-		m_pMeshes->AddInstance(MeshTransform);
+		//メッシュインスタンスを追加
+		m_pMeshes->AddInstance(initTransform);
 
 #ifdef DEBUG_TRANSFORM
 		UE_LOG(LogTemp, Warning, TEXT("MeshTransform:%s"), *MeshTransform.ToString());
@@ -100,5 +100,5 @@ void AProceduralMeshOnSpline::CreateMeshOnSpline()
 void AProceduralMeshOnSpline::OnConstruction(const FTransform& Transform)
 {
 	//スプライン上にメッシュを生成
-	CreateMeshOnSpline();
+	UpdateMeshOnSpline();
 }

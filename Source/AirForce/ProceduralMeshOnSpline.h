@@ -34,16 +34,16 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-private:
-	//エディタ上で配置時、または内部の値が変更された時に呼び出される関数
-	virtual void OnConstruction(const FTransform& Transform)override;
-
-	//スプライン上にメッシュを生成する処理
-	void CreateMeshOnSpline();
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+private:
+	//エディタ上で配置時、または内部の値が変更された時に呼び出される関数
+	virtual void OnConstruction(const FTransform& Transform)override;
+
+	//スプライン上に生成するメッシュ情報の更新
+	void UpdateMeshOnSpline();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline")
