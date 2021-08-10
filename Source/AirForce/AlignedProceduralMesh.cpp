@@ -15,6 +15,7 @@ AAlignedProceduralMesh::AAlignedProceduralMesh()
 	, m_MeshCount(1)
 	, m_Distance(10.f)
 	, m_ArrangementType(EARRANGEMENT::LINEAR)
+	, m_SpiralStatus()
 	, m_GridStatus()
 	, m_MeshRelativeRotation(FRotator::ZeroRotator)
 	//, m_bLockRotationPitch(false)
@@ -79,7 +80,15 @@ void AAlignedProceduralMesh::CreateCircular()
 //—†ùó‚É¶¬‚·‚éˆ—
 void AAlignedProceduralMesh::CreateSpiral()
 {
+	for (int index = 0; index < m_MeshCount; ++index)
+	{
+		FVector initLocation = (float)index * m_SpiralStatus.Direction;
+		FRotator initRotation = (float)index * m_SpiralStatus.Rotation;
 
+		FTransform initTransform = FTransform(initRotation.RotateVector(initLocation));
+
+		m_pMeshes->AddInstance(initTransform);
+	}
 }
 
 //Šiqó‚É¶¬‚·‚éˆ—

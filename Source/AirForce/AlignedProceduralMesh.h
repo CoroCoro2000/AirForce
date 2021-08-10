@@ -62,6 +62,15 @@ struct FSpiralStatus
 {
 	GENERATED_USTRUCT_BODY()
 
+	FSpiralStatus()
+		: Direction(FVector::ZeroVector)
+		, Rotation(FRotator::ZeroRotator)
+	{}
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		FVector Direction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		FRotator Rotation;
 };
 
 USTRUCT(BlueprintType)
@@ -69,7 +78,7 @@ struct FGridStatus
 {
 	GENERATED_USTRUCT_BODY()
 
-		FGridStatus()
+	FGridStatus()
 		: MeshCountX(1)
 		, MeshCountY(1)
 		, MeshCountZ(1)
@@ -132,7 +141,8 @@ protected:
 		float m_Distance;																		//メッシュ同士の間隔
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
 		TEnumAsByte<EARRANGEMENT::Type> m_ArrangementType;		//メッシュをどのように並べるか
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
+		FSpiralStatus m_SpiralStatus;														//螺旋状に配置する際に設定するパラメーター
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
 		FGridStatus m_GridStatus;															//格子上に配置する際に設定するパラメーター
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting|Transform")
