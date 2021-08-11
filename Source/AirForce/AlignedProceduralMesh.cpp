@@ -30,6 +30,7 @@ AAlignedProceduralMesh::AAlignedProceduralMesh()
 	if (m_pMeshes)
 	{
 		RootComponent = m_pMeshes;
+		m_pMeshes->SetMobility(EComponentMobility::Static);
 	}
 }
 
