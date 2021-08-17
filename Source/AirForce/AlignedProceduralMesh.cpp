@@ -7,7 +7,7 @@
 //--------------------------------------------------------------------------------------------
 
 #include "AlignedProceduralMesh.h"
-#include "Components/InstancedStaticMeshComponent.h"
+#include "Components/HierarchicalInstancedStaticMeshComponent.h"
 
 // Sets default values
 AAlignedProceduralMesh::AAlignedProceduralMesh()
@@ -26,7 +26,7 @@ AAlignedProceduralMesh::AAlignedProceduralMesh()
 	PrimaryActorTick.bCanEverTick = false;
 
 	//メッシュインスタンス生成
-	m_pMeshes = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Meshes"));
+	m_pMeshes = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("Meshes"));
 	if (m_pMeshes)
 	{
 		RootComponent = m_pMeshes;
@@ -116,8 +116,9 @@ void AAlignedProceduralMesh::CreateGrid()
 //メッシュ情報の更新
 void AAlignedProceduralMesh::UpdateMesh()
 {
-	//NULLチェック
+	if (m_MeshCount == 0) { return; }
 	if (!m_pMeshes) { return; }
+	if (!m_pMeshes->GetStaticMesh()) { return; }
 	//更新される前のメッシュ情報をリセット
 	if ((int)m_pMeshes->GetInstanceCount() > 0) { m_pMeshes->ClearInstances(); }
 

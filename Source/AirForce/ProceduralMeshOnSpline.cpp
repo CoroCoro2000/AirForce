@@ -8,7 +8,7 @@
 //インクルード
 #include "ProceduralMeshOnSpline.h"
 #include "Components/SplineComponent.h"
-#include "Components/InstancedStaticMeshComponent.h"
+#include "Components/HierarchicalInstancedStaticMeshComponent.h"
 
 // Sets default values
 AProceduralMeshOnSpline::AProceduralMeshOnSpline()
@@ -31,7 +31,7 @@ AProceduralMeshOnSpline::AProceduralMeshOnSpline()
 	}
 
 	//メッシュコンポーネント生成
-	m_pMeshes = CreateDefaultSubobject<UInstancedStaticMeshComponent>("Meshes");
+	m_pMeshes = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>("Meshes");
 	if (m_pMeshes && m_pSpline)
 	{
 		m_pMeshes->SetupAttachment(m_pSpline);
@@ -57,13 +57,13 @@ void AProceduralMeshOnSpline::Tick(float DeltaTime)
 void AProceduralMeshOnSpline::UpdateMeshOnSpline()
 {
 	//NULLチェック
-	if (!m_pSpline || !m_pMeshes) { return; }
+	if (m_MeshCount == 0) { return; }
+	if (!m_pSpline) { return; }
+	if (!m_pMeshes) { return; }
+	if (!m_pMeshes->GetStaticMesh()) { return; }
 
-	if ((int)m_pMeshes->GetInstanceCount() > 0)
-	{
-		//変更前のメッシュ情報を削除
-		m_pMeshes->ClearInstances();
-	}
+	//変更前のメッシュ情報を削除
+	if ((int)m_pMeshes->GetInstanceCount() > 0) { m_pMeshes->ClearInstances(); }
 
 	//スプラインの長さを取得
 	const float splineLength = m_pSpline->GetSplineLength();

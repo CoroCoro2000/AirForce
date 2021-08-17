@@ -14,7 +14,7 @@
 #include "AlignedProceduralMesh.generated.h"
 
 //前方宣言
-class UInstancedStaticMeshComponent;
+class UHierarchicalInstancedStaticMeshComponent;
 
 //メッシュの並べ方を指定する列挙
 UENUM(BlueprintType)
@@ -134,7 +134,7 @@ private:
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		UInstancedStaticMeshComponent* m_pMeshes;							//メッシュ
+		UHierarchicalInstancedStaticMeshComponent* m_pMeshes;							//メッシュ
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
 		int m_MeshCount;																		//配置するメッシュの数
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")

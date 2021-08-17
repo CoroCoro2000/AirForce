@@ -23,22 +23,29 @@ class UCameraComponent;
 class UNiagaraSystem;
 
 //	視点切り替え
-UENUM()
-enum class GAMEMODE :uint8
+UENUM(BlueprintType)
+namespace EGAMEMODE
 {
-	GAMEMODE_FPS	UMETA(DisplayName = "FPS"),		//1人称
-	GAMEMODE_TPS	UMETA(DisplayName = "TPS"),		//3人称
-};
+	enum Type
+	{
+		GAMEMODE_FPS	UMETA(DisplayName = "FPS"),		//1人称
+		GAMEMODE_TPS	UMETA(DisplayName = "TPS"),		//3人称
+	};
+}
 
 //各軸の入力情報を管理する列挙
-UENUM()
-enum class INPUT_AXIS :uint8
+UENUM(BlueprintType)
+namespace EINPUT_AXIS
 {
-	THROTTLE = 0		UMETA(DisplayName = "INPUT_THROTTLE"),
-	ELEVATOR				UMETA(DisplayName = "INPUT_ELEVATOR"),
-	AILERON				UMETA(DisplayName = "INPUT_AILERON"),
-	LADDER					UMETA(DisplayName = "INPUT_LADDER"),
-};
+	enum Type
+	{
+		THROTTLE = 0			UMETA(DisplayName = "THROTTLE"),
+		ELEVATOR				UMETA(DisplayName = "ELEVATOR"),
+		AILERON					UMETA(DisplayName = "AILERON"),
+		LADDER					UMETA(DisplayName = "LADDER"),
+		NUM						UMETA(Hidden)
+	};
+}
 
 //--------------------------------------------------------------------
 //#define DEBUG_CAMERA			//カメラのデバッグ
@@ -76,7 +83,7 @@ private:
 	void Drone_Ladder(float _axisValue);
 
 	UFUNCTION(BlueprintCallable, Category = "GameMode")
-		void SwitchGameMode(const GAMEMODE GameMode) { m_GameMode = (GameMode == GAMEMODE::GAMEMODE_FPS ? GAMEMODE::GAMEMODE_TPS : GAMEMODE::GAMEMODE_FPS); }
+		void SwitchGameMode(const TEnumAsByte<EGAMEMODE::Type> GameMode) { m_GameMode = (GameMode == EGAMEMODE::GAMEMODE_FPS ? EGAMEMODE::GAMEMODE_TPS : EGAMEMODE::GAMEMODE_FPS); }
 
 	UFUNCTION(BlueprintCallable, Category = "GameMode")
 		void SwitchViewPort();
@@ -85,7 +92,7 @@ private:
 		UCameraComponent* GetCamera() const { return m_pCamera; }	//カメラ取得
 
 	UFUNCTION(BlueprintCallable, Category = "InputAxis")
-		float GetInputValue(const INPUT_AXIS _Axis)const { return m_AxisValue[(int)_Axis]; }
+		float GetInputValue(const TEnumAsByte<EINPUT_AXIS::Type> _Axis)const { return m_AxisValue[_Axis]; }
 
 
 	//カメラの初期設定
@@ -118,7 +125,7 @@ private:
 
 protected:
 	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "GameMode")
-		GAMEMODE m_GameMode;	//	視点切り替え
+		TEnumAsByte<EGAMEMODE::Type> m_GameMode;	//	視点切り替え
 
 	//-------------------------------------------------------------------------------------------------------
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerCamera")
@@ -145,8 +152,8 @@ private:
 
 	//入力
 	UPROPERTY(VisibleAnywhere)
-		bool m_bCanControl;								//入力可能かどうか
+		bool m_bCanControl;												//入力可能かどうか
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-		float m_AxisValue[4];							//各軸の入力値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
+		float m_AxisValue[EINPUT_AXIS::NUM];							//各軸の入力値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
 };

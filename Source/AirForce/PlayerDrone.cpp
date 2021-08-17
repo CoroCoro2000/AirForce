@@ -13,7 +13,6 @@
 //インクルード
 #include "PlayerDrone.h"
 #include "DroneBase.h"
-#include "DroneBullet.h"
 #include "Components/InputComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -27,7 +26,7 @@
 
 //コンストラクタ
 APlayerDrone::APlayerDrone()
-	: m_GameMode(GAMEMODE::GAMEMODE_TPS)
+	: m_GameMode(EGAMEMODE::GAMEMODE_TPS)
 	, m_pSpringArm(NULL)
 	, m_pCamera(NULL)
 	, m_CameraTargetLength(90.f)
@@ -158,23 +157,23 @@ float APlayerDrone::RightInputValueToWingAcceleration(const int _arrayIndex)
 	float wingsAccel[WING_ARRAY_MAX] = { 0.f,0.f,0.f,0.f };
 
 	//スロットルの入力がある時
-	if (m_AxisValue[(int)INPUT_AXIS::THROTTLE] != 0.f)
+	if (m_AxisValue[EINPUT_AXIS::THROTTLE] != 0.f)
 	{
 		for (float& wingAccel : wingsAccel)
 		{
-			wingAccel += m_AxisValue[(int)INPUT_AXIS::THROTTLE];
+			wingAccel += m_AxisValue[EINPUT_AXIS::THROTTLE];
 		}
 	}
 
 	//ラダーの入力がある時
-	if (m_AxisValue[(int)INPUT_AXIS::LADDER] != 0.f)
+	if (m_AxisValue[EINPUT_AXIS::LADDER] != 0.f)
 	{
 		//右入力がされているかどうか
-		const bool isRight = (m_AxisValue[(int)INPUT_AXIS::LADDER] > 0.f ? true : false);
-		wingsAccel[LF_WING] += FMath::Abs(m_AxisValue[(int)INPUT_AXIS::LADDER]) * (isRight ? -1.f : 1.f);
-		wingsAccel[LB_WING] += FMath::Abs(m_AxisValue[(int)INPUT_AXIS::LADDER]) * (isRight ? 1.f : -1.f);
-		wingsAccel[RF_WING] += FMath::Abs(m_AxisValue[(int)INPUT_AXIS::LADDER]) * (isRight ? 1.f : -1.f);
-		wingsAccel[RB_WING] += FMath::Abs(m_AxisValue[(int)INPUT_AXIS::LADDER]) * (isRight ? -1.f : 1.f);
+		const bool isRight = (m_AxisValue[EINPUT_AXIS::LADDER] > 0.f ? true : false);
+		wingsAccel[LF_WING] += FMath::Abs(m_AxisValue[EINPUT_AXIS::LADDER]) * (isRight ? -1.f : 1.f);
+		wingsAccel[LB_WING] += FMath::Abs(m_AxisValue[EINPUT_AXIS::LADDER]) * (isRight ? 1.f : -1.f);
+		wingsAccel[RF_WING] += FMath::Abs(m_AxisValue[EINPUT_AXIS::LADDER]) * (isRight ? 1.f : -1.f);
+		wingsAccel[RB_WING] += FMath::Abs(m_AxisValue[EINPUT_AXIS::LADDER]) * (isRight ? -1.f : 1.f);
 	}
 	return wingsAccel[_arrayIndex];
 }
@@ -185,21 +184,21 @@ float APlayerDrone::LeftInputValueToWingAcceleration(const int _arrayIndex)
 	float wingAccel[WING_ARRAY_MAX] = { 0.f,0.f,0.f,0.f };
 
 	//エレベーターの入力がある時
-	if (m_AxisValue[(int)INPUT_AXIS::ELEVATOR] != 0.f)
+	if (m_AxisValue[EINPUT_AXIS::ELEVATOR] != 0.f)
 	{
 		//前入力がされているかどうか
-		const bool isForward = (m_AxisValue[(int)INPUT_AXIS::ELEVATOR] > 0.f ? true : false);
-		wingAccel[(isForward ? LB_WING : LF_WING)] += FMath::Abs(m_AxisValue[(int)INPUT_AXIS::ELEVATOR]);
-		wingAccel[(isForward ? RB_WING : RF_WING)] += FMath::Abs(m_AxisValue[(int)INPUT_AXIS::ELEVATOR]);
+		const bool isForward = (m_AxisValue[EINPUT_AXIS::ELEVATOR] > 0.f ? true : false);
+		wingAccel[(isForward ? LB_WING : LF_WING)] += FMath::Abs(m_AxisValue[EINPUT_AXIS::ELEVATOR]);
+		wingAccel[(isForward ? RB_WING : RF_WING)] += FMath::Abs(m_AxisValue[EINPUT_AXIS::ELEVATOR]);
 	}
 
 	//エルロンの入力がある時
-	if (m_AxisValue[(int)INPUT_AXIS::AILERON] != 0.f)
+	if (m_AxisValue[EINPUT_AXIS::AILERON] != 0.f)
 	{
 		//右入力がされているかどうか
-		const bool isRight = (m_AxisValue[(int)INPUT_AXIS::AILERON] > 0.f ? true : false);
-		wingAccel[(isRight ? LF_WING : RF_WING)] += FMath::Abs(m_AxisValue[(int)INPUT_AXIS::AILERON]);
-		wingAccel[(isRight ? LB_WING : RB_WING)] += FMath::Abs(m_AxisValue[(int)INPUT_AXIS::AILERON]);
+		const bool isRight = (m_AxisValue[EINPUT_AXIS::AILERON] > 0.f ? true : false);
+		wingAccel[(isRight ? LF_WING : RF_WING)] += FMath::Abs(m_AxisValue[EINPUT_AXIS::AILERON]);
+		wingAccel[(isRight ? LB_WING : RB_WING)] += FMath::Abs(m_AxisValue[EINPUT_AXIS::AILERON]);
 	}
 	return wingAccel[_arrayIndex];
 }
@@ -208,8 +207,8 @@ float APlayerDrone::LeftInputValueToWingAcceleration(const int _arrayIndex)
 void APlayerDrone::UpdateWingAccle()
 {
 	//各スティックの入力の値をを取得
-	FVector2D RightAxis = FVector2D(m_AxisValue[(int)INPUT_AXIS::LADDER], m_AxisValue[(int)INPUT_AXIS::THROTTLE]);
-	FVector2D LeftAxis = FVector2D(m_AxisValue[(int)INPUT_AXIS::AILERON], m_AxisValue[(int)INPUT_AXIS::ELEVATOR]);
+	FVector2D RightAxis = FVector2D(m_AxisValue[EINPUT_AXIS::LADDER], m_AxisValue[EINPUT_AXIS::THROTTLE]);
+	FVector2D LeftAxis = FVector2D(m_AxisValue[EINPUT_AXIS::AILERON], m_AxisValue[EINPUT_AXIS::ELEVATOR]);
 
 	//入力がなければ終了
 	if ((RightAxis.IsZero() && LeftAxis.IsZero()) || !m_isControl)
@@ -267,8 +266,8 @@ void APlayerDrone::UpdateWingRotation(const float& DeltaTime)
 {
 	//2軸の入力量を合成する
 	const float InputValueSize = FMath::Clamp((
-		FVector2D(m_AxisValue[(int)INPUT_AXIS::LADDER], m_AxisValue[(int)INPUT_AXIS::THROTTLE]).Size() +
-		FVector2D(m_AxisValue[(int)INPUT_AXIS::AILERON], m_AxisValue[(int)INPUT_AXIS::ELEVATOR]).Size()) / 2,
+		FVector2D(m_AxisValue[EINPUT_AXIS::LADDER], m_AxisValue[EINPUT_AXIS::THROTTLE]).Size() +
+		FVector2D(m_AxisValue[EINPUT_AXIS::AILERON], m_AxisValue[EINPUT_AXIS::ELEVATOR]).Size()) / 2,
 		0.f, 1.f);
 
 	//毎秒m_rpsMax * WingAccel回分回転するために毎フレーム羽を回す角度を求める
@@ -416,17 +415,17 @@ void APlayerDrone::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 //【入力バインド】スロットル(上下)の入力があった場合呼び出される関数
 void APlayerDrone::Drone_Throttle(float _axisValue)
 {
-	m_AxisValue[(int)INPUT_AXIS::THROTTLE] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	m_AxisValue[EINPUT_AXIS::THROTTLE] = FMath::Clamp(_axisValue, -1.f, 1.f);
 
 	//入力された値が正なら
-	if (m_AxisValue[(int)INPUT_AXIS::THROTTLE] > 0.f)
+	if (m_AxisValue[EINPUT_AXIS::THROTTLE] > 0.f)
 	{
 		//上昇移動フラグを立てる
 		m_MoveDirectionFlag.sFlag.Up = true;
 		m_MoveDirectionFlag.sFlag.Down = false;
 	}
 	//入力された値が負なら
-	else if (m_AxisValue[(int)INPUT_AXIS::THROTTLE] < 0.f)
+	else if (m_AxisValue[EINPUT_AXIS::THROTTLE] < 0.f)
 	{
 		//下降移動フラグを立てる
 		m_MoveDirectionFlag.sFlag.Up = false;
@@ -435,7 +434,7 @@ void APlayerDrone::Drone_Throttle(float _axisValue)
 	//値が入力されていないなら
 	else
 	{
-		m_AxisValue[(int)INPUT_AXIS::THROTTLE] = 0.f;
+		m_AxisValue[EINPUT_AXIS::THROTTLE] = 0.f;
 		m_MoveDirectionFlag.sFlag.Up = false;
 		m_MoveDirectionFlag.sFlag.Down = false;
 	}
@@ -444,17 +443,17 @@ void APlayerDrone::Drone_Throttle(float _axisValue)
 //【入力バインド】エレベーター(前後)の入力があった場合呼び出される関数
 void APlayerDrone::Drone_Elevator(float _axisValue)
 {
-	m_AxisValue[(int)INPUT_AXIS::ELEVATOR] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	m_AxisValue[EINPUT_AXIS::ELEVATOR] = FMath::Clamp(_axisValue, -1.f, 1.f);
 
 	//入力された値が正なら
-	if (m_AxisValue[(int)INPUT_AXIS::ELEVATOR] > 0.f)
+	if (m_AxisValue[EINPUT_AXIS::ELEVATOR] > 0.f)
 	{
 		//前方移動フラグを立てる
 		m_MoveDirectionFlag.sFlag.Forward = true;
 		m_MoveDirectionFlag.sFlag.Backward = false;
 	}
 	//入力された値が負なら
-	else if (m_AxisValue[(int)INPUT_AXIS::ELEVATOR] < 0.f)
+	else if (m_AxisValue[EINPUT_AXIS::ELEVATOR] < 0.f)
 	{
 		//後方移動フラグを立てる
 		m_MoveDirectionFlag.sFlag.Forward = false;
@@ -471,17 +470,17 @@ void APlayerDrone::Drone_Elevator(float _axisValue)
 //【入力バインド】エルロン(左右)の入力があった場合呼び出される関数
 void APlayerDrone::Drone_Aileron(float _axisValue)
 {
-	m_AxisValue[(int)INPUT_AXIS::AILERON] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	m_AxisValue[EINPUT_AXIS::AILERON] = FMath::Clamp(_axisValue, -1.f, 1.f);
 
 	//入力された値が正なら
-	if (m_AxisValue[(int)INPUT_AXIS::AILERON] > 0.f)
+	if (m_AxisValue[EINPUT_AXIS::AILERON] > 0.f)
 	{
 		//右移動フラグを立てる
 		m_MoveDirectionFlag.sFlag.Right = true;
 		m_MoveDirectionFlag.sFlag.Left = false;
 	}
 	//入力された値が負なら
-	else if (m_AxisValue[(int)INPUT_AXIS::AILERON] < 0.f)
+	else if (m_AxisValue[EINPUT_AXIS::AILERON] < 0.f)
 	{
 		//左移動フラグを立てる
 		m_MoveDirectionFlag.sFlag.Right = false;
@@ -498,17 +497,17 @@ void APlayerDrone::Drone_Aileron(float _axisValue)
 //【入力バインド】ラダー(旋回)の入力があった場合呼び出される関数
 void APlayerDrone::Drone_Ladder(float _axisValue)
 {
-	m_AxisValue[(int)INPUT_AXIS::LADDER] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	m_AxisValue[EINPUT_AXIS::LADDER] = FMath::Clamp(_axisValue, -1.f, 1.f);
 
 	//入力された値が正なら
-	if (m_AxisValue[(int)INPUT_AXIS::LADDER] > 0.f)
+	if (m_AxisValue[EINPUT_AXIS::LADDER] > 0.f)
 	{
 		//右旋回フラグを立てる
 		m_MoveDirectionFlag.sFlag.RightTurning = true;
 		m_MoveDirectionFlag.sFlag.LeftTurning = false;
 	}
 	//入力された値が負なら
-	else if (m_AxisValue[(int)INPUT_AXIS::LADDER] < 0.f)
+	else if (m_AxisValue[EINPUT_AXIS::LADDER] < 0.f)
 	{
 		//左旋回フラグを立てる
 		m_MoveDirectionFlag.sFlag.RightTurning = false;

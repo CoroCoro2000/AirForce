@@ -15,7 +15,7 @@
 
 //前方宣言
 class USplineComponent;
-class UInstancedStaticMeshComponent;
+class UHierarchicalInstancedStaticMeshComponent;
 
 //デバッグ用define
 //#define DEBUG_TRANSFORM			//トランスフォームのログ出力
@@ -49,7 +49,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline")
 		USplineComponent* m_pSpline;							//オブジェクトを配置する位置を示すスプライン
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		UInstancedStaticMeshComponent* m_pMeshes;	//スプライン上に配置されるメッシュ
+		UHierarchicalInstancedStaticMeshComponent* m_pMeshes;	//スプライン上に配置されるメッシュ
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
 		int m_MeshCount;												//配置するメッシュの数
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
