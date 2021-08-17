@@ -33,6 +33,17 @@ namespace EGAMEMODE
 	};
 }
 
+//ドローンの操作状態列挙
+UENUM(BlueprintType)
+namespace EDRONEMODE
+{
+	enum Type
+	{
+		DRONEMODE_AUTOMATICK	UMETA(DisplayName = "AUTO"),	//オートマチック
+		DRONEMODE_MANUAL		UMETA(DisplayName = "MANUAL")	//マニュアル
+	};
+}
+
 //各軸の入力情報を管理する列挙
 UENUM(BlueprintType)
 namespace EINPUT_AXIS
@@ -127,6 +138,8 @@ protected:
 	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "GameMode")
 		TEnumAsByte<EGAMEMODE::Type> m_GameMode;	//	視点切り替え
 
+	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "GameMode")
+		TEnumAsByte<EDRONEMODE::Type> m_DroneMode;	//	ドローン操作切り替え
 	//-------------------------------------------------------------------------------------------------------
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerCamera")
 		USpringArmComponent* m_pSpringArm;

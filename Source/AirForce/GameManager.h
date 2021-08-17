@@ -130,6 +130,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int GetRapMiliSecond()const { return (m_RapTime - (int)m_RapTime) * 1000; }
 
+	//ゴール地点のリングの番号取得
+	UFUNCTION(BlueprintCallable, Category = "Stage")
+		int GetGoalRingNumber()const { return m_GoalRing->GetRingNumber(); }
 	//レース後のシーン遷移取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		ENEXTSCENE GetNextScene()const { return m_NextScene.GetNextScene(); }

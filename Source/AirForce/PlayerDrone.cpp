@@ -27,6 +27,7 @@
 //コンストラクタ
 APlayerDrone::APlayerDrone()
 	: m_GameMode(EGAMEMODE::GAMEMODE_TPS)
+	, m_DroneMode(EDRONEMODE::DRONEMODE_AUTOMATICK)
 	, m_pSpringArm(NULL)
 	, m_pCamera(NULL)
 	, m_CameraTargetLength(90.f)
@@ -319,20 +320,59 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 		(m_pWings[RF_WING]->AccelState + m_pWings[LB_WING]->AccelState) - (m_pWings[LF_WING]->AccelState + m_pWings[RB_WING]->AccelState));
 	m_AngularVelocity.Z *= 0.5f;
 
-	//角速度の取得(yaw軸は含めない)
-	float angularVelocity = FVector(m_AngularVelocity.X, m_AngularVelocity.Y, 0.f).Size();
-	//角速度をradに変換
-	float radAngularVelocity = FMath::DegreesToRadians(angularVelocity);
-	//重力 / 角速度 ^ 2でドローンが円運動するときの半径を求める
-	float radius = Gravity.Size() / (radAngularVelocity * radAngularVelocity);
-	//半径 * 角速度 ^ 2で遠心力を取得
-	if (m_AngularVelocity != FVector::ZeroVector)
+	//	オートマチックで操作するとき
+	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
 	{
-		Centrifugalforce = FVector(0.f, 0.f, radius * (radAngularVelocity * radAngularVelocity));
+		float deg = 15.f;
+		/*if ((m_pBodyMesh->GetRelativeRotation().Pitch > deg && m_AngularVelocity .Y < 0.f) || (m_pBodyMesh->GetRelativeRotation().Pitch < -deg && m_AngularVelocity.Y > 0.f))
+			m_AngularVelocity.Y = 0.f;*/
+			//前後にドローンが傾きすぎないように補正
+		if ((m_pBodyMesh->GetRelativeRotation().Pitch < -deg) && (m_AngularVelocity.Y < 0.f) || (m_pBodyMesh->GetRelativeRotation().Pitch > deg) && (m_AngularVelocity.Y > 0.f))
+		{
+			m_AngularVelocity.Y = 0.f;
+		}
+		else if ((m_pBodyMesh->GetRelativeRotation().Pitch > 0.f) && (m_AngularVelocity.Y == 0.f))
+		{
+			m_AngularVelocity.Y = -1.f;
+		}
+		else if ((m_pBodyMesh->GetRelativeRotation().Pitch < 0.f) && (m_AngularVelocity.Y == 0.f))
+		{
+			m_AngularVelocity.Y = 1.f;
+		}
+
+		//左右にドローンが傾きすぎないように補正
+		if ((m_pBodyMesh->GetRelativeRotation().Roll < -deg) && (m_AngularVelocity.X < 0.f) || (m_pBodyMesh->GetRelativeRotation().Roll > deg) && (m_AngularVelocity.X > 0.f))
+		{
+			m_AngularVelocity.X = 0.f;
+		}
+		else if ((m_pBodyMesh->GetRelativeRotation().Roll > 0.f) && (m_AngularVelocity.X == 0.f))
+		{
+			m_AngularVelocity.X = -1.f;
+		}
+		else if ((m_pBodyMesh->GetRelativeRotation().Roll < 0.f) && (m_AngularVelocity.X == 0.f))
+		{
+			m_AngularVelocity.X = 1.f;
+		}
 	}
+
+	//アマチュアで操作するとき
 	else
 	{
-		Centrifugalforce = FVector::ZeroVector;
+		//角速度の取得(yaw軸は含めない)
+		float angularVelocity = FVector(m_AngularVelocity.X, m_AngularVelocity.Y, 0.f).Size();
+		//角速度をradに変換
+		float radAngularVelocity = FMath::DegreesToRadians(angularVelocity);
+		//重力 / 角速度 ^ 2でドローンが円運動するときの半径を求める
+		float radius = Gravity.Size() / (radAngularVelocity * radAngularVelocity);
+		//半径 * 角速度 ^ 2で遠心力を取得
+		if (m_AngularVelocity != FVector::ZeroVector)
+		{
+			Centrifugalforce = FVector(0.f, 0.f, radius * (radAngularVelocity * radAngularVelocity));
+		}
+		else
+		{
+			Centrifugalforce = FVector::ZeroVector;
+		}
 	}
 
 	//オイラー角をクォータニオンに変換
@@ -344,8 +384,19 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 //速度更新処理
 void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 {
-	Super::UpdateSpeed(DeltaTime);
+	//Super::UpdateSpeed(DeltaTime);
 
+	//オートマチックで操作するとき
+	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
+	{
+		float speed = 5.f;
+		FVector Auto = FVector::ZeroVector;
+		Auto += m_pCamera->GetRightVector() * m_AxisValue[(int)EINPUT_AXIS::AILERON] * speed;
+		Auto += m_pCamera->GetForwardVector() * -m_AxisValue[(int)EINPUT_AXIS::ELEVATOR] * speed;
+		//FVector z = m_pCamera->GetUpVector() * m_AxisValue[(int)INPUT_AXIS::THROTTLE] * Buoyancy * speed + Gravity;
+		Auto += m_pCamera->GetUpVector() * m_AxisValue[(int)EINPUT_AXIS::THROTTLE] * speed * 0.5f;
+		AddActorWorldOffset(Auto, true);
+	}
 }
 
 //重心移動処理
@@ -387,7 +438,8 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 
 	FRotator Camera = FRotator::ZeroRotator;
 	Camera.Pitch = GetActorRotation().Pitch * -1.f;
-
+	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
+		Camera.Roll = GetActorRotation().Roll * -1.f;
 	FVector Direction = m_pBodyMesh->GetUpVector();
 
 	m_pSpringArm->SetRelativeRotation(Camera.Quaternion());
@@ -415,7 +467,10 @@ void APlayerDrone::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 //【入力バインド】スロットル(上下)の入力があった場合呼び出される関数
 void APlayerDrone::Drone_Throttle(float _axisValue)
 {
-	m_AxisValue[EINPUT_AXIS::THROTTLE] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	if (m_isControl)
+		m_AxisValue[EINPUT_AXIS::THROTTLE] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	else
+		m_AxisValue[EINPUT_AXIS::THROTTLE] = 0.f;
 
 	//入力された値が正なら
 	if (m_AxisValue[EINPUT_AXIS::THROTTLE] > 0.f)
@@ -443,7 +498,10 @@ void APlayerDrone::Drone_Throttle(float _axisValue)
 //【入力バインド】エレベーター(前後)の入力があった場合呼び出される関数
 void APlayerDrone::Drone_Elevator(float _axisValue)
 {
-	m_AxisValue[EINPUT_AXIS::ELEVATOR] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	if (m_isControl)
+		m_AxisValue[EINPUT_AXIS::ELEVATOR] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	else
+		m_AxisValue[EINPUT_AXIS::ELEVATOR] = 0.f;
 
 	//入力された値が正なら
 	if (m_AxisValue[EINPUT_AXIS::ELEVATOR] > 0.f)
@@ -470,7 +528,10 @@ void APlayerDrone::Drone_Elevator(float _axisValue)
 //【入力バインド】エルロン(左右)の入力があった場合呼び出される関数
 void APlayerDrone::Drone_Aileron(float _axisValue)
 {
-	m_AxisValue[EINPUT_AXIS::AILERON] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	if (m_isControl)
+		m_AxisValue[EINPUT_AXIS::AILERON] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	else
+		m_AxisValue[EINPUT_AXIS::AILERON] = 0.f;
 
 	//入力された値が正なら
 	if (m_AxisValue[EINPUT_AXIS::AILERON] > 0.f)
@@ -497,7 +558,10 @@ void APlayerDrone::Drone_Aileron(float _axisValue)
 //【入力バインド】ラダー(旋回)の入力があった場合呼び出される関数
 void APlayerDrone::Drone_Ladder(float _axisValue)
 {
-	m_AxisValue[EINPUT_AXIS::LADDER] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	if(m_isControl)
+		m_AxisValue[EINPUT_AXIS::LADDER] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	else
+		m_AxisValue[EINPUT_AXIS::LADDER] = 0.f;
 
 	//入力された値が正なら
 	if (m_AxisValue[EINPUT_AXIS::LADDER] > 0.f)
