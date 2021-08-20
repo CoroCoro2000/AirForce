@@ -50,10 +50,10 @@ namespace EINPUT_AXIS
 {
 	enum Type
 	{
-		THROTTLE = 0			UMETA(DisplayName = "THROTTLE"),
-		ELEVATOR				UMETA(DisplayName = "ELEVATOR"),
-		AILERON					UMETA(DisplayName = "AILERON"),
-		LADDER					UMETA(DisplayName = "LADDER"),
+		THROTTLE = 0			UMETA(DisplayName = "THROTTLE"),	//上下
+		ELEVATOR				UMETA(DisplayName = "ELEVATOR"),	//前後
+		AILERON					UMETA(DisplayName = "AILERON"),		//左右
+		LADDER					UMETA(DisplayName = "LADDER"),		//旋回
 		NUM						UMETA(Hidden)
 	};
 }
@@ -119,6 +119,9 @@ private:
 	//羽の加速度更新処理
 	virtual void UpdateWingAccle();
 
+	//入力の加速度更新処理
+	virtual void UpdateAxisAcceleration(const float& DeltaTime);
+
 	//ステート更新処理
 	virtual void UpdateState()override;
 	//重心移動処理
@@ -169,4 +172,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
 		float m_AxisValue[EINPUT_AXIS::NUM];							//各軸の入力値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
+
+	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
+		float m_AxisAcceleration[EINPUT_AXIS::NUM];							//各軸の入力の加速値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
 };

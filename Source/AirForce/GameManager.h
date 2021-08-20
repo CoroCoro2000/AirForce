@@ -18,21 +18,27 @@
 
 //シーン管理列挙
 UENUM(BlueprintType)
-enum class ECURRENTSCENE : uint8
+namespace ECURRENTSCENE
 {
-	SCENE_TITLE = 0		UMETA(DisPlayName = "TITLE"),
-	SCENE_FIRST 			UMETA(DisPlayName = "FIRST"),
-	SCENE_RESULT		UMETA(DisPlayName = "RESULT"),
-};
+	enum Type
+	{
+		SCENE_TITLE = 0		UMETA(DisPlayName = "TITLE"),
+		SCENE_FIRST 			UMETA(DisPlayName = "FIRST"),
+		SCENE_RESULT			UMETA(DisPlayName = "RESULT"),
+	};
+}
 
 //シーン管理列挙
 UENUM(BlueprintType)
-enum class ENEXTSCENE : uint8
+namespace ENEXTSCENE
 {
-	SCENE_ONCEMORE = 0		UMETA(DisPlayName = "ONCEMORE"),
-	SCENE_RASECHANGE		UMETA(DisPlayName = "RASECHANGE"),
-	SCENE_EXIT				UMETA(DisPlayName = "EXIT"),
-};
+	enum Type
+	{
+		SCENE_ONCEMORE = 0		UMETA(DisPlayName = "ONCEMORE"),
+		SCENE_RASECHANGE			UMETA(DisPlayName = "RASECHANGE"),
+		SCENE_EXIT						UMETA(DisPlayName = "EXIT"),
+	};
+}
 
 USTRUCT(BlueprintType)
 struct FNEXTSCENE
@@ -45,24 +51,24 @@ public:
 	{}
 
 	FNEXTSCENE operator++(int) {
-		_NextScene= ENEXTSCENE((int)_NextScene + 1);
+		_NextScene= TEnumAsByte<ENEXTSCENE::Type>(_NextScene + 1);
 		return *this;
 	}
 
 	FNEXTSCENE operator--(int) { 
-		_NextScene = ENEXTSCENE((int)_NextScene - 1);
+		_NextScene = TEnumAsByte<ENEXTSCENE::Type>(_NextScene - 1);
 	return *this; 
 	}
 
-	void operator=(ENEXTSCENE n) { _NextScene = n; }
-	bool operator>(int n) { return (int)_NextScene > n ? true : false; }
-	bool operator<(int n) { return (int)_NextScene < n ? true : false; }
-	bool operator==(int n) { return (int)_NextScene == n ? true : false; }
+	void operator=(TEnumAsByte<ENEXTSCENE::Type> n) { _NextScene = n; }
+	bool operator>(int n) { return _NextScene > n ? true : false; }
+	bool operator<(int n) { return _NextScene < n ? true : false; }
+	bool operator==(int n) { return _NextScene == n ? true : false; }
 
-		ENEXTSCENE GetNextScene()const { return _NextScene; }
+	TEnumAsByte<ENEXTSCENE::Type> GetNextScene()const { return _NextScene; }
 public:
 	UPROPERTY(EditAnywhere, Category = "FNEXTSCENE", DisplayName = "NEXTSCENE")
-		ENEXTSCENE _NextScene;
+		TEnumAsByte<ENEXTSCENE::Type> _NextScene;
 };
 
 UCLASS()
@@ -105,9 +111,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetIsGoal()const { return m_isGoal; }
 
-	void SetIsGoal(bool _b) { m_isGoal = _b; }
-
-
 	//	ゴールの確認
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetConfirmationGoal(int _GetRingAcquisition, int _GoalRingNum) { return (_GetRingAcquisition >= _GoalRingNum) ? true : false; }
@@ -135,13 +138,13 @@ public:
 		int GetGoalRingNumber()const { return m_GoalRing->GetRingNumber(); }
 	//レース後のシーン遷移取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
-		ENEXTSCENE GetNextScene()const { return m_NextScene.GetNextScene(); }
+		TEnumAsByte<ENEXTSCENE::Type> GetNextScene()const { return m_NextScene.GetNextScene(); }
 	//小数第n位未満切り捨て
 	void SetRapTimeDecimalTruncation(float n);
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Flag")
-		ECURRENTSCENE m_CurrentScene;				//現在のシーンステート
+		TEnumAsByte<ECURRENTSCENE::Type> m_CurrentScene;				//現在のシーンステート
 	UPROPERTY(EditAnywhere, Category = "Flag")
 		FNEXTSCENE m_NextScene;						//次のシーンステート
 

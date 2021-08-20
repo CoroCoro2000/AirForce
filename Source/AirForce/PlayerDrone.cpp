@@ -110,6 +110,12 @@ void APlayerDrone::Tick(float DeltaTime)
 	//羽の更新処理
 	UpdateWingRotation(DeltaTime);
 
+	//入力の加速度更新処理
+	UpdateAxisAcceleration(DeltaTime);
+
+	//回転処理
+	UpdateRotation(DeltaTime);
+
 	//移動処理
 	UpdateSpeed(DeltaTime);
 
@@ -301,10 +307,45 @@ void APlayerDrone::UpdateWingRotation(const float& DeltaTime)
 	}
 }
 
+//入力の加速度更新処理
+void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
+{
+	for (int i = 0; i < EINPUT_AXIS::NUM; i++)
+	{
+		//浮力がホバリング状態より大きいとき
+		if (m_AxisValue[i] > 0.f)
+		{
+			if (m_AxisAcceleration[i] < 1.5f)
+			{
+				m_AxisAcceleration[i] += m_AxisValue[i] * DeltaTime;
+			}
+		}
+		//浮力がホバリング状態より小さい時
+		else if (m_AxisValue[i] < 0.f)
+		{
+			if (m_AxisAcceleration[i] > -1.5f)
+			{
+				m_AxisAcceleration[i] += m_AxisValue[i] * DeltaTime;
+			}
+		}
+		//浮力が重力と釣り合う時(ホバリング状態)
+		else
+		{
+			if (m_AxisAcceleration[i] == m_AxisAcceleration[EINPUT_AXIS::LADDER])
+				m_AxisAcceleration[i] = 0.f;
+
+			m_AxisAcceleration[i] *= 0.98f;
+			m_AxisAcceleration[i] = SetDecimalTruncation(m_AxisAcceleration[i], 3.f);
+		}
+
+		m_AxisAcceleration[i] = FMath::Clamp(m_AxisAcceleration[i], -1.5f, 1.5f);
+	}
+}
+
 //ドローンの回転処理
 void APlayerDrone::UpdateRotation(const float& DeltaTime)
 {
-	Super::UpdateRotation(DeltaTime);
+	//Super::UpdateRotation(DeltaTime);
 
 	//NULLチェック
 	if (!m_pBodyMesh) { return; }
@@ -318,16 +359,14 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 		(m_pWings[LF_WING]->AccelState + m_pWings[LB_WING]->AccelState) - (m_pWings[RF_WING]->AccelState + m_pWings[RB_WING]->AccelState),
 		(m_pWings[LB_WING]->AccelState + m_pWings[RB_WING]->AccelState) - (m_pWings[LF_WING]->AccelState + m_pWings[RF_WING]->AccelState),
 		(m_pWings[RF_WING]->AccelState + m_pWings[LB_WING]->AccelState) - (m_pWings[LF_WING]->AccelState + m_pWings[RB_WING]->AccelState));
-	m_AngularVelocity.Z *= 0.5f;
+	m_AngularVelocity.Z = FMath::Abs(m_AngularVelocity.Z) * m_AxisAcceleration[EINPUT_AXIS::LADDER];
 
 	//	オートマチックで操作するとき
 	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
 	{
 		float deg = 15.f;
-		/*if ((m_pBodyMesh->GetRelativeRotation().Pitch > deg && m_AngularVelocity .Y < 0.f) || (m_pBodyMesh->GetRelativeRotation().Pitch < -deg && m_AngularVelocity.Y > 0.f))
-			m_AngularVelocity.Y = 0.f;*/
-			//前後にドローンが傾きすぎないように補正
-		if ((m_pBodyMesh->GetRelativeRotation().Pitch < -deg) && (m_AngularVelocity.Y < 0.f) || (m_pBodyMesh->GetRelativeRotation().Pitch > deg) && (m_AngularVelocity.Y > 0.f))
+		//前後にドローンが傾きすぎないように補正
+		if (((m_pBodyMesh->GetRelativeRotation().Pitch < -deg) && (m_AngularVelocity.Y < 0.f) )|| ( (m_pBodyMesh->GetRelativeRotation().Pitch > deg) && (m_AngularVelocity.Y > 0.f)))
 		{
 			m_AngularVelocity.Y = 0.f;
 		}
@@ -375,9 +414,11 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 		}
 	}
 
+
 	//オイラー角をクォータニオンに変換
-	FQuat qAngularVelocity = FQuat::MakeFromEuler(m_AngularVelocity * 1.5f);
+	FQuat qAngularVelocity = FQuat::MakeFromEuler(m_AngularVelocity);
 	//ドローンを回転させる
+	//UE_LOG(LogTemp, Warning, TEXT("qAngularVelocity:%s"), *qAngularVelocity.ToString());
 	m_pBodyMesh->AddLocalRotation(qAngularVelocity * MOVE_CORRECTION, true);
 }
 
@@ -389,13 +430,13 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 	//オートマチックで操作するとき
 	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
 	{
-		float speed = 5.f;
+		float speed = 3.5f;
 		FVector Auto = FVector::ZeroVector;
-		Auto += m_pCamera->GetRightVector() * m_AxisValue[(int)EINPUT_AXIS::AILERON] * speed;
-		Auto += m_pCamera->GetForwardVector() * -m_AxisValue[(int)EINPUT_AXIS::ELEVATOR] * speed;
-		//FVector z = m_pCamera->GetUpVector() * m_AxisValue[(int)INPUT_AXIS::THROTTLE] * Buoyancy * speed + Gravity;
-		Auto += m_pCamera->GetUpVector() * m_AxisValue[(int)EINPUT_AXIS::THROTTLE] * speed * 0.5f;
-		AddActorWorldOffset(Auto, true);
+		Auto += m_pCamera->GetForwardVector() * speed * -m_AxisAcceleration[EINPUT_AXIS::ELEVATOR];
+		Auto += m_pCamera->GetRightVector() * speed * m_AxisAcceleration[EINPUT_AXIS::AILERON];
+		Auto += m_pCamera->GetUpVector() * speed * m_AxisAcceleration[EINPUT_AXIS::THROTTLE];
+		m_Speed = Auto.Size();
+		AddActorWorldOffset(Auto * MOVE_CORRECTION, true);
 	}
 }
 

@@ -88,7 +88,7 @@ void UColorLightComponent::UpdateColorChangeCnt(const float& DeltaTime)
 	{
 		//色変えカウンタリセット、次の色のステップに移行する
 		m_ColorChangeCnt = 0.f;
-		m_ColorState = (m_ColorState + 1) % ECOLOR_STATE::ENUM_SIZE;
+		m_ColorState = (m_ColorState + 1) % ECOLOR_STATE::NUM;
 	}
 }
 

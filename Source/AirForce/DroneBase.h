@@ -232,6 +232,9 @@ protected:
 	//d—ÍXVˆ—
 	float UpdateGravity(const float& DeltaTime);
 
+	//¬”‘ænˆÊ–¢–Ø‚èÌ‚Ä
+	virtual float SetDecimalTruncation(float value, float n);
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "Mesh|Body")
 		UStaticMeshComponent* m_pBodyMesh;

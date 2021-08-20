@@ -11,29 +11,26 @@
 #include "Utility/GameUtility.h"
 #include "Components/StaticMeshComponent.h"
 #include "ColorLightComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
-#include "DroneBase.h"
 #include "PlayerDrone.h"
 #include "Curves/CurveFloat.h"
 #include "UObject/ConstructorHelpers.h"
 
 //コンストラクタ
 ARing::ARing()
-	: m_pColorLightComp(NULL)
-	, m_pRingMesh(NULL)
-	, m_RingNumber(0)
-	, m_RingDrawUpNumber(0)
+	: m_pRingMesh(NULL)
 	, m_pNiagaraEffectComp(NULL)
+	, m_pColorLightComp(NULL)
+	, m_RingNumber(0)
 	, m_bIsPassed(false)
+	, m_bDestroy(false)
 	, m_MakeInvisibleCnt(0.f)
-	, m_MakeInvisibleTime(3.f)
+	, m_MakeInvisibleTime(1.5f)
+	, m_InvisibleCntRate(0.f)
 	, m_pScaleCurve(NULL)
+	, m_PassedDroneLocation(FVector::ZeroVector)
 {
-	//カラーコンポーネント生成
-	m_pColorLightComp = CreateDefaultSubobject<UColorLightComponent>(TEXT("m_pColorLightComp"));
-
 	//メッシュ生成
 	m_pRingMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("m_pRingMesh"));
 	if (m_pRingMesh)
@@ -47,6 +44,9 @@ ARing::ARing()
 	{
 		m_pNiagaraEffectComp->SetupAttachment(m_pRingMesh);
 	}
+
+	//カラーコンポーネント生成
+	m_pColorLightComp = CreateDefaultSubobject<UColorLightComponent>(TEXT("m_pColorLightComp"));
 
 	//スケールの大きさの値を取り出すカーブオブジェクト生成
 	ConstructorHelpers::FObjectFinder<UCurveFloat> pRingScaleCurve(TEXT("CurveFloat'/Game/Effect/Ring/Curve/RingScale_Curve.RingScale_Curve'"));
@@ -69,16 +69,11 @@ void ARing::BeginPlay()
 	//オーバーラップ開始時に呼ばれるイベント関数を登録
 	m_pRingMesh->OnComponentBeginOverlap.AddDynamic(this, &ARing::OnOverlapBegin);
 
-	//ドローンを検索し、情報を保持する
-	AActor* FindDrone = CGameUtility::GetActorFromTag(this, TEXT("Drone"));
-	if (FindDrone)
-	{
-		m_pDrone = Cast<APlayerDrone>(FindDrone);
-	}
-
+	//カラーコンポーネントの初期設定
 	m_pColorLightComp->InitializeMaterialParameter(m_pRingMesh, true);
 	m_pColorLightComp->Activate(true);
 
+	//エフェクトコンポーネント初期化
 	m_pNiagaraEffectComp->SetRelativeLocation(FVector::ZeroVector);
 	m_pNiagaraEffectComp->SetRelativeRotation(FRotator::ZeroRotator);
 	m_pNiagaraEffectComp->SetRelativeScale3D(FVector::OneVector);
@@ -89,61 +84,79 @@ void ARing::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (m_pColorLightComp && m_pRingMesh)
-	{
-		//リングの色を更新
-		m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("EmissiveColor"), m_pColorLightComp->GetVectorColor());
-	}
-	m_pRingMesh->SetGenerateOverlapEvents(isDraw());
-	m_pRingMesh->SetHiddenInGame(!isDraw());
-	//リングが通過されたなら
+	//カラー更新
+	UpdateColor(DeltaTime);
+
+	//トランスフォーム更新
+	UpdateTransform(DeltaTime);
+}
+
+//リングの色の更新処理
+void ARing::UpdateColor(const float& DeltaTime)
+{
+	if (!m_pColorLightComp || !m_pRingMesh || !m_pNiagaraEffectComp) { return; }
+	
+	//リングの色を更新
+	m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("EmissiveColor"), m_pColorLightComp->GetVectorColor());
+	
+	//リングをプレイヤーがくぐっていたら
 	if (m_bIsPassed)
 	{
 		//エフェクトの色をメッシュと同じ色にする
 		m_pNiagaraEffectComp->SetNiagaraVariableLinearColor(TEXT("User.Color"), m_pColorLightComp->GetVectorColor());
+
+		//完全に見えなくなるまで時間をカウント
 		if (m_MakeInvisibleTime > m_MakeInvisibleCnt)
 		{
-			//完全に見えなくなるまで時間をカウント
 			m_MakeInvisibleCnt += DeltaTime;
-			if (m_pRingMesh && m_pNiagaraEffectComp && m_pScaleCurve && m_pDrone)
-			{
-				//メッシュとエフェクトの不透明度を下げていく
-				const float MeshCountRate = FMath::Clamp(m_MakeInvisibleCnt / (m_MakeInvisibleTime * 0.5f), 0.f, 1.f);
-				const float EffectCountRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
-				const float MeshOpacity = FMath::Lerp(1.f, 0.f, MeshCountRate);
-				const float EffectOpacity = FMath::Lerp(1.f, 0.f, EffectCountRate);
-				const FVector RingLocation = FMath::Lerp(GetActorLocation(), m_pDrone->GetActorLocation(), EffectCountRate);
-				const float Scale = m_pScaleCurve->GetFloatValue(m_MakeInvisibleCnt);
+			m_InvisibleCntRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
+			const float MeshOpacity = FMath::Lerp(1.f, 0.f, m_InvisibleCntRate);
 
-				m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), MeshOpacity);
-				m_pNiagaraEffectComp->SetNiagaraVariableFloat(TEXT("User.Opacity"), EffectOpacity);
-
-				//リングを小さくしていく
-
-				if (Scale > 0.f)
-				{
-					SetActorScale3D(FVector(Scale));
-					SetActorLocation(RingLocation);
-				}
-				
-				if (EffectOpacity <= 0.f)
-				{
-					//リングが見えなくなったら破棄する
-					this->Destroy();
-				}
-			}
+			//メッシュの不透明度を下げる
+			m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), MeshOpacity);
 		}
 	}
 }
 
-bool ARing::isDraw()
+//リングのトランスフォーム更新
+void ARing::UpdateTransform(const float& DeltaTime)
 {
-	if (!m_pDrone)
+	if (!m_bIsPassed) { return; }
+	if (!m_pRingMesh || !m_pScaleCurve) { return; }
+
+	//カウントの進行度で座標と大きさを決める
+	const FVector RingLocation = FMath::Lerp(GetActorLocation(), m_PassedDroneLocation, m_InvisibleCntRate);
+	const float Scale = m_pScaleCurve->GetFloatValue(m_MakeInvisibleCnt);
+
+	//リングを縮めながらプレイヤーを追うように移動する
+	if (Scale > 0.f)
 	{
-		return false;
+		SetActorScale3D(FVector(Scale));
+		SetActorLocation(RingLocation);
+	}
+	else
+	{
+		m_bDestroy = true;
 	}
 
-	return  (m_RingNumber - m_pDrone->GetRingAcquisition() <= m_RingDrawUpNumber ? true : false);
+	if (m_bDestroy)
+	{
+		//リングが見えなくなったらリングを消す
+		this->Destroy();
+	}
+}
+
+//リングをアクティブ化する
+void ARing::SetActivate(const bool& _isActive)
+{
+	if (!m_pRingMesh) { return; }
+
+	//メッシュのオーバーラップイベントと可視性のON/OFFを切り替える
+	m_pRingMesh->SetGenerateOverlapEvents(_isActive);
+	m_pRingMesh->SetHiddenInGame(!_isActive);
+
+	//見えていない間は更新の必要がないのでTickを切る
+	PrimaryActorTick.bCanEverTick = _isActive;
 }
 
 //オーバーラップ開始時に呼ばれる処理

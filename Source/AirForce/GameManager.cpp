@@ -115,7 +115,7 @@ void AGameManager::NextSceneUp()
 		return;
 	m_NextScene--;
 	if ((int)m_NextScene.GetNextScene() > 2)
-			m_NextScene._NextScene = ENEXTSCENE(2);
+			m_NextScene._NextScene = TEnumAsByte<ENEXTSCENE::Type>(2);
 	UE_LOG(LogTemp, Warning, TEXT("--%d"), (int)m_NextScene.GetNextScene());
 }
 
@@ -126,7 +126,7 @@ void AGameManager::NextSceneDown()
 		return;
 	m_NextScene++;
 	if ((int)m_NextScene.GetNextScene() > 2)
-		m_NextScene._NextScene = ENEXTSCENE(0);
+		m_NextScene._NextScene = TEnumAsByte<ENEXTSCENE::Type>(0);
 	UE_LOG(LogTemp, Warning, TEXT("++%d"), (int)m_NextScene.GetNextScene());
 }
 

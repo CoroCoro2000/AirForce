@@ -14,17 +14,20 @@
 
 //カラーステート情報
 UENUM(BlueprintType)
-enum class ECOLOR_STATE : uint8
+namespace ECOLOR_STATE
 {
-	RED							UMETA(DisplayName = "RED"),
-	ORANGE					UMETA(DisplayName = "ORANGE"),
-	YELLOW					UMETA(DisplayName = "YELLOW"),
-	GREEN						UMETA(DisplayName = "GREEN"),
-	BLUE							UMETA(DisplayName = "BLUE"),
-	INDIGO						UMETA(DisplayName = "INDIGO"),
-	PURPLE						UMETA(DisplayName = "PURPLE"),
-	ENUM_SIZE				UMETA(Hidden),
-};
+	enum Type
+	{
+		RED							UMETA(DisplayName = "RED"),
+		ORANGE					UMETA(DisplayName = "ORANGE"),
+		YELLOW					UMETA(DisplayName = "YELLOW"),
+		GREEN						UMETA(DisplayName = "GREEN"),
+		BLUE							UMETA(DisplayName = "BLUE"),
+		INDIGO						UMETA(DisplayName = "INDIGO"),
+		PURPLE						UMETA(DisplayName = "PURPLE"),
+		NUM							UMETA(Hidden),
+	};
+}
 
 //カラーステート管理構造体
 USTRUCT(BlueprintType)
@@ -37,11 +40,11 @@ struct FCOLOR_STATE
 		: COLOR_STATE(ECOLOR_STATE::RED)
 		, VectorColor(FVector::ZeroVector)
 	{}
-	FCOLOR_STATE(const uint8 _colorType)
-		: COLOR_STATE((ECOLOR_STATE)_colorType)
+	FCOLOR_STATE(const int _colorType)
+		: COLOR_STATE((TEnumAsByte<ECOLOR_STATE::Type>)_colorType)
 		, VectorColor(FVector::ZeroVector)
 	{}
-	FCOLOR_STATE(const ECOLOR_STATE _colorType)
+	FCOLOR_STATE(const TEnumAsByte<ECOLOR_STATE::Type> _colorType)
 		: COLOR_STATE(_colorType)
 		, VectorColor(FVector::ZeroVector)
 	{}
@@ -49,21 +52,21 @@ struct FCOLOR_STATE
 	//演算子オーバーロード
 	FCOLOR_STATE& operator++() 
 	{
-		COLOR_STATE = ECOLOR_STATE((uint8)COLOR_STATE + 1); 
+		COLOR_STATE = TEnumAsByte<ECOLOR_STATE::Type>(COLOR_STATE + 1);
 		return *this;
 	}
 	FCOLOR_STATE& operator--()
 	{
-		COLOR_STATE = ECOLOR_STATE((uint8)COLOR_STATE - 1);
+		COLOR_STATE = TEnumAsByte<ECOLOR_STATE::Type>(COLOR_STATE - 1);
 		return *this;
 	}
-	FCOLOR_STATE operator+(uint8 n) { return FCOLOR_STATE((uint8)COLOR_STATE + n); }
-	FCOLOR_STATE operator%(uint8 n) { return FCOLOR_STATE((uint8)COLOR_STATE % n); }
-	FCOLOR_STATE operator%(ECOLOR_STATE n) { return FCOLOR_STATE((uint8)COLOR_STATE % (uint8)n); }
+	FCOLOR_STATE operator+(int n) { return FCOLOR_STATE(COLOR_STATE + n); }
+	FCOLOR_STATE operator%(int n) { return FCOLOR_STATE(COLOR_STATE % n); }
+	FCOLOR_STATE operator%(TEnumAsByte<ECOLOR_STATE::Type> n) { return FCOLOR_STATE(COLOR_STATE % n); }
 
 public:
-	ECOLOR_STATE COLOR_STATE;				//カラーステート
-	FVector VectorColor;								//ベクターカラー情報
+	TEnumAsByte<ECOLOR_STATE::Type> COLOR_STATE;				//カラーステート
+	FVector VectorColor;																	//ベクターカラー情報
 };
 
 //カラー情報
