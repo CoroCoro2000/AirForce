@@ -37,6 +37,7 @@ APlayerDrone::APlayerDrone()
 	, m_pLightlineEffect(NULL)
 	, m_bCanControl(true)
 	, m_AxisValue{ 0.f, 0.f, 0.f, 0.f }
+	, m_AxisAcceleration{ 0.f, 0.f, 0.f, 0.f }
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -82,6 +83,12 @@ APlayerDrone::APlayerDrone()
 void APlayerDrone::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (m_pBodyMesh)
+	{
+		//コリジョンヒット時のイベント関数をバインド
+		m_pBodyMesh->OnComponentHit.AddDynamic(this, &APlayerDrone::OnComponentHit);
+	}
 }
 
 //このオブジェクトが破棄されるときに呼び出される関数
@@ -491,6 +498,33 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 //カメラとの遮蔽物のコリジョン判定
 void  APlayerDrone::UpdateCameraCollsion()
 {
+}
+
+//コリジョンと接触した時呼び出されるイベント関数
+void APlayerDrone::OnComponentHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (OtherActor && OtherActor != this)
+	{
+		//各軸の加速度を進行ベクトルにする
+		FVector progressVector = FVector(
+			m_AxisAcceleration[EINPUT_AXIS::AILERON],
+			m_AxisAcceleration[EINPUT_AXIS::ELEVATOR],
+			m_AxisAcceleration[EINPUT_AXIS::THROTTLE]);
+
+		//ヒットしたアクターの法線ベクトルを取得
+		FVector HitActorNormal = Hit.Normal;
+
+		//進行ベクトルと法線ベクトルの内積を求める
+		float dot = progressVector | HitActorNormal;
+
+		//反射ベクトルを求める
+		FVector reflectVector = progressVector - dot * 2.f * HitActorNormal;
+
+		//反射ベクトルを進行方向に設定
+		m_AxisAcceleration[EINPUT_AXIS::AILERON] = reflectVector.X;
+		m_AxisAcceleration[EINPUT_AXIS::ELEVATOR] = reflectVector.Y;
+		m_AxisAcceleration[EINPUT_AXIS::THROTTLE] = reflectVector.Z;
+	}
 }
 
 //【入力バインド】コントローラー入力設定

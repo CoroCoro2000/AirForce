@@ -51,10 +51,10 @@ namespace EINPUT_AXIS
 	enum Type
 	{
 		THROTTLE = 0			UMETA(DisplayName = "THROTTLE"),	//上下
-		ELEVATOR				UMETA(DisplayName = "ELEVATOR"),	//前後
+		ELEVATOR					UMETA(DisplayName = "ELEVATOR"),	//前後
 		AILERON					UMETA(DisplayName = "AILERON"),		//左右
-		LADDER					UMETA(DisplayName = "LADDER"),		//旋回
-		NUM						UMETA(Hidden)
+		LADDER						UMETA(DisplayName = "LADDER"),		//旋回
+		NUM							UMETA(Hidden)
 	};
 }
 
@@ -75,6 +75,11 @@ protected:
 	virtual void BeginPlay() override;
 	//このオブジェクトが破棄されるときに呼び出される関数
 	virtual void BeginDestory()override;
+
+	//コリジョンと接触した時呼び出されるイベント関数
+	UFUNCTION()
+		virtual void OnComponentHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
 public:
 	//毎フレーム処理
 	virtual void Tick(float DeltaTime) override;
