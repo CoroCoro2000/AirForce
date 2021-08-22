@@ -36,8 +36,8 @@ APlayerDrone::APlayerDrone()
 	, m_CameraMoveLimit(FVector(10.f, 40.f, 20.f))
 	, m_pLightlineEffect(NULL)
 	, m_bCanControl(true)
-	, m_AxisValue{ 0.f, 0.f, 0.f, 0.f }
-	, m_AxisAcceleration{ 0.f, 0.f, 0.f, 0.f }
+	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
+	//, m_AxisAcceleration{ 0.f, 0.f, 0.f, 0.f }
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -88,21 +88,6 @@ void APlayerDrone::BeginPlay()
 	{
 		//コリジョンヒット時のイベント関数をバインド
 		m_pBodyMesh->OnComponentHit.AddDynamic(this, &APlayerDrone::OnComponentHit);
-	}
-}
-
-//このオブジェクトが破棄されるときに呼び出される関数
-void APlayerDrone::BeginDestory()
-{
-	Super::BeginDestroy();
-
-	for (TSharedPtr<FWing> pWing : m_pWings)
-	{
-		//領域の開放
-		if (pWing.IsValid())
-		{
-			pWing.Reset();
-		}
 	}
 }
 
@@ -171,23 +156,23 @@ float APlayerDrone::RightInputValueToWingAcceleration(const int _arrayIndex)
 	float wingsAccel[WING_ARRAY_MAX] = { 0.f,0.f,0.f,0.f };
 
 	//スロットルの入力がある時
-	if (m_AxisValue[EINPUT_AXIS::THROTTLE] != 0.f)
+	if (m_AxisValue.Z != 0.f)
 	{
 		for (float& wingAccel : wingsAccel)
 		{
-			wingAccel += m_AxisValue[EINPUT_AXIS::THROTTLE];
+			wingAccel += m_AxisValue.Z;
 		}
 	}
 
 	//ラダーの入力がある時
-	if (m_AxisValue[EINPUT_AXIS::LADDER] != 0.f)
+	if (m_AxisValue.W != 0.f)
 	{
 		//右入力がされているかどうか
-		const bool isRight = (m_AxisValue[EINPUT_AXIS::LADDER] > 0.f ? true : false);
-		wingsAccel[LF_WING] += FMath::Abs(m_AxisValue[EINPUT_AXIS::LADDER]) * (isRight ? -1.f : 1.f);
-		wingsAccel[LB_WING] += FMath::Abs(m_AxisValue[EINPUT_AXIS::LADDER]) * (isRight ? 1.f : -1.f);
-		wingsAccel[RF_WING] += FMath::Abs(m_AxisValue[EINPUT_AXIS::LADDER]) * (isRight ? 1.f : -1.f);
-		wingsAccel[RB_WING] += FMath::Abs(m_AxisValue[EINPUT_AXIS::LADDER]) * (isRight ? -1.f : 1.f);
+		const bool isRight = (m_AxisValue.W > 0.f ? true : false);
+		wingsAccel[LF_WING] += FMath::Abs(m_AxisValue.W) * (isRight ? -1.f : 1.f);
+		wingsAccel[LB_WING] += FMath::Abs(m_AxisValue.W) * (isRight ? 1.f : -1.f);
+		wingsAccel[RF_WING] += FMath::Abs(m_AxisValue.W) * (isRight ? 1.f : -1.f);
+		wingsAccel[RB_WING] += FMath::Abs(m_AxisValue.W) * (isRight ? -1.f : 1.f);
 	}
 	return wingsAccel[_arrayIndex];
 }
@@ -198,21 +183,23 @@ float APlayerDrone::LeftInputValueToWingAcceleration(const int _arrayIndex)
 	float wingAccel[WING_ARRAY_MAX] = { 0.f,0.f,0.f,0.f };
 
 	//エレベーターの入力がある時
-	if (m_AxisValue[EINPUT_AXIS::ELEVATOR] != 0.f)
+	if (m_AxisValue.Y != 0.f)
 	{
 		//前入力がされているかどうか
-		const bool isForward = (m_AxisValue[EINPUT_AXIS::ELEVATOR] > 0.f ? true : false);
-		wingAccel[(isForward ? LB_WING : LF_WING)] += FMath::Abs(m_AxisValue[EINPUT_AXIS::ELEVATOR]);
-		wingAccel[(isForward ? RB_WING : RF_WING)] += FMath::Abs(m_AxisValue[EINPUT_AXIS::ELEVATOR]);
+		const bool isForward = (m_AxisValue.Y > 0.f ? true : false);
+		const float axisAbsValue = FMath::Abs(m_AxisValue.Y);
+		wingAccel[(isForward ? LB_WING : LF_WING)] += axisAbsValue;
+		wingAccel[(isForward ? RB_WING : RF_WING)] += axisAbsValue;
 	}
 
 	//エルロンの入力がある時
-	if (m_AxisValue[EINPUT_AXIS::AILERON] != 0.f)
+	if (m_AxisValue.X != 0.f)
 	{
 		//右入力がされているかどうか
-		const bool isRight = (m_AxisValue[EINPUT_AXIS::AILERON] > 0.f ? true : false);
-		wingAccel[(isRight ? LF_WING : RF_WING)] += FMath::Abs(m_AxisValue[EINPUT_AXIS::AILERON]);
-		wingAccel[(isRight ? LB_WING : RB_WING)] += FMath::Abs(m_AxisValue[EINPUT_AXIS::AILERON]);
+		const bool isRight = (m_AxisValue.X > 0.f ? true : false);
+		const float axisAbsValue = FMath::Abs(m_AxisValue.X);
+		wingAccel[(isRight ? LF_WING : RF_WING)] += axisAbsValue;
+		wingAccel[(isRight ? LB_WING : RB_WING)] += axisAbsValue;
 	}
 	return wingAccel[_arrayIndex];
 }
@@ -221,18 +208,15 @@ float APlayerDrone::LeftInputValueToWingAcceleration(const int _arrayIndex)
 void APlayerDrone::UpdateWingAccle()
 {
 	//各スティックの入力の値をを取得
-	FVector2D RightAxis = FVector2D(m_AxisValue[EINPUT_AXIS::LADDER], m_AxisValue[EINPUT_AXIS::THROTTLE]);
-	FVector2D LeftAxis = FVector2D(m_AxisValue[EINPUT_AXIS::AILERON], m_AxisValue[EINPUT_AXIS::ELEVATOR]);
+	FVector2D RightAxis = FVector2D(m_AxisValue.W, m_AxisValue.Z);
+	FVector2D LeftAxis = FVector2D(m_AxisValue.X, m_AxisValue.Y);
 
 	//入力がなければ終了
 	if ((RightAxis.IsZero() && LeftAxis.IsZero()) || !m_isControl)
 	{
-		for (TSharedPtr<FWing> pWing : m_pWings)
+		for (FWing& wing : m_Wings)
 		{
-			if (pWing.IsValid()) 
-			{
-				pWing->AccelState = 0.f;
-			}
+			wing.AccelState = 0.f;
 		}
 		return;
 	}
@@ -240,13 +224,10 @@ void APlayerDrone::UpdateWingAccle()
 	//両方の入力がある場合
 	if (!RightAxis.IsZero() && !LeftAxis.IsZero())
 	{
-		for (TSharedPtr<FWing> pWing : m_pWings)
+		for (FWing& wing : m_Wings)
 		{
-			if (pWing.IsValid())
-			{
-				//PPAP
-				pWing->AccelState = RightInputValueToWingAcceleration(pWing->GetWingNumber()) + LeftInputValueToWingAcceleration(pWing->GetWingNumber());
-			}
+			//PPAP
+			wing.AccelState = RightInputValueToWingAcceleration(wing.GetWingNumber()) + LeftInputValueToWingAcceleration(wing.GetWingNumber());
 		}
 		return;
 	}
@@ -254,23 +235,17 @@ void APlayerDrone::UpdateWingAccle()
 	//右スティックのみの場合
 	if (!RightAxis.IsZero())
 	{
-		for (TSharedPtr<FWing> pWing : m_pWings)
+		for (FWing& wing : m_Wings)
 		{
-			if (pWing.IsValid())
-			{
-				pWing->AccelState = RightInputValueToWingAcceleration(pWing->GetWingNumber());
-			}
+			wing.AccelState = RightInputValueToWingAcceleration(wing.GetWingNumber());
 		}
 	}
 	//左スティックのみの場合
 	else if (!LeftAxis.IsZero())
 	{
-		for (TSharedPtr<FWing> pWing : m_pWings)
+		for (FWing& wing : m_Wings)
 		{
-			if (pWing.IsValid())
-			{
-				pWing->AccelState = LeftInputValueToWingAcceleration(pWing->GetWingNumber());
-			}
+			wing.AccelState = LeftInputValueToWingAcceleration(wing.GetWingNumber());
 		}
 	}
 }
@@ -280,36 +255,33 @@ void APlayerDrone::UpdateWingRotation(const float& DeltaTime)
 {
 	//2軸の入力量を合成する
 	const float InputValueSize = FMath::Clamp((
-		FVector2D(m_AxisValue[EINPUT_AXIS::LADDER], m_AxisValue[EINPUT_AXIS::THROTTLE]).Size() +
-		FVector2D(m_AxisValue[EINPUT_AXIS::AILERON], m_AxisValue[EINPUT_AXIS::ELEVATOR]).Size()) / 2,
+		FVector2D(m_AxisValue.W, m_AxisValue.Z).Size() +
+		FVector2D(m_AxisValue.X, m_AxisValue.Y).Size()) / 2,
 		0.f, 1.f);
 
 	//毎秒m_rpsMax * WingAccel回分回転するために毎フレーム羽を回す角度を求める
-	for (TSharedPtr<FWing> pWing : m_pWings)
+	for (FWing& wing : m_Wings)
 	{
-		if (pWing.IsValid())
+		if (wing.GetWingMesh())
 		{
 			//羽の加速度を0から1の範囲に修正し、正規化する
-			const float NormalizeAccelSize = FMath::Clamp((pWing->AccelState + 1.f) / 3.f, 0.f, 1.f);
+			const float NormalizeAccelSize = FMath::Clamp((wing.AccelState + 1.f) / 3.f, 0.f, 1.f);
 			//正規化した加速度を使って羽の加速の割合を補間する
 			const float WingAccel = FMath::Lerp(m_WingAccelMin
-, m_WingAccelMax, NormalizeAccelSize);
+				, m_WingAccelMax, NormalizeAccelSize);
 			//右回りの羽か判別する(左前と右後ろの羽が右回りに回転する)
-			const bool isTurnRight = (pWing->GetWingNumber() == LF_WING || pWing->GetWingNumber() == RB_WING ? true : false);
+			const bool isTurnRight = (wing.GetWingNumber() == EWING::LEFT_FORWARD || wing.GetWingNumber() == EWING::RIGHT_BACKWARD ? true : false);
 			//1フレームに回転する角度を求める
 			const float angularVelocity = m_rpsMax * 360.f * DeltaTime * WingAccel * (isTurnRight ? 1.f : -1.f) * MOVE_CORRECTION;
 
-			if (pWing->GetWingMesh())
-			{
-				//羽を回転させる
-				pWing->GetWingMesh()->AddLocalRotation(FRotator(0.f, angularVelocity, 0.f));
+			//羽を回転させる
+			wing.GetWingMesh()->AddLocalRotation(FRotator(0.f, angularVelocity, 0.f));
 
 #ifdef DEBUG_WING
-				//*デバッグ用*速度に応じて羽の色変更				
-				const FVector WingColor = FVector(FLinearColor::LerpUsingHSV(FColor::Blue, FColor::Yellow, NormalizeAccelSize));
-				pWing->GetWingMesh()->SetVectorParameterValueOnMaterials(TEXT("WingColor"), WingColor);
+			//*デバッグ用*速度に応じて羽の色変更				
+			const FVector WingColor = FVector(FLinearColor::LerpUsingHSV(FColor::Blue, FColor::Yellow, NormalizeAccelSize));
+			wing.GetWingMesh()->SetVectorParameterValueOnMaterials(TEXT("WingColor"), WingColor);
 #endif // DEBUG_WING
-			}
 		}
 	}
 }
@@ -322,30 +294,32 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 		//浮力がホバリング状態より大きいとき
 		if (m_AxisValue[i] > 0.f)
 		{
-			if (m_AxisAcceleration[i] < 1.5f)
+			if (m_AxisAccel[i] < 1.5f)
 			{
-				m_AxisAcceleration[i] += m_AxisValue[i] * DeltaTime;
+				m_AxisAccel[i] += m_AxisValue[i] * DeltaTime;
 			}
 		}
 		//浮力がホバリング状態より小さい時
 		else if (m_AxisValue[i] < 0.f)
 		{
-			if (m_AxisAcceleration[i] > -1.5f)
+			if (m_AxisAccel[i] > -1.5f)
 			{
-				m_AxisAcceleration[i] += m_AxisValue[i] * DeltaTime;
+				m_AxisAccel[i] += m_AxisValue[i] * DeltaTime;
 			}
 		}
 		//浮力が重力と釣り合う時(ホバリング状態)
 		else
 		{
-			if (m_AxisAcceleration[i] == m_AxisAcceleration[EINPUT_AXIS::LADDER])
-				m_AxisAcceleration[i] = 0.f;
-
-			m_AxisAcceleration[i] *= 0.98f;
-			m_AxisAcceleration[i] = SetDecimalTruncation(m_AxisAcceleration[i], 3.f);
+			if (m_AxisAccel[i] == m_AxisAccel.W)
+			{
+				m_AxisAccel[i] = 0.f;
+			}
+				
+			m_AxisAccel[i] *= 0.98f;
+			m_AxisAccel[i] = SetDecimalTruncation(m_AxisAccel[i], 3.f);
 		}
 
-		m_AxisAcceleration[i] = FMath::Clamp(m_AxisAcceleration[i], -1.5f, 1.5f);
+		m_AxisAccel[i] = FMath::Clamp(m_AxisAccel[i], -1.5f, 1.5f);
 	}
 }
 
@@ -356,17 +330,13 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 
 	//NULLチェック
 	if (!m_pBodyMesh) { return; }
-	for (TSharedPtr<FWing> pWing : m_pWings)
-	{
-		if (!pWing.IsValid()) { return; }
-	}
 
 	//羽の回転量からドローンの角速度の最大値を設定
 	m_AngularVelocity = FVector(
-		(m_pWings[LF_WING]->AccelState + m_pWings[LB_WING]->AccelState) - (m_pWings[RF_WING]->AccelState + m_pWings[RB_WING]->AccelState),
-		(m_pWings[LB_WING]->AccelState + m_pWings[RB_WING]->AccelState) - (m_pWings[LF_WING]->AccelState + m_pWings[RF_WING]->AccelState),
-		(m_pWings[RF_WING]->AccelState + m_pWings[LB_WING]->AccelState) - (m_pWings[LF_WING]->AccelState + m_pWings[RB_WING]->AccelState));
-	m_AngularVelocity.Z = FMath::Abs(m_AngularVelocity.Z) * m_AxisAcceleration[EINPUT_AXIS::LADDER];
+		(m_Wings[EWING::LEFT_FORWARD].AccelState + m_Wings[EWING::LEFT_BACKWARD].AccelState) - (m_Wings[EWING::RIGHT_FORWARD].AccelState + m_Wings[EWING::RIGHT_BACKWARD].AccelState),
+		(m_Wings[EWING::LEFT_BACKWARD].AccelState + m_Wings[EWING::RIGHT_BACKWARD].AccelState) - (m_Wings[EWING::LEFT_FORWARD].AccelState + m_Wings[EWING::RIGHT_FORWARD].AccelState),
+		(m_Wings[EWING::RIGHT_FORWARD].AccelState + m_Wings[EWING::LEFT_BACKWARD].AccelState) - (m_Wings[EWING::LEFT_FORWARD].AccelState + m_Wings[EWING::RIGHT_BACKWARD].AccelState));
+	m_AngularVelocity.Z = FMath::Abs(m_AngularVelocity.Z) * m_AxisAccel.W;
 
 	//	オートマチックで操作するとき
 	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
@@ -421,7 +391,6 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 		}
 	}
 
-
 	//オイラー角をクォータニオンに変換
 	FQuat qAngularVelocity = FQuat::MakeFromEuler(m_AngularVelocity);
 	//ドローンを回転させる
@@ -439,9 +408,9 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 	{
 		float speed = 3.5f;
 		FVector Auto = FVector::ZeroVector;
-		Auto += m_pCamera->GetForwardVector() * speed * -m_AxisAcceleration[EINPUT_AXIS::ELEVATOR];
-		Auto += m_pCamera->GetRightVector() * speed * m_AxisAcceleration[EINPUT_AXIS::AILERON];
-		Auto += m_pCamera->GetUpVector() * speed * m_AxisAcceleration[EINPUT_AXIS::THROTTLE];
+		Auto += m_pCamera->GetRightVector() * speed * m_AxisAccel.X;
+		Auto += m_pCamera->GetForwardVector() * speed * -m_AxisAccel.Y;
+		Auto += m_pCamera->GetUpVector() * speed * m_AxisAccel.Z;
 		m_Speed = Auto.Size();
 		AddActorWorldOffset(Auto * MOVE_CORRECTION, true);
 	}
@@ -487,7 +456,10 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	FRotator Camera = FRotator::ZeroRotator;
 	Camera.Pitch = GetActorRotation().Pitch * -1.f;
 	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
+	{
 		Camera.Roll = GetActorRotation().Roll * -1.f;
+	}
+		
 	FVector Direction = m_pBodyMesh->GetUpVector();
 
 	m_pSpringArm->SetRelativeRotation(Camera.Quaternion());
@@ -506,10 +478,7 @@ void APlayerDrone::OnComponentHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 	if (OtherActor && OtherActor != this)
 	{
 		//各軸の加速度を進行ベクトルにする
-		FVector progressVector = FVector(
-			m_AxisAcceleration[EINPUT_AXIS::AILERON],
-			m_AxisAcceleration[EINPUT_AXIS::ELEVATOR],
-			m_AxisAcceleration[EINPUT_AXIS::THROTTLE]);
+		FVector progressVector = m_AxisAccel;
 
 		//ヒットしたアクターの法線ベクトルを取得
 		FVector HitActorNormal = Hit.Normal;
@@ -517,13 +486,14 @@ void APlayerDrone::OnComponentHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 		//進行ベクトルと法線ベクトルの内積を求める
 		float dot = progressVector | HitActorNormal;
 
+		//進行ベクトルと法線ベクトルの内積の大きさから、ぶつかった時の速度の減衰率を求める
+		float Attenuation = 1.f - FMath::Abs(progressVector.GetSafeNormal() | HitActorNormal);
+
 		//反射ベクトルを求める
 		FVector reflectVector = progressVector - dot * 2.f * HitActorNormal;
 
 		//反射ベクトルを進行方向に設定
-		m_AxisAcceleration[EINPUT_AXIS::AILERON] = reflectVector.X;
-		m_AxisAcceleration[EINPUT_AXIS::ELEVATOR] = reflectVector.Y;
-		m_AxisAcceleration[EINPUT_AXIS::THROTTLE] = reflectVector.Z;
+		m_AxisAccel = reflectVector * Attenuation;
 	}
 }
 
@@ -543,19 +513,23 @@ void APlayerDrone::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 void APlayerDrone::Drone_Throttle(float _axisValue)
 {
 	if (m_isControl)
-		m_AxisValue[EINPUT_AXIS::THROTTLE] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	{
+		m_AxisValue.Z = FMath::Clamp(_axisValue, -1.f, 1.f);
+	}
 	else
-		m_AxisValue[EINPUT_AXIS::THROTTLE] = 0.f;
-
+	{
+		m_AxisValue.Z = 0.f;
+	}
+		
 	//入力された値が正なら
-	if (m_AxisValue[EINPUT_AXIS::THROTTLE] > 0.f)
+	if (m_AxisValue.Z > 0.f)
 	{
 		//上昇移動フラグを立てる
 		m_MoveDirectionFlag.sFlag.Up = true;
 		m_MoveDirectionFlag.sFlag.Down = false;
 	}
 	//入力された値が負なら
-	else if (m_AxisValue[EINPUT_AXIS::THROTTLE] < 0.f)
+	else if (m_AxisValue.Z < 0.f)
 	{
 		//下降移動フラグを立てる
 		m_MoveDirectionFlag.sFlag.Up = false;
@@ -564,7 +538,6 @@ void APlayerDrone::Drone_Throttle(float _axisValue)
 	//値が入力されていないなら
 	else
 	{
-		m_AxisValue[EINPUT_AXIS::THROTTLE] = 0.f;
 		m_MoveDirectionFlag.sFlag.Up = false;
 		m_MoveDirectionFlag.sFlag.Down = false;
 	}
@@ -574,25 +547,28 @@ void APlayerDrone::Drone_Throttle(float _axisValue)
 void APlayerDrone::Drone_Elevator(float _axisValue)
 {
 	if (m_isControl)
-		m_AxisValue[EINPUT_AXIS::ELEVATOR] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	{
+		m_AxisValue.Y = FMath::Clamp(_axisValue, -1.f, 1.f);
+	}
 	else
-		m_AxisValue[EINPUT_AXIS::ELEVATOR] = 0.f;
-
+	{
+		m_AxisValue.Y = 0.f;
+	}
+		
 	//入力された値が正なら
-	if (m_AxisValue[EINPUT_AXIS::ELEVATOR] > 0.f)
+	if (m_AxisValue.Y > 0.f)
 	{
 		//前方移動フラグを立てる
 		m_MoveDirectionFlag.sFlag.Forward = true;
 		m_MoveDirectionFlag.sFlag.Backward = false;
 	}
 	//入力された値が負なら
-	else if (m_AxisValue[EINPUT_AXIS::ELEVATOR] < 0.f)
+	else if (m_AxisValue.Y < 0.f)
 	{
 		//後方移動フラグを立てる
 		m_MoveDirectionFlag.sFlag.Forward = false;
 		m_MoveDirectionFlag.sFlag.Backward = true;
 	}
-
 	else
 	{
 		m_MoveDirectionFlag.sFlag.Forward = false;
@@ -604,19 +580,23 @@ void APlayerDrone::Drone_Elevator(float _axisValue)
 void APlayerDrone::Drone_Aileron(float _axisValue)
 {
 	if (m_isControl)
-		m_AxisValue[EINPUT_AXIS::AILERON] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	{
+		m_AxisValue.X = FMath::Clamp(_axisValue, -1.f, 1.f);
+	}
 	else
-		m_AxisValue[EINPUT_AXIS::AILERON] = 0.f;
+	{
+		m_AxisValue.X = 0.f;
+	}
 
 	//入力された値が正なら
-	if (m_AxisValue[EINPUT_AXIS::AILERON] > 0.f)
+	if (m_AxisValue.X > 0.f)
 	{
 		//右移動フラグを立てる
 		m_MoveDirectionFlag.sFlag.Right = true;
 		m_MoveDirectionFlag.sFlag.Left = false;
 	}
 	//入力された値が負なら
-	else if (m_AxisValue[EINPUT_AXIS::AILERON] < 0.f)
+	else if (m_AxisValue.X < 0.f)
 	{
 		//左移動フラグを立てる
 		m_MoveDirectionFlag.sFlag.Right = false;
@@ -633,20 +613,24 @@ void APlayerDrone::Drone_Aileron(float _axisValue)
 //【入力バインド】ラダー(旋回)の入力があった場合呼び出される関数
 void APlayerDrone::Drone_Ladder(float _axisValue)
 {
-	if(m_isControl)
-		m_AxisValue[EINPUT_AXIS::LADDER] = FMath::Clamp(_axisValue, -1.f, 1.f);
+	if (m_isControl)
+	{
+		m_AxisValue.W = FMath::Clamp(_axisValue, -1.f, 1.f);
+	}
 	else
-		m_AxisValue[EINPUT_AXIS::LADDER] = 0.f;
-
+	{
+		m_AxisValue.W = 0.f;
+	}
+		
 	//入力された値が正なら
-	if (m_AxisValue[EINPUT_AXIS::LADDER] > 0.f)
+	if (m_AxisValue.W > 0.f)
 	{
 		//右旋回フラグを立てる
 		m_MoveDirectionFlag.sFlag.RightTurning = true;
 		m_MoveDirectionFlag.sFlag.LeftTurning = false;
 	}
 	//入力された値が負なら
-	else if (m_AxisValue[EINPUT_AXIS::LADDER] < 0.f)
+	else if (m_AxisValue.W < 0.f)
 	{
 		//左旋回フラグを立てる
 		m_MoveDirectionFlag.sFlag.RightTurning = false;

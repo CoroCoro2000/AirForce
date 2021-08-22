@@ -27,6 +27,7 @@ ADroneBase::ADroneBase()
 	, m_PrevCurrentLocation(FVector::ZeroVector)
 	, m_OldRotation(FRotator::ZeroRotator)
 	, m_SpeedPerSecondMax(50.f)
+	, m_AxisAccel(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_Acceleration(0.f)
 	, m_DroneWeight(0.3f)
 	, m_Velocity(FVector::ZeroVector)
@@ -63,7 +64,7 @@ ADroneBase::ADroneBase()
 	
 	//羽のメッシュ検索に成功したら羽の生成処理
 	if (!pRightTwistWing.Succeeded() || !pLeftTwistWing.Succeeded()) { return; }
-	for (int index = 0; index < WING_ARRAY_MAX; ++index)
+	for (int index = 0; index < EWING::NUM; ++index)
 	{
 		//右回りの羽を調べる
 		const bool isRightTrun = (index == 0 || index == 3) ? true : false;
@@ -77,19 +78,20 @@ ADroneBase::ADroneBase()
 			(index == 2) ? 45.f : -45.f;
 
 		//配列の追加(識別番号、羽のメッシュ)
-		TSharedPtr<FWing> pWing = CGameUtility::CreateSharedPtr<FWing>(FWing(index, CreateDefaultSubobject<UStaticMeshComponent>(WingName)));
-		m_pWings.Add(pWing);
+		m_Wings[index] = FWing(FWing(index, CreateDefaultSubobject<UStaticMeshComponent>(WingName)));
 
-		if (!m_pWings[index]) { return; }
-		if (!m_pWings[index]->GetWingMesh()) { return; }
-
-		//羽のメッシュを設定
-		m_pWings[index]->GetWingMesh()->SetStaticMesh((isRightTrun ? pLeftTwistWing.Object : pRightTwistWing.Object));
-		//ボディのメッシュにアタッチする
-		m_pWings[index]->GetWingMesh()->SetupAttachment(m_pBodyMesh);
-		//ソケットの位置に羽をアタッチ
-		m_pWings[index]->GetWingMesh()->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, WingName);
-		m_pWings[index]->GetWingMesh()->SetRelativeRotation(InitRotaion);
+		if (m_Wings[index].GetWingMesh())
+		{
+			//羽のメッシュを設定
+			m_Wings[index].GetWingMesh()->SetStaticMesh((isRightTrun ? pLeftTwistWing.Object : pRightTwistWing.Object));
+			//ボディにアタッチする
+			m_Wings[index].GetWingMesh()->SetupAttachment(m_pBodyMesh);
+			//羽のメッシュコリジョンを無効にする
+			m_Wings[index].GetWingMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			//ソケットの位置に羽をアタッチ
+			m_Wings[index].GetWingMesh()->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, WingName);
+			m_Wings[index].GetWingMesh()->SetRelativeRotation(InitRotaion);
+		}
 	}
 }
 
@@ -98,7 +100,6 @@ void ADroneBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-
 	if (m_pDroneBoxComp)
 	{
 		//オーバーラップ時のイベント関数をバインド
@@ -108,21 +109,6 @@ void ADroneBase::BeginPlay()
 
 	//質量*重力加速度を重力に設定
 	Gravity = FVector(0.f, 0.f, m_DroneWeight * m_GravityScale);
-}
-
-//このオブジェクトが破棄されるときに呼び出される関数
-void ADroneBase::BeginDestory()
-{
-	Super::BeginDestroy();
-
-	for (TSharedPtr<FWing> pWing : m_pWings)
-	{
-		//領域の開放
-		if (pWing.IsValid())
-		{
-			pWing.Reset();
-		}
-	}
 }
 
 //毎フレーム処理
@@ -184,12 +170,9 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 	const FVector Direction = m_pBodyMesh->GetUpVector();
 	//浮力の大きさを測る
 	float Buoyancy = 0.f;
-	for (TSharedPtr<FWing> pWing : m_pWings)
+	for (const FWing& wing : m_Wings)
 	{
-		if (pWing.IsValid())
-		{
-			Buoyancy += pWing->AccelState;
-		}
+		Buoyancy += wing.AccelState;
 	}
 	Buoyancy /= (float)WING_ARRAY_MAX;
 

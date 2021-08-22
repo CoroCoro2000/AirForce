@@ -73,8 +73,6 @@ public:
 protected:
 	//ゲーム開始時に1度だけ処理
 	virtual void BeginPlay() override;
-	//このオブジェクトが破棄されるときに呼び出される関数
-	virtual void BeginDestory()override;
 
 	//コリジョンと接触した時呼び出されるイベント関数
 	UFUNCTION()
@@ -176,8 +174,8 @@ private:
 		bool m_bCanControl;												//入力可能かどうか
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-		float m_AxisValue[EINPUT_AXIS::NUM];							//各軸の入力値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
+		FVector4 m_AxisValue;							//各軸の入力値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
 
-	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-		float m_AxisAcceleration[EINPUT_AXIS::NUM];							//各軸の入力の加速値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
+	//UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
+	//	float m_AxisAcceleration[EINPUT_AXIS::NUM];							//各軸の入力の加速値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
 };

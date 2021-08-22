@@ -111,6 +111,20 @@ union State
 	FStateFlag sFlag;							//個別管理
 };
 
+//羽の番号の列挙
+UENUM(BlueprintType)
+namespace EWING
+{
+	enum Type
+	{
+		LEFT_FORWARD						UMETA(DisplayName = "LEFT_FORWARD"),
+		RIGHT_FORWARD					UMETA(DisplayName = "RIGHT_FORWARD"),
+		LEFT_BACKWARD					UMETA(DisplayName = "LEFT_BACKWARD"),
+		RIGHT_BACKWARD				UMETA(DisplayName = "RIGHT_BACKWARD"),
+		NUM										UMETA(Hidden)
+	};
+}
+
 //羽の情報を管理する構造体
 USTRUCT(BlueprintType)
 struct FWing
@@ -134,10 +148,10 @@ private:
 	UPROPERTY(EditAnywhere, DisplayName = "WingNumber")
 		uint8 WingNumber;																//識別番号(1:左前、2:右前、3:左後ろ、4:右後ろ)
 	UPROPERTY(EditAnywhere, DisplayName = "WingMesh")
-		UStaticMeshComponent* pWingMesh;												//メッシュ
+		UStaticMeshComponent* pWingMesh;										//メッシュ
 public:
 	UPROPERTY(EditAnywhere, DisplayName = "AcceleState")
-		float AccelState;																//加速度の段階(-1:最小の加速度、0:加速度なし、1:加速度あり、2:最大の加速度)
+		float AccelState;																		//加速度の段階(-1:最小の加速度、0:加速度なし、1:加速度あり、2:最大の加速度)
 
 public:
 	uint8 GetWingNumber()const { return WingNumber; }							//羽番号取得
@@ -177,8 +191,7 @@ public:
 protected:
 	//ゲーム開始時に1度だけ処理
 	virtual void BeginPlay() override;
-	//このオブジェクトが破棄されるときに呼び出される関数
-	virtual void BeginDestory();
+
 public:
 	//毎フレーム処理
 	virtual void Tick(float DeltaTime) override;
@@ -241,7 +254,9 @@ protected:
 
 	//羽
 	/*-------------------------------------------------------------------------*/
-	TArray<TSharedPtr<FWing>> m_pWings;								//ドローンの羽
+	//WING
+	UPROPERTY(EditAnywhere, Category = "Wing")
+		FWing m_Wings[EWING::NUM];								
 	UPROPERTY(EditAnywhere, Category = "Wing")
 		float m_rpsMax;											//1秒間の羽の最大回転数
 	UPROPERTY(EditAnywhere, Category = "Wing")
@@ -272,6 +287,8 @@ protected:
 		float m_SpeedPerSecondMax;						//ドローンの最大秒速(m)
 
 	//-----------------------------------------------------------------------------
+	UPROPERTY(VisibleAnywhere, Category = "Physical")
+		FVector4 m_AxisAccel;
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
 		float m_Acceleration;							//加速度
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
