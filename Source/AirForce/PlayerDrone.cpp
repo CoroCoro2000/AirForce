@@ -34,6 +34,7 @@ APlayerDrone::APlayerDrone()
 	, m_CameraTargetLength(90.f)
 	, m_FieldOfView(90.f)
 	, m_CameraSocketOffset(FVector::ZeroVector)
+	, m_CameraSocketOffsetMax(0.f)
 	, m_CameraMoveLimit(FVector(10.f, 40.f, 20.f))
 	, m_pLightlineEffect(NULL)
 	, m_bCanControl(true)
@@ -295,7 +296,7 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 		//浮力がホバリング状態より大きいとき
 		if (m_AxisValue[i] > 0.f)
 		{
-			if (m_AxisAccel[i] < 1.5f)
+			if (m_AxisAccel[i] < m_WingAccelMax)
 			{
 				m_AxisAccel[i] += m_AxisValue[i] * DeltaTime;
 			}
@@ -303,7 +304,7 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 		//浮力がホバリング状態より小さい時
 		else if (m_AxisValue[i] < 0.f)
 		{
-			if (m_AxisAccel[i] > -1.5f)
+			if (m_AxisAccel[i] > -m_WingAccelMax)
 			{
 				m_AxisAccel[i] += m_AxisValue[i] * DeltaTime;
 			}
@@ -317,10 +318,10 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 			}
 				
 			m_AxisAccel[i] *= m_Deceleration;
-			m_AxisAccel[i] = CGameUtility::SetDecimalTruncation(m_AxisAccel[i], 3);
 		}
 
-		m_AxisAccel[i] = FMath::Clamp(m_AxisAccel[i], -1.5f, 1.5f);
+		m_AxisAccel[i] = CGameUtility::SetDecimalTruncation(m_AxisAccel[i], 3);
+		m_AxisAccel[i] = FMath::Clamp(m_AxisAccel[i], -m_WingAccelMax, m_WingAccelMax);
 	}
 }
 
@@ -465,7 +466,9 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 
 	m_pSpringArm->SetRelativeRotation(Camera.Quaternion());
 
-
+	//ソケット
+	m_CameraSocketOffset = FVector(m_AxisAccel.Y, m_AxisAccel.X, 0.f) * m_CameraSocketOffsetMax / m_WingAccelMax;
+	m_pSpringArm->SocketOffset= m_CameraSocketOffset;
 }
 
 //カメラとの遮蔽物のコリジョン判定
