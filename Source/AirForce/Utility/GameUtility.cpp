@@ -17,6 +17,15 @@
 
 //#define DEBUG_LOG
 
+//小数第n位未満切り捨て
+float CGameUtility::SetDecimalTruncation(float value, int n)
+{
+    value = value * FMath::Pow(10, n);
+    value = floor(value);
+    value /= FMath::Pow(10, n);
+    return value;
+}
+
 //タグからアクターを取得する関数(第1引数：この関数を呼び出すアクター、第2引数：検索するアクターのタグ名)
 AActor* CGameUtility::GetActorFromTag(AActor* _pOwnerActor, const FName& _tag)
 {

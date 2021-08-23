@@ -271,15 +271,6 @@ float ADroneBase::UpdateGravity(const float& DeltaTime)
 
 	return newGravity;
 }
-
-//小数第n位未満切り捨て
-float ADroneBase::SetDecimalTruncation(float value,float n)
-{
-	value = value * FMath::Pow(10, n);
-	value = floor(value);
-	value /= FMath::Pow(10, n);
-	return value;
-}
 //オーバーラップ開始時に呼ばれる処理
 void ADroneBase::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {

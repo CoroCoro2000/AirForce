@@ -82,13 +82,15 @@ void AGameManager::Tick(float DeltaTime)
 
 		if (m_isGoal)
 		{
-			SetRapTimeDecimalTruncation(3.f);
+			//少数第3位未満切り捨て
+			CGameUtility::SetDecimalTruncation(m_RapTime, 3);
 			//UE_LOG(LogTemp, Warning, TEXT("%f"), m_RapTime);
 		}
 
 		if (m_CountDownTime <= 1.f)
 			m_isStart = true;
 
+		//プレイヤーがゴールしているか確認
 		m_isGoal = GetConfirmationGoal(m_Drone->GetRingAcquisition(), m_GoalRingNumber);
 		//	レースがスタートして、ゴールしていない間操作可能にする
 		m_Drone->SetisControl((m_isStart & !m_isGoal) );
@@ -98,14 +100,6 @@ void AGameManager::Tick(float DeltaTime)
 	default:
 		break;
 	}
-}
-
-//小数第n位未満切り捨て
-void AGameManager::SetRapTimeDecimalTruncation(float n)
-{
-	m_RapTime = m_RapTime * FMath::Pow(10, n);
-	m_RapTime = floor(m_RapTime);
-	m_RapTime /= FMath::Pow(10, n);
 }
 
 //

@@ -139,8 +139,6 @@ public:
 	//レース後のシーン遷移取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		TEnumAsByte<ENEXTSCENE::Type> GetNextScene()const { return m_NextScene.GetNextScene(); }
-	//小数第n位未満切り捨て
-	void SetRapTimeDecimalTruncation(float n);
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Flag")
