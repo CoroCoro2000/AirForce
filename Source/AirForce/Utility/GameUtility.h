@@ -24,7 +24,7 @@ class CGameUtility
 {
 public:
 	//小数第n位未満切り捨て
-	float SetDecimalTruncation(float value, int n);
+	static float SetDecimalTruncation(float value, int n);
 
 	//シェアードポインタ型でメモリを確保する関数
 	template<class T, class U>

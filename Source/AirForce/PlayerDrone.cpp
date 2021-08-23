@@ -13,6 +13,7 @@
 //インクルード
 #include "PlayerDrone.h"
 #include "DroneBase.h"
+#include "Utility/GameUtility.h"
 #include "Components/InputComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -315,8 +316,8 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 				m_AxisAccel[i] = 0.f;
 			}
 				
-			m_AxisAccel[i] *= 0.98f;
-			m_AxisAccel[i] = SetDecimalTruncation(m_AxisAccel[i], 3.f);
+			m_AxisAccel[i] *= m_Deceleration;
+			m_AxisAccel[i] = CGameUtility::SetDecimalTruncation(m_AxisAccel[i], 3);
 		}
 
 		m_AxisAccel[i] = FMath::Clamp(m_AxisAccel[i], -1.5f, 1.5f);
