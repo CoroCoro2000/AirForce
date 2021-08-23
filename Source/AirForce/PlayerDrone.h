@@ -40,7 +40,7 @@ namespace EDRONEMODE
 	enum Type
 	{
 		DRONEMODE_AUTOMATICK	UMETA(DisplayName = "AUTO"),	//オートマチック
-		DRONEMODE_MANUAL		UMETA(DisplayName = "MANUAL")	//マニュアル
+		DRONEMODE_MANUAL			UMETA(DisplayName = "MANUAL")	//マニュアル
 	};
 }
 

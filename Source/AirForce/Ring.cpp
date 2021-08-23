@@ -13,7 +13,7 @@
 #include "ColorLightComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
-#include "PlayerDrone.h"
+#include "DroneBase.h"
 #include "Curves/CurveFloat.h"
 #include "UObject/ConstructorHelpers.h"
 

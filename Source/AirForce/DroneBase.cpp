@@ -10,7 +10,7 @@
 #include "DroneBase.h"
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
-#include "Utility/GameUtility.h"
+#include "AirForce/Utility/GameUtility.h"
 
 //コンストラクタ
 ADroneBase::ADroneBase()
