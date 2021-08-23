@@ -272,7 +272,7 @@ void APlayerDrone::UpdateWingRotation(const float& DeltaTime)
 			//右回りの羽か判別する(左前と右後ろの羽が右回りに回転する)
 			const bool isTurnRight = (wing.GetWingNumber() == EWING::LEFT_FORWARD || wing.GetWingNumber() == EWING::RIGHT_BACKWARD ? true : false);
 			//1フレームに回転する角度を求める
-			const float angularVelocity = m_rpsMax * 360.f * DeltaTime * WingAccel * (isTurnRight ? 1.f : -1.f) * MOVE_CORRECTION;
+			const float angularVelocity = m_RPSMax * 360.f * DeltaTime * WingAccel * (isTurnRight ? 1.f : -1.f) * MOVE_CORRECTION;
 
 			//羽を回転させる
 			wing.GetWingMesh()->AddLocalRotation(FRotator(0.f, angularVelocity, 0.f));
@@ -486,7 +486,7 @@ void APlayerDrone::OnComponentHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 		//進行ベクトルと法線ベクトルの内積を求める
 		float dot = progressVector | HitActorNormal;
 
-		//進行ベクトルと法線ベクトルの内積の大きさから、ぶつかった時の速度の減衰率を求める
+		//ドローンの方向ベクトルと法線ベクトルの内積の大きさから、ぶつかった時の速度の減衰率を求める
 		float Attenuation = 1.f - FMath::Abs(progressVector.GetSafeNormal() | HitActorNormal);
 
 		//反射ベクトルを求める

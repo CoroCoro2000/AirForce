@@ -8,7 +8,6 @@
 
 //インクルードガード
 #pragma once
-#pragma warning(disable : 4582)
 
 //インクルード
 #include "CoreMinimal.h"
@@ -21,92 +20,43 @@ class UStaticMeshComponent;
 class UBoxComponent;
 
 //移動用ビットフィールド
-USTRUCT(BlueprintType)
 struct FMoveDirectionFlag
 {
-	GENERATED_USTRUCT_BODY()
+	//すべてのフラグに対して設定を行う関数
+	void SetAllFlag(const bool& _isUp, const bool& _isDown, const bool& _isForward, const bool& _isBackward, const bool& _isRight, const bool& _isLeft, const bool& _isRightTurning, const bool& _isLeftTurning)
+	{
 
-	//コンストラクタ
-	FMoveDirectionFlag(const uint8 up, const uint8 down, const uint8 forward, const uint8 backward, const uint8 right, const uint8 left, const uint8 rightTurning, const uint8 leftTurning)
-	: Up(up)
-	, Down(down)
-	, Forward(forward)
-	, Backward(backward)
-	, Right(right)
-	, Left(left)
-	, RightTurning(rightTurning)
-	, LeftTurning(leftTurning)
-	{}
-	FMoveDirectionFlag() : FMoveDirectionFlag(0, 0, 0, 0, 0, 0, 0, 0) {}
+	}
 
-	UPROPERTY(EditAnywhere, DisplayName = "Up")
 		uint8 Up					 : 1;		//上昇			0
-	UPROPERTY(EditAnywhere, DisplayName = "Down")
 		uint8 Down				 : 1;		//下降			1
-	UPROPERTY(EditAnywhere, DisplayName = "Forward")
 		uint8 Forward			 : 1;		//前方移動	2
-	UPROPERTY(EditAnywhere, DisplayName = "Backward")
 		uint8 Backward		 : 1;		//後方移動	3
-	UPROPERTY(EditAnywhere, DisplayName = "Right")
 		uint8 Right			 	 : 1;		//右移動		4
-	UPROPERTY(EditAnywhere, DisplayName = "Left")
 		uint8 Left					 : 1;		//左移動		5
-	UPROPERTY(EditAnywhere, DisplayName = "RightTurning")
 		uint8 RightTurning	 : 1;		//右回転		6
-	UPROPERTY(EditAnywhere, DisplayName = "LeftTurning")
 		uint8 LeftTurning		 : 1;		//左回転		7
 };
 
 //移動用共用体
 union MoveDirection
 {
-	//コンストラクタ
-	MoveDirection()
-		: iBits(0)
-		, sFlag(FMoveDirectionFlag(0, 0, 0, 0, 0, 0, 0, 0))
-	{}
-	MoveDirection(const uint8 bits) :iBits(bits) {}
-	MoveDirection(const FMoveDirectionFlag moveFlag) :sFlag(moveFlag) {}
-
 	uint8 iBits : 8;		//一括管理(0 ~ 255の値で管理)
 	FMoveDirectionFlag sFlag;	//個別管理
 };
 
 //状態ビットフィールド
-USTRUCT(BlueprintType)
 struct FStateFlag
 {
-	GENERATED_USTRUCT_BODY()
-	//コンストラクタ
-	FStateFlag(const uint8 wait, const uint8 hovering, const uint8 move, const uint8 crash)
-	: Wait(wait)
-	, Hovering(hovering)
-	, Move(move)
-	, Crash(crash)
-	{}
-	FStateFlag() : FStateFlag(0, 0, 0, 0) {}
-
-	UPROPERTY(EditAnywhere, DisplayName = "Wait")
 		uint8 Wait			: 1;		//地面待機						0
-	UPROPERTY(EditAnywhere, DisplayName = "Hovering")
 		uint8 Hovering	: 1;		//ホバリング(空中待機)		1
-	UPROPERTY(EditAnywhere, DisplayName = "Move")
 		uint8 Move			: 1;		//移動中							2
-	UPROPERTY(EditAnywhere, DisplayName = "Crash")
 		uint8 Crash		: 1;		//墜落							3
 };
 
 //状態用共用体
 union State
 {
-	//コンストラクタ
-	State()
-		: iBits(0)
-		, sFlag(FStateFlag(0, 0, 0, 0))
-	{}
-	State(const uint8 bits) :iBits(bits) {}
-	State(const FStateFlag stateFlag) :sFlag(stateFlag) {}
-
 	uint8 iBits : 4;								//一括管理(0 ~ 15の値で管理)
 	FStateFlag sFlag;							//個別管理
 };
@@ -211,8 +161,6 @@ public:
 public:
 	//重力加速度の取得
 	float GetGravitationalAcceleration()const { return m_GravityScale * m_DescentTime * m_DescentTime / 2.f; }
-	//羽の加速度を正規化して返す
-	float GetWingNormalizeAccele()const { return m_WingAccele / (m_WingHoveringAccele * m_WingAccelMax); }
 
 	//	ドローンの時速(kilometers per hour)取得
 	UFUNCTION(BlueprintCallable, Category = "Drone|Speed")
@@ -249,33 +197,31 @@ protected:
 	virtual float SetDecimalTruncation(float value, float n);
 
 protected:
+	//BODY
 	UPROPERTY(EditAnywhere, Category = "Mesh|Body")
 		UStaticMeshComponent* m_pBodyMesh;
-
-	//羽
-	/*-------------------------------------------------------------------------*/
 	//WING
 	UPROPERTY(EditAnywhere, Category = "Wing")
 		FWing m_Wings[EWING::NUM];								
+	//1秒間の羽の最大回転数
 	UPROPERTY(EditAnywhere, Category = "Wing")
-		float m_rpsMax;											//1秒間の羽の最大回転数
+		float m_RPSMax;
+	//羽の加速度
 	UPROPERTY(EditAnywhere, Category = "Wing")
-		float m_WingAccele;									//羽の加速度
+		float m_WingAccele;
+	//最小の加速度の倍率
 	UPROPERTY(EditAnywhere, Category = "Wing")
-		float m_WingOldAccele;								//羽の加速度
+		float m_WingAccelMin;
+	//最大の加速度の倍率
 	UPROPERTY(EditAnywhere, Category = "Wing")
-		float m_WingAccelMin;								//最小の加速度の倍率
-	UPROPERTY(EditAnywhere, Category = "Wing")
-		float m_WingHoveringAccele;						//ホバリング(入力なし)時の加速度の倍率
-	UPROPERTY(EditAnywhere, Category = "Wing")
-		float m_WingAccelMax;								//最大の加速度の倍率
-	/*-------------------------------------------------------------------------*/
-
+		float m_WingAccelMax;
+	//ドローンの当たり判定
 	UPROPERTY(EditAnywhere, Category = "Collision")
-		UBoxComponent* m_pDroneBoxComp;					//ドローンの当たり判定
-
-	MoveDirection m_MoveDirectionFlag;					//移動フラグ管理
-	State m_StateFlag;									//ステートフラグ管理
+		UBoxComponent* m_pDroneBoxComp;
+	//移動フラグ管理
+	MoveDirection m_MoveDirectionFlag;
+	//ステートフラグ管理
+	State m_StateFlag;
 
 	FVector m_CurrentLocation;							//ドローンの現在地
 	FVector m_PrevCurrentLocation;						//1つ前のドローンの現在地
