@@ -43,16 +43,6 @@ void AGameManager::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("InputBind"));
 	}
 
-	if (m_GoalRing)
-	{
-		//何個リングを通ったらゴールになるか確認する
-		m_GoalRingNumber = m_GoalRing->GetRingNumber();
-	}
-	else
-	{
-		m_GoalRingNumber = 0;
-	}
-
 	//	ドローンの検索
 	AActor* pDrone = CGameUtility::GetActorFromTag(this, TEXT("Drone"));
 	if (pDrone)
@@ -74,24 +64,27 @@ void AGameManager::Tick(float DeltaTime)
 	case ECURRENTSCENE::SCENE_FIRST:
 		//レースが始まっていないならカウントダウンをする
 		if (!m_isStart)
+		{
 			m_CountDownTime -= DeltaTime;
-
+		}
+			
 		//レースが始まっているならラップタイムを計測する
-		if(m_isStart & !m_isGoal)
+		if (m_isStart & !m_isGoal)
+		{
 			m_RapTime += DeltaTime;
-
+		}
+			
 		if (m_isGoal)
 		{
-			//少数第3位未満切り捨て
 			CGameUtility::SetDecimalTruncation(m_RapTime, 3);
 			//UE_LOG(LogTemp, Warning, TEXT("%f"), m_RapTime);
 		}
 
 		if (m_CountDownTime <= 1.f)
+		{
 			m_isStart = true;
-
-		//プレイヤーがゴールしているか確認
-		m_isGoal = GetConfirmationGoal(m_Drone->GetRingAcquisition(), m_GoalRingNumber);
+		}
+			
 		//	レースがスタートして、ゴールしていない間操作可能にする
 		m_Drone->SetisControl((m_isStart & !m_isGoal) );
 		break;
@@ -105,22 +98,24 @@ void AGameManager::Tick(float DeltaTime)
 //
 void AGameManager::NextSceneUp()
 {
-	if (!m_isSceneTransition)
-		return;
+	if (!m_isSceneTransition) { return; }
+		
 	m_NextScene--;
 	if ((int)m_NextScene.GetNextScene() > 2)
-			m_NextScene._NextScene = TEnumAsByte<ENEXTSCENE::Type>(2);
-	UE_LOG(LogTemp, Warning, TEXT("--%d"), (int)m_NextScene.GetNextScene());
+	{
+		m_NextScene = 2;
+	}
 }
 
 //
 void AGameManager::NextSceneDown()
 {
-	if (!m_isSceneTransition)
-		return;
+	if (!m_isSceneTransition) { return; }
+
 	m_NextScene++;
 	if ((int)m_NextScene.GetNextScene() > 2)
-		m_NextScene._NextScene = TEnumAsByte<ENEXTSCENE::Type>(0);
-	UE_LOG(LogTemp, Warning, TEXT("++%d"), (int)m_NextScene.GetNextScene());
+	{
+		m_NextScene = 0;
+	}
 }
 

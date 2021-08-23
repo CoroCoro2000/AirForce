@@ -225,8 +225,8 @@ protected:
 		FVector4 m_AxisAccel;
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
 		float m_Acceleration;							//‰Á‘¬“x
-	UPROPERTY(VisibleAnywhere, Category = "Physical")
-		float m_Deceleration;							//‰Á‘¬“x
+	UPROPERTY(EditAnywhere, Category = "Physical")
+		float m_Deceleration;							//Œ¸‘¬“x
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
 		float m_Turning;								
 	UPROPERTY(VisibleAnywhere, Category = "Physical")

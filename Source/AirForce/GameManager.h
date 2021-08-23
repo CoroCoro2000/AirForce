@@ -50,17 +50,24 @@ public:
 	:_NextScene(ENEXTSCENE::SCENE_ONCEMORE)
 	{}
 
-	FNEXTSCENE operator++(int) {
+	FNEXTSCENE operator++(int) 
+	{
 		_NextScene= TEnumAsByte<ENEXTSCENE::Type>(_NextScene + 1);
 		return *this;
 	}
 
-	FNEXTSCENE operator--(int) { 
+	FNEXTSCENE operator--(int) 
+	{ 
 		_NextScene = TEnumAsByte<ENEXTSCENE::Type>(_NextScene - 1);
 	return *this; 
 	}
 
-	void operator=(TEnumAsByte<ENEXTSCENE::Type> n) { _NextScene = n; }
+	FNEXTSCENE operator=(int n)
+	{
+		_NextScene = TEnumAsByte<ENEXTSCENE::Type>(n);
+		return *this;
+	}
+
 	bool operator>(int n) { return _NextScene > n ? true : false; }
 	bool operator<(int n) { return _NextScene < n ? true : false; }
 	bool operator==(int n) { return _NextScene == n ? true : false; }
@@ -109,11 +116,11 @@ public:
 
 	//ゴールフラグの取得
 	UFUNCTION(BlueprintCallable, Category = "Flag")
-		bool GetIsGoal()const { return m_isGoal; }
+		void SetIsGoal(const bool& _isGoal) { m_isGoal = _isGoal; }
 
-	//	ゴールの確認
+	//ゴールフラグの取得
 	UFUNCTION(BlueprintCallable, Category = "Flag")
-		bool GetConfirmationGoal(int _GetRingAcquisition, int _GoalRingNum) { return (_GetRingAcquisition >= _GoalRingNum) ? true : false; }
+		bool GetIsGoal()const { return m_isGoal; }
 
 	//シーン遷移フラグの取得
 	UFUNCTION(BlueprintCallable, Category = "Flag")
@@ -133,9 +140,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int GetRapMiliSecond()const { return (m_RapTime - (int)m_RapTime) * 1000; }
 
-	//ゴール地点のリングの番号取得
-	UFUNCTION(BlueprintCallable, Category = "Stage")
-		int GetGoalRingNumber()const { return m_GoalRing->GetRingNumber(); }
 	//レース後のシーン遷移取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		TEnumAsByte<ENEXTSCENE::Type> GetNextScene()const { return m_NextScene.GetNextScene(); }
@@ -162,8 +166,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
 		ADroneBase* m_Drone;						//ドローン
-	UPROPERTY(EditAnywhere, Category = "Drone")
-		ARing* m_GoalRing;							//ゴールのリング
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
 		int m_GoalRingNumber;						//ゴールのリングの通し番号

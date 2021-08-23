@@ -39,13 +39,16 @@ public:
 protected:
 	//オーバーラップ時に呼ばれるイベント関数を登録
 	UFUNCTION()
-		virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+		virtual void OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 public:
 	void SetActivate(const bool& _isActive);
 	void SetDroneLocation(const FVector& _droneLocation) { m_PassedDroneLocation = _droneLocation; }
 	void SetRingNumber(const int& _ringNumber) { m_RingNumber = _ringNumber; }
 	int GetRingNumber() { return m_RingNumber; }
+	void SetPassBegin(const bool& _isPassBegin) { m_bIsPassBegin = _isPassBegin; }
+	bool IsPassBegin()const { return m_bIsPassBegin; }
+
 	bool IsPassed()const { return m_bIsPassed; }
 	bool IsDestroy()const { return m_bDestroy; }
 
@@ -64,6 +67,8 @@ protected:
 		UColorLightComponent* m_pColorLightComp;		//リングの色を管理するコンポーネント
 	UPROPERTY(EditAnywhere)
 		int m_RingNumber;											//リングの番号
+	UPROPERTY(EditAnywhere)
+		bool m_bIsPassBegin;											//このリングが通過されたか判定
 	UPROPERTY(EditAnywhere)
 		bool m_bIsPassed;												//このリングが通過されたか判定
 	UPROPERTY(EditAnywhere)

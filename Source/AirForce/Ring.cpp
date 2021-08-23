@@ -23,6 +23,7 @@ ARing::ARing()
 	, m_pNiagaraEffectComp(NULL)
 	, m_pColorLightComp(NULL)
 	, m_RingNumber(0)
+	, m_bIsPassBegin(false)
 	, m_bIsPassed(false)
 	, m_bDestroy(false)
 	, m_MakeInvisibleCnt(0.f)
@@ -67,8 +68,7 @@ void ARing::BeginPlay()
 	if (!m_pRingMesh || !m_pColorLightComp || !m_pNiagaraEffectComp) { return; }
 
 	//オーバーラップ開始時に呼ばれるイベント関数を登録
-	m_pRingMesh->OnComponentBeginOverlap.AddDynamic(this, &ARing::OnOverlapBegin);
-
+	m_pRingMesh->OnComponentBeginOverlap.AddDynamic(this, &ARing::OnComponentOverlapBegin);
 	//カラーコンポーネントの初期設定
 	m_pColorLightComp->InitializeMaterialParameter(m_pRingMesh, true);
 	m_pColorLightComp->Activate(true);
@@ -160,7 +160,7 @@ void ARing::SetActivate(const bool& _isActive)
 }
 
 //オーバーラップ開始時に呼ばれる処理
-void ARing::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ARing::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	//タグがPlayerだった場合
 	if (OtherActor->ActorHasTag(TEXT("Drone")))
@@ -171,6 +171,7 @@ void ARing::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 			if (m_pNiagaraEffectComp && m_pRingMesh)
 			{
 				//通過された状態に変更
+				m_bIsPassBegin = true;
 				m_bIsPassed = true;
 				//エフェクトの再生
 				m_pNiagaraEffectComp->Activate();
@@ -180,4 +181,3 @@ void ARing::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 		}
 	}
 }
-

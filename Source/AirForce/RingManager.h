@@ -18,6 +18,7 @@
 //前方宣言
 class ARing;
 class ADroneBase;
+class AGameManager;
 
 //デバッグdefine
 #define DEBUG_RING_COUNT
@@ -42,10 +43,10 @@ public:
 public:
 	//リングの最大値を取得
 	UFUNCTION(BlueprintCallable, Category = "RingManager")
-		int GetMaxRingCount()const { return m_MaxRingCount; }
+		int GetMaxCount()const { return m_MaxRingCount; }
 	//リングの残り数取得
 	UFUNCTION(BlueprintCallable, Category = "RingManager")
-		int GetRingCount()const { return (int)m_pChildRings.Num(); }
+		int GetCount()const { return m_RingCount; }
 	
 private:
 	//リングを描画するかどうかの判定
@@ -58,8 +59,12 @@ protected:
 		TArray<ARing*> m_pChildRings;			//リングを格納するコンテナ
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		int m_MaxRingCount;							//配置されているリングの合計数
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		int m_RingCount;								//リングの残り数
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		int m_RingDrawUpNumber;					//取得したリングの何個先までリングを表示するか決める値
 	UPROPERTY(EditAnywhere)
 		ADroneBase* m_pDrone;					//ドローンの情報
+	UPROPERTY(EditAnywhere)
+		AGameManager* m_pGameManager;	//ゲームマネージャーの情報
 };
