@@ -171,14 +171,14 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 	{
 		Buoyancy += wing.AccelState;
 	}
-	Buoyancy /= (float)WING_ARRAY_MAX;
+	Buoyancy /= (float)EWING::NUM;
 
 #ifdef DEGUG_ACCEL
 	UE_LOG(LogTemp, Warning, TEXT("Buoyancy:%f"), Buoyancy);
 #endif
 
 	//浮力がホバリング状態より大きいとき
-	if (Buoyancy > BUOYANCY_HOVERING)
+	if (Buoyancy > 0.f)
 	{
 		if (m_Acceleration < 5.f)
 		{
@@ -186,7 +186,7 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 		}
 	}
 	//浮力がホバリング状態より小さい時
-	else if (Buoyancy < BUOYANCY_HOVERING)
+	else if (Buoyancy < 0.f)
 	{
 		if (m_Acceleration > -2.f)
 		{

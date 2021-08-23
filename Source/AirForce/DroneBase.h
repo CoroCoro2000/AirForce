@@ -109,15 +109,6 @@ public:
 };
 
 //defineマクロ
-//羽の最大数
-#define WING_ARRAY_MAX 4
-//羽の要素番号
-#define LF_WING 0
-#define RF_WING 1
-#define LB_WING 2
-#define RB_WING 3
-//浮力の状態
-#define BUOYANCY_HOVERING 0.f
 //現在のFPSを計測
 #define FPS (1.f / DeltaTime)
 //フレームレートが低下しても移動量に影響が無いよう補正する値

@@ -153,7 +153,7 @@ void APlayerDrone::SwitchViewPort()
 float APlayerDrone::RightInputValueToWingAcceleration(const int _arrayIndex)
 {
 	//羽の加速度
-	float wingsAccel[WING_ARRAY_MAX] = { 0.f,0.f,0.f,0.f };
+	float wingsAccel[EWING::NUM] = { 0.f,0.f,0.f,0.f };
 
 	//スロットルの入力がある時
 	if (m_AxisValue.Z != 0.f)
@@ -169,10 +169,10 @@ float APlayerDrone::RightInputValueToWingAcceleration(const int _arrayIndex)
 	{
 		//右入力がされているかどうか
 		const bool isRight = (m_AxisValue.W > 0.f ? true : false);
-		wingsAccel[LF_WING] += FMath::Abs(m_AxisValue.W) * (isRight ? -1.f : 1.f);
-		wingsAccel[LB_WING] += FMath::Abs(m_AxisValue.W) * (isRight ? 1.f : -1.f);
-		wingsAccel[RF_WING] += FMath::Abs(m_AxisValue.W) * (isRight ? 1.f : -1.f);
-		wingsAccel[RB_WING] += FMath::Abs(m_AxisValue.W) * (isRight ? -1.f : 1.f);
+		wingsAccel[EWING::LEFT_FORWARD] += FMath::Abs(m_AxisValue.W) * (isRight ? -1.f : 1.f);
+		wingsAccel[EWING::LEFT_BACKWARD] += FMath::Abs(m_AxisValue.W) * (isRight ? 1.f : -1.f);
+		wingsAccel[EWING::RIGHT_FORWARD] += FMath::Abs(m_AxisValue.W) * (isRight ? 1.f : -1.f);
+		wingsAccel[EWING::RIGHT_BACKWARD] += FMath::Abs(m_AxisValue.W) * (isRight ? -1.f : 1.f);
 	}
 	return wingsAccel[_arrayIndex];
 }
@@ -180,7 +180,7 @@ float APlayerDrone::RightInputValueToWingAcceleration(const int _arrayIndex)
 //左のスティック入力から羽の加速度に変換する処理
 float APlayerDrone::LeftInputValueToWingAcceleration(const int _arrayIndex)
 {
-	float wingAccel[WING_ARRAY_MAX] = { 0.f,0.f,0.f,0.f };
+	float wingAccel[EWING::NUM] = { 0.f,0.f,0.f,0.f };
 
 	//エレベーターの入力がある時
 	if (m_AxisValue.Y != 0.f)
@@ -188,8 +188,8 @@ float APlayerDrone::LeftInputValueToWingAcceleration(const int _arrayIndex)
 		//前入力がされているかどうか
 		const bool isForward = (m_AxisValue.Y > 0.f ? true : false);
 		const float axisAbsValue = FMath::Abs(m_AxisValue.Y);
-		wingAccel[(isForward ? LB_WING : LF_WING)] += axisAbsValue;
-		wingAccel[(isForward ? RB_WING : RF_WING)] += axisAbsValue;
+		wingAccel[(isForward ? EWING::LEFT_BACKWARD : EWING::LEFT_FORWARD)] += axisAbsValue;
+		wingAccel[(isForward ? EWING::RIGHT_BACKWARD : EWING::RIGHT_FORWARD)] += axisAbsValue;
 	}
 
 	//エルロンの入力がある時
@@ -198,8 +198,8 @@ float APlayerDrone::LeftInputValueToWingAcceleration(const int _arrayIndex)
 		//右入力がされているかどうか
 		const bool isRight = (m_AxisValue.X > 0.f ? true : false);
 		const float axisAbsValue = FMath::Abs(m_AxisValue.X);
-		wingAccel[(isRight ? LF_WING : RF_WING)] += axisAbsValue;
-		wingAccel[(isRight ? LB_WING : RB_WING)] += axisAbsValue;
+		wingAccel[(isRight ? EWING::LEFT_FORWARD : EWING::RIGHT_FORWARD)] += axisAbsValue;
+		wingAccel[(isRight ? EWING::LEFT_BACKWARD : EWING::RIGHT_BACKWARD)] += axisAbsValue;
 	}
 	return wingAccel[_arrayIndex];
 }
