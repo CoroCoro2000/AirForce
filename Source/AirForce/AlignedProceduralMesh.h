@@ -95,6 +95,47 @@ struct FGridStatus
 		FVector Distance;				//隣接するメッシュとの距離
 };
 
+USTRUCT(BlueprintType)
+struct FRandomizeStatus
+{
+	GENERATED_USTRUCT_BODY()
+
+		//コンストラクタ
+		FRandomizeStatus()
+		: bRandomizeScale(false)
+		, RandomScaleMax(1.05f)
+		, RandomScaleMin(0.95f)
+		, bRandomizeDistance(false)
+		, RandomDistanceMax(1.05f)
+		, RandomDistanceMin(0.95f)
+		, bRandomizeLocation(false)
+		, RandomLocationRange(FVector::OneVector)
+		, bRandomizeRotation(false)
+		, RandomRotationRange(FRotator::ZeroRotator)
+	{}
+
+	UPROPERTY(EditAnywhere)
+		bool bRandomizeScale;
+	UPROPERTY(EditAnywhere, meta = (EditCondition = "bRandomizeScale"))
+		float RandomScaleMax;
+	UPROPERTY(EditAnywhere, meta = (EditCondition = "bRandomizeScale"))
+		float RandomScaleMin;
+	UPROPERTY(EditAnywhere)
+		bool bRandomizeDistance;
+	UPROPERTY(EditAnywhere, meta = (EditCondition = "bRandomizeDistance"))
+		float RandomDistanceMax;
+	UPROPERTY(EditAnywhere, meta = (EditCondition = "bRandomizeDistance"))
+		float RandomDistanceMin;
+	UPROPERTY(EditAnywhere)
+		bool  bRandomizeLocation;
+	UPROPERTY(EditAnywhere, meta = (EditCondition = "bRandomizeLocation"))
+		FVector RandomLocationRange;
+	UPROPERTY(EditAnywhere)
+		bool bRandomizeRotation;
+	UPROPERTY(EditAnywhere, meta = (EditCondition = "bRandomizeRotation"))
+		FRotator RandomRotationRange;
+};
+
 //デバッグ用define
 //#define DEBUG_TRANSFORM			//トランスフォームのログ出力
 #define DEBUG_INSTANCECOUNT		//保持しているメッシュインスタンスの数を出力
@@ -136,21 +177,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
 		UHierarchicalInstancedStaticMeshComponent* m_pMeshes;							//メッシュ
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		int m_MeshCount;																		//配置するメッシュの数
+		TEnumAsByte<EARRANGEMENT::Type> m_ArrangementType;						//メッシュをどのように並べるか
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "m_ArrangementType != EARRANGEMENT::GRID"))
+		int m_MeshCount;																						//配置するメッシュの数
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "m_ArrangementType != EARRANGEMENT::GRID"))
+		float m_Distance;																						//メッシュ同士の間隔
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		float m_Distance;																		//メッシュ同士の間隔
+		FRotator m_MeshRelativeRotation;																//配置するメッシュの相対角度
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		TEnumAsByte<EARRANGEMENT::Type> m_ArrangementType;		//メッシュをどのように並べるか
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		FSpiralStatus m_SpiralStatus;														//螺旋状に配置する際に設定するパラメーター
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		FGridStatus m_GridStatus;															//格子上に配置する際に設定するパラメーター
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting|Transform")
-		FRotator m_MeshRelativeRotation;												//配置するメッシュの相対角度
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting|Transform")
-	//	bool m_bLockRotationPitch;														//メッシュのPitch軸回転をロックするかどうか
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting|Transform")
-	//	bool m_bLockRotationYaw;															//メッシュのYaw軸回転をロックするかどうか
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting|Transform")
-	//	bool m_bLockRotationRoll;															//メッシュのRoll軸回転をロックするかどうか
+		FRandomizeStatus m_RandomizeStatus;														//ランダム化する際のパラメーター
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "m_ArrangementType == EARRANGEMENT::SPIRAL"))
+		FSpiralStatus m_SpiralStatus;																		//螺旋状に配置する際に設定するパラメーター
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "m_ArrangementType == EARRANGEMENT::GRID"))
+		FGridStatus m_GridStatus;																			//格子上に配置する際に設定するパラメーター
 };

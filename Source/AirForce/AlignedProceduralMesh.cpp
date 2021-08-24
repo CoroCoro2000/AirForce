@@ -12,15 +12,13 @@
 // Sets default values
 AAlignedProceduralMesh::AAlignedProceduralMesh()
 	: m_pMeshes(NULL)
+	, m_ArrangementType(EARRANGEMENT::LINEAR)
 	, m_MeshCount(1)
 	, m_Distance(10.f)
-	, m_ArrangementType(EARRANGEMENT::LINEAR)
+	, m_MeshRelativeRotation(FRotator::ZeroRotator)
+	, m_RandomizeStatus()
 	, m_SpiralStatus()
 	, m_GridStatus()
-	, m_MeshRelativeRotation(FRotator::ZeroRotator)
-	//, m_bLockRotationPitch(false)
-	//, m_bLockRotationYaw(false)
-	//, m_bLockRotationRoll(false)
 {
 	//処理はエディタ上でしか実行しない為、Tickは無効にする
 	PrimaryActorTick.bCanEverTick = false;
@@ -54,12 +52,40 @@ void AAlignedProceduralMesh::CreateLinear()
 	//指定した数だけメッシュを生成する
 	for (int index = 0; index < m_MeshCount; ++index)
 	{
-		//設定した間隔で配置する座標を決める
 		FVector initLocation = FVector::ZeroVector;
-		initLocation.Y = (float)index * m_Distance;
+		float initScale = 1.f;
+
+		//メッシュ間の距離をランダム化するかどうか
+		if (m_RandomizeStatus.bRandomizeDistance)
+		{
+			initLocation.Y = (float)index * m_Distance * FMath::FRandRange(m_RandomizeStatus.RandomDistanceMin, m_RandomizeStatus.RandomDistanceMax);
+		}
+		else
+		{
+			initLocation.Y = (float)index * m_Distance;
+		}
+		//メッシュの座標をランダム化するかどうか
+		if (m_RandomizeStatus.bRandomizeLocation)
+		{
+			initLocation.X += FMath::FRandRange(-m_RandomizeStatus.RandomLocationRange.X, m_RandomizeStatus.RandomLocationRange.X);
+			initLocation.Y += FMath::FRandRange(-m_RandomizeStatus.RandomLocationRange.Y, m_RandomizeStatus.RandomLocationRange.Y);
+			initLocation.Z += FMath::FRandRange(-m_RandomizeStatus.RandomLocationRange.Z, m_RandomizeStatus.RandomLocationRange.Z);
+		}
+		//メッシュの相対回転をランダム化するかどうか
+		if (m_RandomizeStatus.bRandomizeRotation)
+		{
+			m_MeshRelativeRotation.Pitch += FMath::FRandRange(-m_RandomizeStatus.RandomRotationRange.Pitch, m_RandomizeStatus.RandomRotationRange.Pitch);
+			m_MeshRelativeRotation.Yaw += FMath::FRandRange(-m_RandomizeStatus.RandomRotationRange.Yaw, m_RandomizeStatus.RandomRotationRange.Yaw);
+			m_MeshRelativeRotation.Roll += FMath::FRandRange(-m_RandomizeStatus.RandomRotationRange.Roll, m_RandomizeStatus.RandomRotationRange.Roll);
+		}
+		//メッシュのスケールをランダム化するかどうか
+		if (m_RandomizeStatus.bRandomizeScale)
+		{
+			initScale *= FMath::FRandRange(m_RandomizeStatus.RandomScaleMin, m_RandomizeStatus.RandomScaleMax);
+		}
 
 		//メッシュのトランスフォームを設定
-		const FTransform initTransform = FTransform(m_MeshRelativeRotation, initLocation);
+		const FTransform initTransform = FTransform(m_MeshRelativeRotation, initLocation, FVector(initScale));
 
 		//メッシュインスタンスを追加
 		m_pMeshes->AddInstance(initTransform);

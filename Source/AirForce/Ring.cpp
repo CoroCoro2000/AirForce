@@ -8,7 +8,7 @@
 
 
 #include "Ring.h"
-#include "Utility/GameUtility.h"
+#include "GameUtility.h"
 #include "Components/StaticMeshComponent.h"
 #include "ColorLightComponent.h"
 #include "NiagaraComponent.h"

@@ -8,7 +8,7 @@
 
 //インクルード
 #include "GameManager.h"
-#include "Utility/GameUtility.h"
+#include "GameUtility.h"
 #include "Kismet/GameplayStatics.h"
 
 //コンストラクタ
