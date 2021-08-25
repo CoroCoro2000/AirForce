@@ -17,7 +17,7 @@
 
 //前方宣言
 class UStaticMeshComponent;
-class UBoxComponent;
+class USphereComponent;
 
 //移動用ビットフィールド
 struct FMoveDirectionFlag
@@ -117,8 +117,10 @@ public:
 //#define DEGUG_ACCEL					//加速度のデバッグ
 //#define DEBUG_GRAVITY				//重力のデバッグ
 //#define DEBUG_WING					//羽のデバッグ
-//#define DEBUG_OVERLAP_BEGIN	//オーバーラップ開始時のデバッグ
-//#define DEBUG_OVERLAP_END		//オーバーラップ終了時のデバッグ
+#define DEBUG_CollisionHit		//オーバーラップ開始時のデバッグ
+#define DEBUG_CollisionOverlap_Begin			//オーバーラップ終了時のデバッグ
+#define DEBUG_WindRangeOverlap_Begin		//オーバーラップ開始時のデバッグ
+#define DEBUG_WindRangeOverlap_End		//オーバーラップ開始時のデバッグ
 //--------------------------------------------------------------------
 
 UCLASS()
@@ -143,12 +145,16 @@ public:
 	//	入力フラグの取得
 	void SetisControl(const bool _isControl) { m_isControl = _isControl; }
 
-	//オーバーラップ時に呼ばれるイベント関数を登録
+protected:
+	//ドローンの当たり判定にオブジェクトがオーバーラップした時呼ばれるイベント関数を登録
 	UFUNCTION()
-		virtual void OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	//オーバーラップしていたアクターから離れた瞬間呼ばれるイベント関数
+		virtual void OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	//風の届く範囲のコリジョンにオブジェクトがオーバーラップした時呼ばれるイベント関数
 	UFUNCTION()
-		virtual void OnComponentOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+		virtual void OnWingRangeOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	//風の届く範囲のコリジョンにオーバーラップしていたオブジェクトが離れた時呼ばれるイベント関数
+	UFUNCTION()
+		virtual void OnWingRangeOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 public:
 	//重力加速度の取得
 	float GetGravitationalAcceleration()const { return m_GravityScale * m_DescentTime * m_DescentTime / 2.f; }
@@ -188,6 +194,12 @@ protected:
 	//BODY
 	UPROPERTY(EditAnywhere, Category = "Mesh|Body")
 		UStaticMeshComponent* m_pBodyMesh;
+	//ドローンのコリジョン
+	UPROPERTY(EditAnywhere, Category = "Collision")
+		USphereComponent* m_pDroneCollision;
+	//ドローンの風が届く範囲
+	UPROPERTY(EditAnywhere, Category = "Collision")
+		USphereComponent* m_pWindRange;
 	//WING
 	UPROPERTY(EditAnywhere, Category = "Wing")
 		FWing m_Wings[EWING::NUM];								
@@ -203,9 +215,6 @@ protected:
 	//最大の加速度の倍率
 	UPROPERTY(EditAnywhere, Category = "Wing")
 		float m_WingAccelMax;
-	//ドローンの当たり判定
-	UPROPERTY(EditAnywhere, Category = "Collision")
-		UBoxComponent* m_pDroneBoxComp;
 	//移動フラグ管理
 	MoveDirection m_MoveDirectionFlag;
 	//ステートフラグ管理
