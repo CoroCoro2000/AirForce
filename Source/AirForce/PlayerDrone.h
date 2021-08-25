@@ -74,10 +74,6 @@ protected:
 	//ゲーム開始時に1度だけ処理
 	virtual void BeginPlay() override;
 
-	//コリジョンと接触した時呼び出されるイベント関数
-	UFUNCTION()
-		virtual void OnComponentHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
 public:
 	//毎フレーム処理
 	virtual void Tick(float DeltaTime) override;

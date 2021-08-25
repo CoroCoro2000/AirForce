@@ -39,19 +39,14 @@ APlayerDrone::APlayerDrone()
 	, m_pLightlineEffect(NULL)
 	, m_bCanControl(true)
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
-	//, m_AxisAcceleration{ 0.f, 0.f, 0.f, 0.f }
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
 
-	//ドローン用コリジョン生成
-	m_pDroneBoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("PlayerDroneComp"));
-	if (m_pDroneBoxComp && m_pBodyMesh)
+	if (m_pBodyMesh)
 	{
-		m_pDroneBoxComp->SetupAttachment(m_pBodyMesh);
 		RootComponent = m_pBodyMesh;
 	}
-
 	//スプリングアーム生成
 	m_pSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	if (m_pSpringArm && m_pBodyMesh)
@@ -86,11 +81,6 @@ void APlayerDrone::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (m_pBodyMesh)
-	{
-		//コリジョンヒット時のイベント関数をバインド
-		m_pBodyMesh->OnComponentHit.AddDynamic(this, &APlayerDrone::OnComponentHit);
-	}
 }
 
 //毎フレーム処理
@@ -474,31 +464,6 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 //カメラとの遮蔽物のコリジョン判定
 void  APlayerDrone::UpdateCameraCollsion()
 {
-}
-
-//コリジョンと接触した時呼び出されるイベント関数
-void APlayerDrone::OnComponentHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	if (OtherActor && OtherActor != this)
-	{
-		//各軸の加速度を進行ベクトルにする
-		FVector progressVector = m_AxisAccel;
-
-		//ヒットしたアクターの法線ベクトルを取得
-		FVector HitActorNormal = Hit.Normal;
-
-		//進行ベクトルと法線ベクトルの内積を求める
-		float dot = progressVector | HitActorNormal;
-
-		//ドローンの方向ベクトルと法線ベクトルの内積の大きさから、ぶつかった時の速度の減衰率を求める
-		float Attenuation = 1.f - FMath::Abs(progressVector.GetSafeNormal() | HitActorNormal);
-
-		//反射ベクトルを求める
-		FVector reflectVector = progressVector - dot * 2.f * HitActorNormal;
-
-		//反射ベクトルを進行方向に設定
-		m_AxisAccel = reflectVector * Attenuation;
-	}
 }
 
 //【入力バインド】コントローラー入力設定
