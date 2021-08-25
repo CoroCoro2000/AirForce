@@ -64,20 +64,6 @@ void AAlignedProceduralMesh::CreateLinear()
 		{
 			initLocation.Y = (float)index * m_Distance;
 		}
-		//メッシュの座標をランダム化するかどうか
-		if (m_RandomizeStatus.bRandomizeLocation)
-		{
-			initLocation.X += FMath::FRandRange(-m_RandomizeStatus.RandomLocationRange.X, m_RandomizeStatus.RandomLocationRange.X);
-			initLocation.Y += FMath::FRandRange(-m_RandomizeStatus.RandomLocationRange.Y, m_RandomizeStatus.RandomLocationRange.Y);
-			initLocation.Z += FMath::FRandRange(-m_RandomizeStatus.RandomLocationRange.Z, m_RandomizeStatus.RandomLocationRange.Z);
-		}
-		//メッシュの相対回転をランダム化するかどうか
-		if (m_RandomizeStatus.bRandomizeRotation)
-		{
-			m_MeshRelativeRotation.Pitch += FMath::FRandRange(-m_RandomizeStatus.RandomRotationRange.Pitch, m_RandomizeStatus.RandomRotationRange.Pitch);
-			m_MeshRelativeRotation.Yaw += FMath::FRandRange(-m_RandomizeStatus.RandomRotationRange.Yaw, m_RandomizeStatus.RandomRotationRange.Yaw);
-			m_MeshRelativeRotation.Roll += FMath::FRandRange(-m_RandomizeStatus.RandomRotationRange.Roll, m_RandomizeStatus.RandomRotationRange.Roll);
-		}
 		//メッシュのスケールをランダム化するかどうか
 		if (m_RandomizeStatus.bRandomizeScale)
 		{

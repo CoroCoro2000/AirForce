@@ -108,10 +108,6 @@ struct FRandomizeStatus
 		, bRandomizeDistance(false)
 		, RandomDistanceMax(1.05f)
 		, RandomDistanceMin(0.95f)
-		, bRandomizeLocation(false)
-		, RandomLocationRange(FVector::OneVector)
-		, bRandomizeRotation(false)
-		, RandomRotationRange(FRotator::ZeroRotator)
 	{}
 
 	UPROPERTY(EditAnywhere)
@@ -126,14 +122,6 @@ struct FRandomizeStatus
 		float RandomDistanceMax;
 	UPROPERTY(EditAnywhere, meta = (EditCondition = "bRandomizeDistance"))
 		float RandomDistanceMin;
-	UPROPERTY(EditAnywhere)
-		bool  bRandomizeLocation;
-	UPROPERTY(EditAnywhere, meta = (EditCondition = "bRandomizeLocation"))
-		FVector RandomLocationRange;
-	UPROPERTY(EditAnywhere)
-		bool bRandomizeRotation;
-	UPROPERTY(EditAnywhere, meta = (EditCondition = "bRandomizeRotation"))
-		FRotator RandomRotationRange;
 };
 
 //デバッグ用define

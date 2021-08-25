@@ -18,6 +18,7 @@
 #include "PlayerDrone.generated.h"
 
 //‘O•ûéŒ¾
+class USceneComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class UNiagaraSystem;

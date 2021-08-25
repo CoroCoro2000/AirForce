@@ -149,12 +149,9 @@ protected:
 	//ドローンの当たり判定にオブジェクトがオーバーラップした時呼ばれるイベント関数を登録
 	UFUNCTION()
 		virtual void OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	//風の届く範囲のコリジョンにオブジェクトがオーバーラップした時呼ばれるイベント関数
+	//ドローンの当たり判定にオブジェクトがヒットした時呼ばれるイベント関数を登録
 	UFUNCTION()
-		virtual void OnWingRangeOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	//風の届く範囲のコリジョンにオーバーラップしていたオブジェクトが離れた時呼ばれるイベント関数
-	UFUNCTION()
-		virtual void OnWingRangeOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+		void OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 public:
 	//重力加速度の取得
 	float GetGravitationalAcceleration()const { return m_GravityScale * m_DescentTime * m_DescentTime / 2.f; }
@@ -190,6 +187,9 @@ protected:
 	//重力更新処理
 	float UpdateGravity(const float& DeltaTime);
 
+	//風の影響を与える範囲の更新
+	virtual void UpdateWindRangeLineTrace(const float& DeltaTime);
+
 protected:
 	//BODY
 	UPROPERTY(EditAnywhere, Category = "Mesh|Body")
@@ -197,9 +197,6 @@ protected:
 	//ドローンのコリジョン
 	UPROPERTY(EditAnywhere, Category = "Collision")
 		USphereComponent* m_pDroneCollision;
-	//ドローンの風が届く範囲
-	UPROPERTY(EditAnywhere, Category = "Collision")
-		USphereComponent* m_pWindRange;
 	//WING
 	UPROPERTY(EditAnywhere, Category = "Wing")
 		FWing m_Wings[EWING::NUM];								

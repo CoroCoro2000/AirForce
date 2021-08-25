@@ -11,14 +11,12 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "UObject/ConstructorHelpers.h"
-#include "Engine/StaticMeshActor.h"
 #include "GameUtility.h"
 
 //コンストラクタ
 ADroneBase::ADroneBase()
 	: m_pBodyMesh(NULL)
 	, m_pDroneCollision(NULL)
-	, m_pWindRange(NULL)
 	, m_RPSMax(10.f)
 	, m_WingAccele(0.f)
 	, m_WingAccelMin(0.75f)
@@ -44,6 +42,14 @@ ADroneBase::ADroneBase()
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
 
+	//ドローンの当たり判定生成
+	m_pDroneCollision = CreateDefaultSubobject<USphereComponent>(TEXT("DroneCollision"));
+	if (m_pDroneCollision)
+	{
+		RootComponent = m_pDroneCollision;
+		m_pDroneCollision->SetSphereRadius(13.f);
+	}
+
 	//ボディのメッシュアセットを探索
 	ConstructorHelpers::FObjectFinder<UStaticMesh> pBodyMesh(TEXT("StaticMesh'/Game/Model/Drone/Drone_Mesh/CGAXR_2021_07_31/Body/CGAXR_BODY.CGAXR_BODY'"));
 	//ボディメッシュ生成
@@ -53,7 +59,7 @@ ADroneBase::ADroneBase()
 	if (m_pBodyMesh && pBodyMesh.Succeeded())
 	{
 		//メッシュのセットアップ
-		RootComponent = m_pBodyMesh;
+		m_pBodyMesh->SetupAttachment(m_pDroneCollision);
 		m_pBodyMesh->SetStaticMesh(pBodyMesh.Object);
 	}
 
@@ -93,20 +99,6 @@ ADroneBase::ADroneBase()
 			m_Wings[index].GetWingMesh()->SetRelativeRotation(InitRotaion);
 		}
 	}
-
-	//ドローンの当たり判定生成
-	m_pDroneCollision = CreateDefaultSubobject<USphereComponent>(TEXT("DroneCollision"));
-	if (m_pDroneCollision)
-	{
-		m_pDroneCollision->SetSphereRadius(13.f);
-	}
-
-	//ドローンの風が届く範囲のコリジョン作成
-	m_pWindRange = CreateDefaultSubobject<USphereComponent>(TEXT("WindRange"));
-	if (m_pWindRange)
-	{
-		m_pWindRange->SetSphereRadius(100.f);
-	}
 }
 
 //ゲーム開始時に1度だけ処理
@@ -114,12 +106,11 @@ void ADroneBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (m_pDroneCollision && m_pWindRange)
+	if (m_pDroneCollision)
 	{
 		//オーバーラップ、ヒット時のイベント関数をバインド
 		m_pDroneCollision->OnComponentBeginOverlap.AddDynamic(this, &ADroneBase::OnDroneCollisionOverlapBegin);
- 		m_pWindRange->OnComponentBeginOverlap.AddDynamic(this, &ADroneBase::OnWingRangeOverlapBegin);
-		m_pWindRange->OnComponentEndOverlap.AddDynamic(this, &ADroneBase::OnWingRangeOverlapEnd);
+		m_pDroneCollision->OnComponentHit.AddDynamic(this, &ADroneBase::OnDroneCollisionHit);
 	}
 
 	//質量*重力加速度を重力に設定
@@ -289,6 +280,13 @@ float ADroneBase::UpdateGravity(const float& DeltaTime)
 
 	return newGravity;
 }
+
+//風の影響を与える範囲の更新
+void ADroneBase::UpdateWindRangeLineTrace(const float& DeltaTime)
+{
+	//UWorld::LineTraceMultiByChannel;
+}
+
 //オーバーラップ開始時に呼ばれる処理
 void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -299,88 +297,32 @@ void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedCom
 		{
 			m_RingAcquisition++;
 		}
-		
-		//リング以外とオーバーラップした時
-		if (!OtherActor->ActorHasTag(TEXT("Ring")))
-		{
-			m_isFloating = false;
-
-			FVector progressVector = m_AxisAccel;
-
-			//ヒットしたアクターの法線ベクトルを取得
-			FVector HitActorNormal = SweepResult.Normal;
-
-			//進行ベクトルと法線ベクトルの内積を求める
-			float dot = progressVector | HitActorNormal;
-
-			//反射ベクトルを求める
-			FVector reflectVector = progressVector - dot * 2.f * HitActorNormal;
-
-			//反射ベクトルを進行方向に設定
-			m_AxisAccel = reflectVector * 0.5f;
-			m_isFloating = true;
-		}
 	}
 #ifdef DEBUG_CollisionOverlap_Begin
 	UE_LOG(LogTemp, Warning, TEXT("OverlapBegin"));
 #endif // DEBUG_OVERLAP_BEGIN
 }
 
-//風の届く範囲のコリジョンにオブジェクトがオーバーラップした時呼ばれるイベント関数
-void ADroneBase::OnWingRangeOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+//ドローンの当たり判定にオブジェクトがヒットした時呼ばれるイベント関数を登録
+void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (OtherActor && OtherActor != this)
 	{
-		//タグがTreeなら
-		if (OtherActor->ActorHasTag(TEXT("Tree")))
-		{
-			AStaticMeshActor* pTree = Cast<AStaticMeshActor>(OtherActor);
-			if (pTree)
-			{
-				if (pTree->GetStaticMeshComponent())
-				{
-					//ドローンと木の距離を測る
-					FVector Distance = GetActorLocation() - OtherActor->GetActorLocation();
-					Distance.Z = 0.f;
+		m_isFloating = false;
 
-					//近いほど風で受ける影響を大きくする
-					FVector DistanceRate = Distance.GetSafeNormal();
-					float WindValue = FMath::Lerp(0.5f, 2.f, FMath::Clamp(DistanceRate.Size(), 0.f, 1.f));
+		FVector progressVector = m_AxisAccel;
 
-					//木の葉っぱマテリアルのWindSppedを大きくする
-					pTree->GetStaticMeshComponent()->SetScalarParameterValueOnMaterials(TEXT("WindSpeed"), WindValue);
+		//ヒットしたアクターの法線ベクトルを取得
+		FVector HitActorNormal = Hit.Normal;
 
-#ifdef DEBUG_WindRangeOverlap_Begin
-					UE_LOG(LogTemp, Warning, TEXT("WindOverlapBegin:%f"), WindValue);
-#endif // DEBUG_WindRangeOverlap_Begin
-				}
-			}
-		}
-	}
-}
+		//進行ベクトルと法線ベクトルの内積を求める
+		float dot = progressVector | HitActorNormal;
 
-//風の届く範囲のコリジョンにオーバーラップしていたオブジェクトが離れた時呼ばれるイベント関数
-void ADroneBase::OnWingRangeOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor && OtherActor != this)
-	{
-		//タグがTreeなら
-		if (OtherActor->ActorHasTag(TEXT("Tree")))
-		{
-			AStaticMeshActor* pTree = Cast<AStaticMeshActor>(OtherActor);
-			if (pTree)
-			{
-				if (pTree->GetStaticMeshComponent())
-				{
-					//木の葉っぱマテリアルのWindSppedを元に戻す
-					float defaultWindSpeed = pTree->GetStaticMeshComponent()->GetScalarParameterDefaultValue(TEXT("WindSpeed"));
-					pTree->GetStaticMeshComponent()->SetScalarParameterValueOnMaterials(TEXT("WindSpeed"), defaultWindSpeed);
+		//反射ベクトルを求める
+		FVector reflectVector = progressVector - dot * 2.f * HitActorNormal;
 
-#ifdef DEBUG_WindRangeOverlap_Begin
-					UE_LOG(LogTemp, Warning, TEXT("WindOverlapEnd:%f"), defaultWindSpeed);
-#endif // DEBUG_WindRangeOverlap_Begin
-				}
-			}
-		}
+		//反射ベクトルを進行方向に設定
+		m_AxisAccel = reflectVector * 0.5f;
+		m_isFloating = true;
 	}
 }

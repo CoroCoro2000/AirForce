@@ -18,11 +18,12 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
-#include "Components/BoxComponent.h"
+#include "Components/SphereComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Engine/StaticMeshActor.h"
 #include "DrawDebugHelpers.h"
 
 //コンストラクタ
@@ -43,10 +44,13 @@ APlayerDrone::APlayerDrone()
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
 
+	RootComponent = m_pDroneCollision;
+
 	if (m_pBodyMesh)
 	{
-		RootComponent = m_pBodyMesh;
+		m_pBodyMesh->SetupAttachment(m_pDroneCollision);
 	}
+
 	//スプリングアーム生成
 	m_pSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	if (m_pSpringArm && m_pBodyMesh)
@@ -310,7 +314,7 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 			m_AxisAccel[i] *= m_Deceleration;
 		}
 
-		m_AxisAccel[i] = CGameUtility::SetDecimalTruncation(m_AxisAccel[i], 3);
+		//m_AxisAccel[i] = CGameUtility::SetDecimalTruncation(m_AxisAccel[i], 3);
 		m_AxisAccel[i] = FMath::Clamp(m_AxisAccel[i], -m_WingAccelMax, m_WingAccelMax);
 	}
 }
@@ -446,10 +450,10 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 #endif // DEBUG_CAMERA
 
 	FRotator Camera = FRotator::ZeroRotator;
-	Camera.Pitch = GetActorRotation().Pitch * -1.f;
+	Camera.Pitch = m_pBodyMesh->GetRelativeRotation().Pitch * -1.f;
 	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
 	{
-		Camera.Roll = GetActorRotation().Roll * -1.f;
+		Camera.Roll = m_pBodyMesh->GetRelativeRotation().Roll * -1.f;
 	}
 		
 	FVector Direction = m_pBodyMesh->GetUpVector();
@@ -457,13 +461,13 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	m_pSpringArm->SetRelativeRotation(Camera.Quaternion());
 
 	//ソケット
-	m_CameraSocketOffset = FVector(m_AxisAccel.Y, m_AxisAccel.X, 0.f) * m_CameraSocketOffsetMax / m_WingAccelMax;
-	m_pSpringArm->SocketOffset = m_CameraSocketOffset;
+	m_pSpringArm->SocketOffset = FVector(m_AxisAccel.Y, m_AxisAccel.X, 0.f) * m_CameraSocketOffsetMax / m_WingAccelMax;
 }
 
 //カメラとの遮蔽物のコリジョン判定
 void  APlayerDrone::UpdateCameraCollsion()
 {
+
 }
 
 //【入力バインド】コントローラー入力設定
