@@ -9,6 +9,7 @@
 //インクルード
 #include "GameManager.h"
 #include "GameUtility.h"
+#include "Misc/FileHelper.h"
 #include "Kismet/GameplayStatics.h"
 
 //コンストラクタ
@@ -76,7 +77,10 @@ void AGameManager::Tick(float DeltaTime)
 			
 		if (m_isGoal)
 		{
-			CGameUtility::SetDecimalTruncation(m_RapTime, 3);
+			//m_RapScore = CGameUtility::SetDecimalTruncation(m_RapTime, 3);
+			m_RapScore.Add(m_RapTime);
+			FString txt = "Score.txt";
+			FFileHelper::SaveStringToFile(FString::SanitizeFloat(m_RapTime), *(FPaths::GameDir() + txt));
 			//UE_LOG(LogTemp, Warning, TEXT("%f"), m_RapTime);
 		}
 

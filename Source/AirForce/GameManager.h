@@ -151,25 +151,27 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Flag")
 		TEnumAsByte<ECURRENTSCENE::Type> m_CurrentScene;				//現在のシーンステート
 	UPROPERTY(EditAnywhere, Category = "Flag")
-		FNEXTSCENE m_NextScene;						//次のシーンステート
+		FNEXTSCENE m_NextScene;																//次のシーンステート
 
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
-		bool m_isPause;								//ポーズフラグ
+		bool m_isPause;							//ポーズフラグ
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
 		bool m_isStart;								//レース開始フラグ
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
 		bool m_isGoal;								//ゴールフラグ
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
-		bool m_isSceneTransition;					//レース後のシーン遷移フラグ
+		bool m_isSceneTransition;			//レース後のシーン遷移フラグ
 
 	UPROPERTY(EditAnywhere, Category = "Stage")
-		float m_CountDownTime;						//レース前のカウントダウン
+		float m_CountDownTime;				//レース前のカウントダウン
 	UPROPERTY(VisibleAnywhere, Category = "Stage")
 		float m_RapTime;							//ゴールするまでの時間
 
+	UPROPERTY(VisibleAnywhere, Category = "Result")
+		TArray<float> m_RapScore;
+
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
 		ADroneBase* m_Drone;						//ドローン
-
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
 		int m_GoalRingNumber;						//ゴールのリングの通し番号
 
