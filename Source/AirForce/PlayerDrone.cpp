@@ -468,7 +468,6 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 
 	//ソケット
 	m_CameraSocketOffset = FVector(m_AxisAccel.Y, m_AxisAccel.X, 0.f) * m_CameraSocketOffsetMax / m_WingAccelMax;
-	m_pSpringArm->SocketOffset= m_CameraSocketOffset;
 }
 
 //カメラとの遮蔽物のコリジョン判定

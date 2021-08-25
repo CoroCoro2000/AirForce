@@ -95,6 +95,8 @@ public:
 	//毎フレーム処理
 	virtual void Tick(float DeltaTime) override;
 
+	//カウントダウン処理
+	void CountDown(float DeltaTime);
 
 	void NextSceneUp();
 	void NextSceneDown();
@@ -103,6 +105,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		void SetIsPause() { m_isPause = !m_isPause; }
 
+	//シーン遷移フラグの設定
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		void SetisSceneTransition(const bool b) { m_isSceneTransition = b; }
 
