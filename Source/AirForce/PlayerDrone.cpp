@@ -310,7 +310,7 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 			m_AxisAccel[i] *= m_Deceleration;
 		}
 
-		m_AxisAccel[i] = CGameUtility::SetDecimalTruncation(m_AxisAccel[i], 3);
+		//m_AxisAccel[i] = CGameUtility::SetDecimalTruncation(m_AxisAccel[i], 3);
 		m_AxisAccel[i] = FMath::Clamp(m_AxisAccel[i], -m_WingAccelMax, m_WingAccelMax);
 	}
 }
