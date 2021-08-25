@@ -126,6 +126,9 @@ public:
 	//レース前のカウントダウン時間の取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		float GetCountDownTime()const { return m_CountDownTime; }
+	//ラップタイムの取得
+	UFUNCTION(BlueprintCallable, Category = "Stage")
+		float GetRapTime()const { return m_RapTime; }
 	//ラップタイムの分取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int GetRapMinute()const { return (int)m_RapTime / 60; }

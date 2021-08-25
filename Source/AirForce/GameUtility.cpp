@@ -22,7 +22,7 @@ float CGameUtility::SetDecimalTruncation(float value, int n)
 {
     UE_LOG(LogTemp, Warning, TEXT("before:%f"), value);
     value = value * FMath::Pow(10, n);
-    value = FMath::FloorToFloat(value);
+    value = FMath::FloorToInt(value);
     value /= FMath::Pow(10, n);
     UE_LOG(LogTemp, Warning, TEXT("after:%f"), value);
     return value;
