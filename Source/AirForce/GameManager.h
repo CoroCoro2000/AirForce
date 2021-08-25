@@ -104,27 +104,21 @@ public:
 	//ポーズの設定
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		void SetIsPause() { m_isPause = !m_isPause; }
-
 	//シーン遷移フラグの設定
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		void SetisSceneTransition(const bool b) { m_isSceneTransition = b; }
-
 	void SetLeftStickInputValue(const float n) { m_LeftStickInputValue = n; }
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetIsPause() const {return m_isPause; }
-
 	//レース開始フラグの取得
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetIsStart()const { return m_isStart; }
-
 	//ゴールフラグの取得
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		void SetIsGoal(const bool& _isGoal) { m_isGoal = _isGoal; }
-
 	//ゴールフラグの取得
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetIsGoal()const { return m_isGoal; }
-
 	//シーン遷移フラグの取得
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetisSceneTransition()const { return m_isSceneTransition; }
@@ -132,7 +126,6 @@ public:
 	//レース前のカウントダウン時間の取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		float GetCountDownTime()const { return m_CountDownTime; }
-
 	//ラップタイムの分取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int GetRapMinute()const { return (int)m_RapTime / 60; }
@@ -142,11 +135,13 @@ public:
 	//ラップタイムのミリ秒取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int GetRapMiliSecond()const { return (m_RapTime - (int)m_RapTime) * 1000; }
-
 	//レース後のシーン遷移取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		TEnumAsByte<ENEXTSCENE::Type> GetNextScene()const { return m_NextScene.GetNextScene(); }
 
+	//ラップタイム並び替え
+	UFUNCTION(BlueprintCallable, Category = "Result")
+		void RapTimeSort();
 private:
 	UPROPERTY(EditAnywhere, Category = "Flag")
 		TEnumAsByte<ECURRENTSCENE::Type> m_CurrentScene;				//現在のシーンステート
@@ -168,8 +163,15 @@ private:
 		float m_RapTime;							//ゴールするまでの時間
 
 	UPROPERTY(VisibleAnywhere, Category = "Result")
-		TArray<float> m_RapScore;
-
+		TArray<FString> m_RapTimeText;
+	UPROPERTY(EditAnywhere, Category = "Result")
+		float m_DefaultTime;
+	UPROPERTY(EditAnywhere, Category = "Result")
+		int m_RankingDisplayNum;							
+	UPROPERTY(VisibleAnywhere, Category = "Result")
+		bool m_isScoreWrite;							//スコア書き込みフラグ
+	UPROPERTY(VisibleAnywhere, Category = "Result")
+		bool m_isNewRecord;							//最速タイム更新フラグ
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
 		ADroneBase* m_Drone;						//ドローン
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
