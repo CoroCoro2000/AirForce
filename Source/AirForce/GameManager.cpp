@@ -12,6 +12,7 @@
 #include "Misc/FileHelper.h"
 #include "Kismet/GameplayStatics.h"
 
+#define ScoreTxt "Score.txt"
 //コンストラクタ
 AGameManager::AGameManager()
 	: m_CurrentScene(ECURRENTSCENE::SCENE_TITLE)
@@ -77,10 +78,10 @@ void AGameManager::Tick(float DeltaTime)
 			
 		if (m_isGoal)
 		{
-			//m_RapScore = CGameUtility::SetDecimalTruncation(m_RapTime, 3);
+			m_RapTime = CGameUtility::SetDecimalTruncation(m_RapTime, 3);
 			m_RapScore.Add(m_RapTime);
-			FString txt = "Score.txt";
-			FFileHelper::SaveStringToFile(FString::SanitizeFloat(m_RapTime), *(FPaths::GameDir() + txt));
+			//FString txt = "Score.txt";
+			FFileHelper::SaveStringToFile(FString::SanitizeFloat(m_RapTime), *(FPaths::GameDir() + ScoreTxt));
 			//UE_LOG(LogTemp, Warning, TEXT("%f"), m_RapTime);
 		}
 

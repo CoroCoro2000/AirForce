@@ -21,7 +21,7 @@
 float CGameUtility::SetDecimalTruncation(float value, int n)
 {
     value = value * FMath::Pow(10, n);
-    value = floor(value);
+    value = FMath::FloorToFloat(value);
     value /= FMath::Pow(10, n);
     return value;
 }
