@@ -23,6 +23,10 @@ AGameManager::AGameManager()
 	, m_isSceneTransition(false)
 	, m_CountDownTime(4.f)
 	, m_RapTime(0.f)
+	, m_DefaultTime(0.f)
+	, m_RankingDisplayNum(5)
+	, m_isScoreWrite(false)
+	, m_isNewRecord(false)
 	, m_Drone(NULL)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -33,6 +37,7 @@ AGameManager::AGameManager()
 void AGameManager::BeginPlay()
 {
 	Super::BeginPlay();
+	FFileHelper::LoadFileToStringArray(m_RapTimeText, *(FPaths::GameDir() + ScoreTxt));
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (PlayerController)
@@ -78,11 +83,26 @@ void AGameManager::Tick(float DeltaTime)
 			
 		if (m_isGoal)
 		{
-			m_RapTime = CGameUtility::SetDecimalTruncation(m_RapTime, 3);
-			m_RapScore.Add(m_RapTime);
-			//FString txt = "Score.txt";
-			FFileHelper::SaveStringToFile(FString::SanitizeFloat(m_RapTime), *(FPaths::GameDir() + ScoreTxt));
-			//UE_LOG(LogTemp, Warning, TEXT("%f"), m_RapTime);
+			if (!m_isScoreWrite)
+			{
+				m_RapTime = CGameUtility::SetDecimalTruncation(m_RapTime, 3);
+				m_RapTimeText.Add(FString::SanitizeFloat(m_RapTime));
+
+				//ラップタイム並び替え
+				m_RapTimeText.Sort();
+
+				if (m_RapTimeText.Num() > m_RankingDisplayNum)
+				{
+					for (int i = m_RankingDisplayNum; i < m_RapTimeText.Num(); i++)
+					{
+						m_RapTimeText.RemoveAt(i);
+					}
+				}
+				FFileHelper::SaveStringArrayToFile(m_RapTimeText, *(FPaths::GameDir() + ScoreTxt));
+				m_isScoreWrite = true;
+				//UE_LOG(LogTemp, Warning, TEXT("%f"), m_RapTime);
+			}
+			
 		}
 
 		if (m_CountDownTime <= 1.f)
@@ -121,6 +141,15 @@ void AGameManager::NextSceneDown()
 	if ((int)m_NextScene.GetNextScene() > 2)
 	{
 		m_NextScene = 0;
+	}
+}
+
+//ラップタイム並び替え
+void AGameManager::RapTimeSort()
+{
+	FString _Time;
+	for (int i = 0; i < m_RapTimeText.Num(); i++)
+	{
 	}
 }
 
