@@ -108,6 +108,8 @@ struct FRandomizeStatus
 		, bRandomizeDistance(false)
 		, RandomDistanceMax(1.05f)
 		, RandomDistanceMin(0.95f)
+		, bRandomizeRotaion(false)
+		, RandomRotaionYawAngle(1.f)
 	{}
 
 	UPROPERTY(EditAnywhere)
@@ -122,6 +124,10 @@ struct FRandomizeStatus
 		float RandomDistanceMax;
 	UPROPERTY(EditAnywhere, meta = (EditCondition = "bRandomizeDistance"))
 		float RandomDistanceMin;
+	UPROPERTY(EditAnywhere)
+		bool bRandomizeRotaion;
+	UPROPERTY(EditAnywhere, meta = (EditCondition = "bRandomizeRotaion"))
+		float RandomRotaionYawAngle;
 };
 
 //デバッグ用define

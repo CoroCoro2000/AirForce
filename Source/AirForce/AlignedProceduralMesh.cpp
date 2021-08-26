@@ -52,26 +52,29 @@ void AAlignedProceduralMesh::CreateLinear()
 	//指定した数だけメッシュを生成する
 	for (int index = 0; index < m_MeshCount; ++index)
 	{
+		FRotator initRotation = m_MeshRelativeRotation;
 		FVector initLocation = FVector::ZeroVector;
+		initLocation.Y = (float)index * m_Distance;
 		float initScale = 1.f;
 
 		//メッシュ間の距離をランダム化するかどうか
 		if (m_RandomizeStatus.bRandomizeDistance)
 		{
-			initLocation.Y = (float)index * m_Distance * FMath::FRandRange(m_RandomizeStatus.RandomDistanceMin, m_RandomizeStatus.RandomDistanceMax);
-		}
-		else
-		{
-			initLocation.Y = (float)index * m_Distance;
+			initLocation.Y *= FMath::FRandRange(m_RandomizeStatus.RandomDistanceMin, m_RandomizeStatus.RandomDistanceMax);
 		}
 		//メッシュのスケールをランダム化するかどうか
 		if (m_RandomizeStatus.bRandomizeScale)
 		{
 			initScale *= FMath::FRandRange(m_RandomizeStatus.RandomScaleMin, m_RandomizeStatus.RandomScaleMax);
 		}
+		//メッシュの回転をランダム化するかどうか
+		if (m_RandomizeStatus.bRandomizeRotaion)
+		{
+			initRotation.Yaw += FMath::FRandRange(-m_RandomizeStatus.RandomRotaionYawAngle, m_RandomizeStatus.RandomRotaionYawAngle);
+		}
 
 		//メッシュのトランスフォームを設定
-		const FTransform initTransform = FTransform(m_MeshRelativeRotation, initLocation, FVector(initScale));
+		const FTransform initTransform = FTransform(initRotation, initLocation, FVector(initScale));
 
 		//メッシュインスタンスを追加
 		m_pMeshes->AddInstance(initTransform);
