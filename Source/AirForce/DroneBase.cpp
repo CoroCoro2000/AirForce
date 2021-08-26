@@ -11,6 +11,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "UObject/ConstructorHelpers.h"
+#include "AffectedByWindActor.h"
+#include "DrawDebugHelpers.h"
 #include "GameUtility.h"
 
 //コンストラクタ
@@ -21,6 +23,7 @@ ADroneBase::ADroneBase()
 	, m_WingAccele(0.f)
 	, m_WingAccelMin(0.75f)
 	, m_WingAccelMax(1.5f)
+	, m_WindSpeed(2.f)
 	, m_CurrentLocation(FVector::ZeroVector)
 	, m_PrevCurrentLocation(FVector::ZeroVector)
 	, m_OldRotation(FRotator::ZeroRotator)
@@ -137,6 +140,7 @@ void ADroneBase::Tick(float DeltaTime)
 	//移動処理
 	UpdateMove(DeltaTime);
 
+	UpdateWindRangeLineTrace(DeltaTime);
 }
 
 //【入力バインド】コントローラー入力設定
@@ -284,7 +288,97 @@ float ADroneBase::UpdateGravity(const float& DeltaTime)
 //風の影響を与える範囲の更新
 void ADroneBase::UpdateWindRangeLineTrace(const float& DeltaTime)
 {
-	//UWorld::LineTraceMultiByChannel;
+	FColor SphereColor = FColor::Blue;
+
+	//球状の当たり判定を作成
+	FCollisionShape WindRangeSphere = FCollisionShape::MakeSphere(100.f);
+	//ヒット結果を格納する配列
+	TArray<FHitResult> OutHits;
+	//ドローンの座標を球の座標にする
+	FVector SpherePosition = GetActorLocation();
+
+	//当たり判定を無視する項目を決める(自身を無視するように設定)
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(this);
+
+	//球状のレイを飛ばし、当たったらtrueを返す
+	bool isHit = GetWorld()->SweepMultiByChannel(OutHits, SpherePosition, SpherePosition, FQuat::Identity, ECollisionChannel::ECC_WorldDynamic, WindRangeSphere, CollisionParams);
+
+	//ヒットしたオブジェクトがある場合
+	if (isHit && (int)OutHits.Num() > 0)
+	{
+		SphereColor = FColor::Yellow;
+		//ヒットしたアクターを追加する
+		for (FHitResult hitResult : OutHits)
+		{
+			//今ヒットしたアクターが、格納されていない場合
+			if (m_pWindRangeActors.Contains(hitResult.GetActor()) == false)
+			{
+				//追加で保持する
+				m_pWindRangeActors.Add(hitResult.GetActor());
+
+				//格納したアクターに風の影響を与える
+				AAffectedByWindActor* AffectedByWindActor = Cast<AAffectedByWindActor>(hitResult.GetActor());
+				if (AffectedByWindActor)
+				{
+					AffectedByWindActor->SetWindSpeed(WINDSPEED_MAX);
+
+					UE_LOG(LogTemp, Warning, TEXT("Wind:"));
+				}
+			}
+		}
+
+		//TArrayの検索をしやすくするため、ヒットしたActorのポインタを配列にまとめる
+		TArray<AActor*> pTempWindRangeActors;
+		for (FHitResult hitResult : OutHits)
+		{
+			pTempWindRangeActors.Add(hitResult.GetActor());
+		}
+
+		//風の範囲内にいたアクターで、今範囲外にいるアクターがある場合
+		if ((int)m_pWindRangeActors.Num() > 0)
+		{
+			for (AActor* pCurrentWindRangeActor : m_pWindRangeActors)
+			{
+				//風の範囲内にいたアクターが、今ヒットしたActorの配列に入っていない場合
+				if (pTempWindRangeActors.Contains(pCurrentWindRangeActor) == false)
+				{
+					//風の影響をを元に戻す
+					AAffectedByWindActor* AffectedByWindActor = Cast<AAffectedByWindActor>(pCurrentWindRangeActor);
+					if (AffectedByWindActor)
+					{
+						AffectedByWindActor->SetWindSpeed(WINDSPEED_MIN);
+					}
+
+					//風の範囲内の配列から削除
+					m_pWindRangeActors.Remove(pCurrentWindRangeActor);
+				}
+			}
+		}
+	}
+	//風の範囲内にオブジェクトがない場合
+	else
+	{
+		//範囲内にないため、全開放
+		if ((int)m_pWindRangeActors.Num() > 0)
+		{
+			for (AActor* pCurrentWindRangeActor : m_pWindRangeActors)
+			{
+				//風の影響をを元に戻す
+				AAffectedByWindActor* AffectedByWindActor = Cast<AAffectedByWindActor>(pCurrentWindRangeActor);
+				if (AffectedByWindActor)
+				{
+					AffectedByWindActor->SetWindSpeed(WINDSPEED_MIN);
+				}
+
+				//風の範囲内の配列から削除
+				m_pWindRangeActors.Remove(pCurrentWindRangeActor);
+			}
+		}
+	}
+
+	//デバッグ確認用　当たり判定の球を描画
+	//DrawDebugSphere(GetWorld(), SpherePosition, 100.f, 12, SphereColor, 0.f, 1.f);
 }
 
 //オーバーラップ開始時に呼ばれる処理
