@@ -40,6 +40,7 @@ APlayerDrone::APlayerDrone()
 	, m_pLightlineEffect(NULL)
 	, m_bCanControl(true)
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
+	, m_pArrowEffectComponent(NULL)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -73,6 +74,12 @@ APlayerDrone::APlayerDrone()
 	if (LineEffect.Succeeded())
 	{
 		m_pLightlineEffect = LineEffect.Object;
+	}
+
+	m_pArrowEffectComponent = CreateAbstractDefaultSubobject<UNiagaraComponent>(TEXT("ArrowEffect"));
+	if (m_pArrowEffectComponent)
+	{
+		m_pArrowEffectComponent->SetupAttachment(m_pBodyMesh);
 	}
 
 	//デフォルトプレイヤーとして設定

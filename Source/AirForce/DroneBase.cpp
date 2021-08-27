@@ -11,7 +11,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "UObject/ConstructorHelpers.h"
-#include "AffectedByWindActor.h"
+#include "Engine/StaticMeshActor.h"
 #include "DrawDebugHelpers.h"
 #include "GameUtility.h"
 
@@ -288,7 +288,10 @@ float ADroneBase::UpdateGravity(const float& DeltaTime)
 //風の影響を与える範囲の更新
 void ADroneBase::UpdateWindRangeLineTrace(const float& DeltaTime)
 {
+#ifdef DEBUG_COLLISION_WINDRANGE
+	//スフィアトレースの当たり判定を表示するワイヤーフレームの色を設定
 	FColor SphereColor = FColor::Blue;
+#endif //DEBUG_COLLISION_WINDRANGE
 
 	//球状の当たり判定を作成
 	FCollisionShape WindRangeSphere = FCollisionShape::MakeSphere(100.f);
@@ -307,47 +310,68 @@ void ADroneBase::UpdateWindRangeLineTrace(const float& DeltaTime)
 	//ヒットしたオブジェクトがある場合
 	if (isHit && (int)OutHits.Num() > 0)
 	{
-		SphereColor = FColor::Yellow;
 		//ヒットしたアクターを追加する
-		for (FHitResult hitResult : OutHits)
+		for (int index = 0; index < (int)OutHits.Num(); ++index)
 		{
+			//ヒットした結果を格納
+			FHitResult hitResult = OutHits[index];
+
 			//今ヒットしたアクターが、格納されていない場合
 			if (m_pWindRangeActors.Contains(hitResult.GetActor()) == false)
 			{
-				//追加で保持する
-				m_pWindRangeActors.Add(hitResult.GetActor());
-
-				//格納したアクターに風の影響を与える
-				AAffectedByWindActor* AffectedByWindActor = Cast<AAffectedByWindActor>(hitResult.GetActor());
-				if (AffectedByWindActor)
+				//ヒットしたアクターのタグ名がTreeなら
+				if (hitResult.GetActor()->ActorHasTag("Tree"))
 				{
-					AffectedByWindActor->SetWindSpeed(WINDSPEED_MAX);
+					//追加で保持する
+					m_pWindRangeActors.Add(hitResult.GetActor());
 
-					UE_LOG(LogTemp, Warning, TEXT("Wind:"));
+					AStaticMeshActor* pStaticMeshActor = Cast<AStaticMeshActor>(hitResult.GetActor());
+					//格納したアクターに風の影響を与える
+					if (pStaticMeshActor)
+					{
+						if (pStaticMeshActor->GetStaticMeshComponent())
+						{
+							pStaticMeshActor->GetStaticMeshComponent()->SetScalarParameterValueOnMaterials(TEXT("WindSpeed"), 10.f);
+
+#ifdef DEBUG_COLLISION_WINDRANGE
+							//当たっていたらワイヤーフレームを黄色にする
+							SphereColor = FColor::Yellow;
+#endif //DEBUG_COLLISION_WINDRANGE
+						}
+					}
 				}
 			}
 		}
 
 		//TArrayの検索をしやすくするため、ヒットしたActorのポインタを配列にまとめる
 		TArray<AActor*> pTempWindRangeActors;
-		for (FHitResult hitResult : OutHits)
+		for (int index = 0; index < (int)OutHits.Num(); ++index)
 		{
-			pTempWindRangeActors.Add(hitResult.GetActor());
+			FHitResult hitResult = OutHits[index];
+			//ヒットしたアクターのタグ名がTreeなら
+			if (hitResult.GetActor()->ActorHasTag(TEXT("Tree")))
+			{
+				pTempWindRangeActors.Add(hitResult.GetActor());
+			}
 		}
 
 		//風の範囲内にいたアクターで、今範囲外にいるアクターがある場合
 		if ((int)m_pWindRangeActors.Num() > 0)
 		{
-			for (AActor* pCurrentWindRangeActor : m_pWindRangeActors)
+			for (int index = 0; index < (int)m_pWindRangeActors.Num(); ++index)
 			{
+				AActor* pCurrentWindRangeActor = m_pWindRangeActors[index];
 				//風の範囲内にいたアクターが、今ヒットしたActorの配列に入っていない場合
 				if (pTempWindRangeActors.Contains(pCurrentWindRangeActor) == false)
 				{
-					//風の影響をを元に戻す
-					AAffectedByWindActor* AffectedByWindActor = Cast<AAffectedByWindActor>(pCurrentWindRangeActor);
-					if (AffectedByWindActor)
+					//風の影響を元に戻す
+					AStaticMeshActor* pStaticMeshActor = Cast<AStaticMeshActor>(pCurrentWindRangeActor);
+					if (pStaticMeshActor)
 					{
-						AffectedByWindActor->SetWindSpeed(WINDSPEED_MIN);
+						if (pStaticMeshActor->GetStaticMeshComponent())
+						{
+							pStaticMeshActor->GetStaticMeshComponent()->SetScalarParameterValueOnMaterials(TEXT("WindSpeed"), 1.f);
+						}
 					}
 
 					//風の範囲内の配列から削除
@@ -355,6 +379,10 @@ void ADroneBase::UpdateWindRangeLineTrace(const float& DeltaTime)
 				}
 			}
 		}
+#ifdef DEBUG_COLLISION_WINDRANGE_OVERLAPDETA
+		UE_LOG(LogTemp, Warning, TEXT("TempWindRangeActors:%i"), pTempWindRangeActors.Num());
+#endif // DEBUG_COLLISION_WINDRANGE_OVERLAPDETA
+
 	}
 	//風の範囲内にオブジェクトがない場合
 	else
@@ -362,13 +390,17 @@ void ADroneBase::UpdateWindRangeLineTrace(const float& DeltaTime)
 		//範囲内にないため、全開放
 		if ((int)m_pWindRangeActors.Num() > 0)
 		{
-			for (AActor* pCurrentWindRangeActor : m_pWindRangeActors)
+			for (int index = 0; index < (int)m_pWindRangeActors.Num(); ++index)
 			{
-				//風の影響をを元に戻す
-				AAffectedByWindActor* AffectedByWindActor = Cast<AAffectedByWindActor>(pCurrentWindRangeActor);
-				if (AffectedByWindActor)
+				AActor* pCurrentWindRangeActor = m_pWindRangeActors[index];
+				//風の影響を元に戻す
+				AStaticMeshActor* pStaticMeshActor = Cast<AStaticMeshActor>(pCurrentWindRangeActor);
+				if (pStaticMeshActor)
 				{
-					AffectedByWindActor->SetWindSpeed(WINDSPEED_MIN);
+					if (pStaticMeshActor->GetStaticMeshComponent())
+					{
+						pStaticMeshActor->GetStaticMeshComponent()->SetScalarParameterValueOnMaterials(TEXT("WindSpeed"), 1.f);
+					}
 				}
 
 				//風の範囲内の配列から削除
@@ -377,8 +409,13 @@ void ADroneBase::UpdateWindRangeLineTrace(const float& DeltaTime)
 		}
 	}
 
-	//デバッグ確認用　当たり判定の球を描画
-	//DrawDebugSphere(GetWorld(), SpherePosition, 100.f, 12, SphereColor, 0.f, 1.f);
+#ifdef DEBUG_COLLISION_WINDRANGE_OVERLAPDETA
+	UE_LOG(LogTemp, Warning, TEXT("WindRangeActors:%i"), m_pWindRangeActors.Num());
+#endif // DEBUG_COLLISION_WINDRANGE_OVERLAPDETA
+#ifdef DEBUG_COLLISION_WINDRANGE
+	//当たり判定の球を描画(当たっていれば黄色、当たっていなければ青)
+	DrawDebugSphere(GetWorld(), SpherePosition, 100.f, 12, SphereColor, 0.f, 1.f);
+#endif //DEBUG_COLLISION_WINDRANGE
 }
 
 //オーバーラップ開始時に呼ばれる処理

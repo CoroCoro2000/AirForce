@@ -22,6 +22,7 @@ class USceneComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class UNiagaraSystem;
+class UNiagaraComponent;
 
 //	視点切り替え
 UENUM(BlueprintType)
@@ -177,4 +178,7 @@ private:
 
 	//UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
 	//	float m_AxisAcceleration[EINPUT_AXIS::NUM];							//各軸の入力の加速値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
+
+	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* m_pArrowEffectComponent;
 };

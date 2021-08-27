@@ -18,6 +18,7 @@
 //前方宣言
 class UStaticMeshComponent;
 class USphereComponent;
+class USoundBase;
 
 //移動用ビットフィールド
 struct FMoveDirectionFlag
@@ -117,8 +118,8 @@ public:
 //#define DEGUG_ACCEL					//加速度のデバッグ
 //#define DEBUG_GRAVITY				//重力のデバッグ
 //#define DEBUG_WING					//羽のデバッグ
-#define DEBUG_CollisionHit		//オーバーラップ開始時のデバッグ
-#define DEBUG_CollisionOverlap_Begin			//オーバーラップ終了時のデバッグ
+//#define DEBUG_COLLISION_WINDRANGE		//風の範囲の当たり判定のデバッグ表示
+#define DEBUG_COLLISION_WINDRANGE_OVERLAPDETA	//風の範囲の当たり判定にオーバーラップしているアクターの数
 #define DEBUG_WindRangeOverlap_Begin		//オーバーラップ開始時のデバッグ
 #define DEBUG_WindRangeOverlap_End		//オーバーラップ開始時のデバッグ
 //--------------------------------------------------------------------
