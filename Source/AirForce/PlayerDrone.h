@@ -23,6 +23,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UNiagaraSystem;
 class UNiagaraComponent;
+class ACheckPointActor;
 
 //	視点切り替え
 UENUM(BlueprintType)
@@ -135,6 +136,8 @@ private:
 	virtual void UpdateWingRotation(const float& DeltaTime)override;
 	//カメラとの遮蔽物のコリジョン判定
 	void UpdateCameraCollsion();
+	//チェックポイント情報の更新
+	void UpdateArrowRotation(const float& DeltaTime);
 
 protected:
 	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "GameMode")
@@ -164,10 +167,13 @@ private:
 
 	TArray<AActor*> m_pHitActors;												//スプリングアームの直線に衝突しているActor
 
-
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
 		FVector4 m_AxisValue;														//各軸の入力値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
 
-	UPROPERTY(EditAnywhere)
-		UNiagaraComponent* m_pArrowEffectComponent;				//次のチェックポイントを指す矢印エフェクト
+	UPROPERTY(EditAnywhere, Category = "NextCheckPoint")
+		UNiagaraComponent* m_pArrowEffect;					//次のチェックポイントを指す矢印エフェクト
+	UPROPERTY(EditAnywhere, Category = "NextCheckPoint")
+		float m_DistanceFromDrone;										//ドローンからの距離
+	UPROPERTY(EditAnywhere, Category = "NextCheckPoint")
+		ACheckPointActor* m_pCheckPoint;								//次のチェックポイント情報
 };

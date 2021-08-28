@@ -13,6 +13,7 @@
 //インクルード
 #include "PlayerDrone.h"
 #include "DroneBase.h"
+#include "CheckPointActor.h"
 #include "GameUtility.h"
 #include "Components/InputComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -39,7 +40,9 @@ APlayerDrone::APlayerDrone()
 	, m_CameraMoveLimit(FVector(10.f, 40.f, 20.f))
 	, m_pLightlineEffect(NULL)
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
-	, m_pArrowEffectComponent(NULL)
+	, m_pArrowEffect(NULL)
+	, m_DistanceFromDrone(50.f)
+	, m_pCheckPoint(NULL)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -75,10 +78,11 @@ APlayerDrone::APlayerDrone()
 		m_pLightlineEffect = LineEffect.Object;
 	}
 
-	m_pArrowEffectComponent = CreateAbstractDefaultSubobject<UNiagaraComponent>(TEXT("ArrowEffect"));
-	if (m_pArrowEffectComponent)
+	//チェックポイントを指す矢印生成
+	m_pArrowEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ArrowEffect"));
+	if (m_pArrowEffect)
 	{
-		m_pArrowEffectComponent->SetupAttachment(m_pBodyMesh);
+		m_pArrowEffect->SetupAttachment(m_pBodyMesh);
 	}
 
 	//デフォルトプレイヤーとして設定
@@ -91,6 +95,8 @@ void APlayerDrone::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//座標設定
+	m_pArrowEffect->SetRelativeLocation(FVector(m_DistanceFromDrone, 0.f, 0.f));
 }
 
 //毎フレーム処理
@@ -121,6 +127,9 @@ void APlayerDrone::Tick(float DeltaTime)
 
 	//視点の切り替え
 	//SwitchViewPort();
+
+	//チェックポイント情報の更新
+	UpdateArrowRotation(DeltaTime);
 }
 
 //カメラの初期設定
@@ -465,6 +474,25 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 void  APlayerDrone::UpdateCameraCollsion()
 {
 
+}
+
+//矢印の回転更新
+void APlayerDrone::UpdateArrowRotation(const float& DeltaTime)
+{
+	if (!m_pArrowEffect || !m_pCheckPoint) { return; }
+
+	//矢印とチェックポイントの座標を取得
+	FVector ArrowLocation = m_pArrowEffect->GetComponentLocation();
+	FVector CheckPointLocation = m_pCheckPoint->GetActorLocation();
+
+	//矢印がチェックポイントを向くように回転させる
+	FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(ArrowLocation, CheckPointLocation);
+	m_pArrowEffect->SetWorldLocation(GetActorLocation());
+	m_pArrowEffect->SetRelativeRotation(NewRotation.Quaternion());
+	m_pArrowEffect->SetRelativeLocation(NewRotation.UnrotateVector(NewRotation.Vector()) * m_DistanceFromDrone);
+	m_pArrowEffect->SetWorldRotation(NewRotation.Quaternion());
+	UE_LOG(LogTemp, Warning, TEXT("NewLotation   :[%s]"), *(NewRotation.Vector() * -m_DistanceFromDrone).ToString());
+	UE_LOG(LogTemp, Warning, TEXT("NewRotation   :[%s]"), *NewRotation.ToString());
 }
 
 //【入力バインド】コントローラー入力設定
