@@ -38,7 +38,6 @@ APlayerDrone::APlayerDrone()
 	, m_CameraSocketOffsetMax(0.f)
 	, m_CameraMoveLimit(FVector(10.f, 40.f, 20.f))
 	, m_pLightlineEffect(NULL)
-	, m_bCanControl(true)
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_pArrowEffectComponent(NULL)
 {
@@ -113,9 +112,6 @@ void APlayerDrone::Tick(float DeltaTime)
 
 	//移動処理
 	UpdateSpeed(DeltaTime);
-
-	//重心移動処理
-	UpdateCenterOfGravity(DeltaTime);
 
 	//カメラの更新処理
 	UpdateCamera(DeltaTime);
@@ -382,15 +378,15 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 		//角速度をradに変換
 		float radAngularVelocity = FMath::DegreesToRadians(angularVelocity);
 		//重力 / 角速度 ^ 2でドローンが円運動するときの半径を求める
-		float radius = Gravity.Size() / (radAngularVelocity * radAngularVelocity);
+		float radius = m_Gravity.Size() / (radAngularVelocity * radAngularVelocity);
 		//半径 * 角速度 ^ 2で遠心力を取得
 		if (m_AngularVelocity != FVector::ZeroVector)
 		{
-			Centrifugalforce = FVector(0.f, 0.f, radius * (radAngularVelocity * radAngularVelocity));
+			m_CentrifugalForce = FVector(0.f, 0.f, radius * (radAngularVelocity * radAngularVelocity));
 		}
 		else
 		{
-			Centrifugalforce = FVector::ZeroVector;
+			m_CentrifugalForce = FVector::ZeroVector;
 		}
 	}
 
@@ -417,12 +413,6 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 		m_Speed = Auto.Size();
 		AddActorWorldOffset(Auto * MOVE_CORRECTION, true);
 	}
-}
-
-//重心移動処理
-void APlayerDrone::UpdateCenterOfGravity(const float& DeltaTime)
-{
-	Super::UpdateCenterOfGravity(DeltaTime);
 }
 
 //ステート更新処理
@@ -483,14 +473,14 @@ void APlayerDrone::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	//軸マッピング
-	InputComponent->BindAxis(TEXT("Throttle"), this, &APlayerDrone::Drone_Throttle);
-	InputComponent->BindAxis(TEXT("Elevator"), this, &APlayerDrone::Drone_Elevator);
-	InputComponent->BindAxis(TEXT("Aileron"), this, &APlayerDrone::Drone_Aileron);
-	InputComponent->BindAxis(TEXT("Ladder"), this, &APlayerDrone::Drone_Ladder);
+	InputComponent->BindAxis(TEXT("Throttle"), this, &APlayerDrone::Input_Throttle);
+	InputComponent->BindAxis(TEXT("Elevator"), this, &APlayerDrone::Input_Elevator);
+	InputComponent->BindAxis(TEXT("Aileron"), this, &APlayerDrone::Input_Aileron);
+	InputComponent->BindAxis(TEXT("Ladder"), this, &APlayerDrone::Input_Ladder);
 }
 
 //【入力バインド】スロットル(上下)の入力があった場合呼び出される関数
-void APlayerDrone::Drone_Throttle(float _axisValue)
+void APlayerDrone::Input_Throttle(float _axisValue)
 {
 	if (m_isControl)
 	{
@@ -524,7 +514,7 @@ void APlayerDrone::Drone_Throttle(float _axisValue)
 }
 
 //【入力バインド】エレベーター(前後)の入力があった場合呼び出される関数
-void APlayerDrone::Drone_Elevator(float _axisValue)
+void APlayerDrone::Input_Elevator(float _axisValue)
 {
 	if (m_isControl)
 	{
@@ -557,7 +547,7 @@ void APlayerDrone::Drone_Elevator(float _axisValue)
 }
 
 //【入力バインド】エルロン(左右)の入力があった場合呼び出される関数
-void APlayerDrone::Drone_Aileron(float _axisValue)
+void APlayerDrone::Input_Aileron(float _axisValue)
 {
 	if (m_isControl)
 	{
@@ -591,7 +581,7 @@ void APlayerDrone::Drone_Aileron(float _axisValue)
 }
 
 //【入力バインド】ラダー(旋回)の入力があった場合呼び出される関数
-void APlayerDrone::Drone_Ladder(float _axisValue)
+void APlayerDrone::Input_Ladder(float _axisValue)
 {
 	if (m_isControl)
 	{

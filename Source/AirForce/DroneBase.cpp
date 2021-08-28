@@ -19,25 +19,27 @@
 ADroneBase::ADroneBase()
 	: m_pBodyMesh(NULL)
 	, m_pDroneCollision(NULL)
+	, m_Wings{}
 	, m_RPSMax(10.f)
 	, m_WingAccele(0.f)
 	, m_WingAccelMin(0.75f)
 	, m_WingAccelMax(1.5f)
 	, m_WindSpeed(2.f)
-	, m_CurrentLocation(FVector::ZeroVector)
-	, m_PrevCurrentLocation(FVector::ZeroVector)
-	, m_OldRotation(FRotator::ZeroRotator)
+	, m_MoveDirectionFlag()
+	, m_StateFlag()
+	, m_Speed(0.f)
 	, m_SpeedPerSecondMax(50.f)
 	, m_AxisAccel(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_Acceleration(0.f)
+	, m_Deceleration(0.96f)
 	, m_DroneWeight(0.3f)
 	, m_Velocity(FVector::ZeroVector)
-	, Centrifugalforce(FVector::ZeroVector)
+	, m_CentrifugalForce(FVector::ZeroVector)
 	, m_AngularVelocity(FVector::ZeroVector)
-	, Gravity(FVector::ZeroVector)
 	, m_GravityScale(0.98f)
+	, m_Gravity(FVector::ZeroVector)
 	, m_DescentTime(0.f)
-	, m_CenterOfGravity(FVector::ZeroVector)
+	, m_pWingRotationSE(NULL)
 	, m_isControl(false)
 	, m_isFloating(true)
 	, m_RingAcquisition(0)
@@ -117,7 +119,7 @@ void ADroneBase::BeginPlay()
 	}
 
 	//質量*重力加速度を重力に設定
-	Gravity = FVector(0.f, 0.f, m_DroneWeight * m_GravityScale);
+	m_Gravity = FVector(0.f, 0.f, m_DroneWeight * m_GravityScale);
 }
 
 //毎フレーム処理
@@ -128,19 +130,14 @@ void ADroneBase::Tick(float DeltaTime)
 	//ステート更新処理
 	UpdateState();
 
-	//重心移動処理
-	UpdateCenterOfGravity(DeltaTime);
-
 	//回転処理
 	//UpdateRotation(DeltaTime);
 
 	//速度更新処理
 	UpdateSpeed(DeltaTime);
 
-	//移動処理
-	UpdateMove(DeltaTime);
-
-	UpdateWindRangeLineTrace(DeltaTime);
+	//風の範囲のコリジョン判定更新
+	UpdateWindRangeSphereTrace();
 }
 
 //【入力バインド】コントローラー入力設定
@@ -156,13 +153,6 @@ void ADroneBase::UpdateWingAccle()
 
 //ステート更新処理
 void ADroneBase::UpdateState()
-{
-
-}
-
-
-//重心移動処理
-void ADroneBase::UpdateCenterOfGravity(const float& DeltaTime)
 {
 
 }
@@ -213,7 +203,7 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 	}
 
 	//推進力の設定
-	FVector Propulsion = Direction * (m_Acceleration + Gravity.Z);
+	FVector Propulsion = Direction * (m_Acceleration + m_Gravity.Z);
 
 	//傾きがある時
 	if (Direction.Z < 1.f)
@@ -242,12 +232,6 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 
 }
 
-//移動処理
-void ADroneBase::UpdateMove(const float& DeltaTime)
-{
-
-}
-
 //羽の回転更新処理
 void ADroneBase::UpdateWingRotation(const float& DeltaTime)
 {
@@ -256,7 +240,7 @@ void ADroneBase::UpdateWingRotation(const float& DeltaTime)
 //重力更新処理
 float ADroneBase::UpdateGravity(const float& DeltaTime)
 {
-	float newGravity = Gravity.Z;
+	float newGravity = m_Gravity.Z;
 	const float UpForce = m_pBodyMesh->GetUpVector().Z;
 	//上向きの力がない時
 	if (UpForce < 0.f)
@@ -286,7 +270,7 @@ float ADroneBase::UpdateGravity(const float& DeltaTime)
 }
 
 //風の影響を与える範囲の更新
-void ADroneBase::UpdateWindRangeLineTrace(const float& DeltaTime)
+void ADroneBase::UpdateWindRangeSphereTrace()
 {
 #ifdef DEBUG_COLLISION_WINDRANGE
 	//スフィアトレースの当たり判定を表示するワイヤーフレームの色を設定

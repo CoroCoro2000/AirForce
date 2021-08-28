@@ -32,10 +32,10 @@ struct FMoveDirectionFlag
 		uint8 Up					 : 1;		//上昇			0
 		uint8 Down				 : 1;		//下降			1
 		uint8 Forward			 : 1;		//前方移動	2
-		uint8 Backward		 : 1;		//後方移動	3
-		uint8 Right			 	 : 1;		//右移動		4
+		uint8 Backward			: 1;		//後方移動	3
+		uint8 Right			 		 : 1;		//右移動		4
 		uint8 Left					 : 1;		//左移動		5
-		uint8 RightTurning	 : 1;		//右回転		6
+		uint8 RightTurning		: 1;		//右回転		6
 		uint8 LeftTurning		 : 1;		//左回転		7
 };
 
@@ -95,18 +95,19 @@ struct FWing
 		, AccelState(0.f)
 	{}
 
+public:
+	uint8 GetWingNumber()const { return WingNumber; }							//羽番号取得
+	UStaticMeshComponent* GetWingMesh()const { return pWingMesh; }	//羽のメッシュ取得
+
 private:
 	UPROPERTY(EditAnywhere, DisplayName = "WingNumber")
 		uint8 WingNumber;																//識別番号(1:左前、2:右前、3:左後ろ、4:右後ろ)
 	UPROPERTY(EditAnywhere, DisplayName = "WingMesh")
 		UStaticMeshComponent* pWingMesh;										//メッシュ
+
 public:
 	UPROPERTY(EditAnywhere, DisplayName = "AcceleState")
 		float AccelState;																		//加速度の段階(-1:最小の加速度、0:加速度なし、1:加速度あり、2:最大の加速度)
-
-public:
-	uint8 GetWingNumber()const { return WingNumber; }							//羽番号取得
-	UStaticMeshComponent* GetWingMesh()const { return pWingMesh; }	//羽のメッシュ取得
 };
 
 //defineマクロ
@@ -171,25 +172,19 @@ public:
 protected:
 	//羽の加速度更新処理
 	virtual void UpdateWingAccle();
-	//重心移動処理
-	virtual void UpdateCenterOfGravity(const float& DeltaTime);
 	//ステート更新処理
 	virtual void UpdateState();
 	//回転処理
 	virtual void UpdateRotation(const float& DeltaTime);
 	//速度更新処理
 	virtual void UpdateSpeed(const float& DeltaTime);
-	//移動処理
-	virtual void UpdateMove(const float& DeltaTime);
-
 	//羽の回転更新処理
 	virtual void UpdateWingRotation(const float& DeltaTime);
-
 	//重力更新処理
 	float UpdateGravity(const float& DeltaTime);
 
 	//風の影響を与える範囲の更新
-	virtual void UpdateWindRangeLineTrace(const float& DeltaTime);
+	virtual void UpdateWindRangeSphereTrace();
 
 protected:
 	//BODY
@@ -225,59 +220,37 @@ protected:
 	//ステートフラグ管理
 	State m_StateFlag;
 
-	FVector m_CurrentLocation;							//ドローンの現在地
-	FVector m_PrevCurrentLocation;						//1つ前のドローンの現在地
-
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
 		float  m_Speed;									//ドローンの秒速(m)
 
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
 		float m_SpeedPerSecondMax;						//ドローンの最大秒速(m)
-
-	//-----------------------------------------------------------------------------
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
 		FVector4 m_AxisAccel;
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
 		float m_Acceleration;							//加速度
 	UPROPERTY(EditAnywhere, Category = "Physical")
 		float m_Deceleration;							//減速度
-	UPROPERTY(VisibleAnywhere, Category = "Physical")
-		float m_Turning;								
-	UPROPERTY(VisibleAnywhere, Category = "Physical")
-		float m_MaxSpeed;
-
-	//-------------------------------------------------------------------------------
-	FQuat m_OldRotation;						//1フレーム前の傾き
-
 	UPROPERTY(EditAnywhere, Category = "Physical")
 		float m_DroneWeight;							//ドローンの重量(kg)
-
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
 		FVector m_Velocity;								//このドローンにかかっている力の量
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
-		FVector m_CenterOfGravity;						//ドローンの重心
-	UPROPERTY(VisibleAnywhere, Category = "Physical")
-		FVector Centrifugalforce;						//遠心力
-
+		FVector m_CentrifugalForce;						//遠心力
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
 		FVector m_AngularVelocity;									//角速度(振動の角速度)
-
 	UPROPERTY(EditAnywhere, Category = "Physical|Gravity")
 		float m_GravityScale;							//重力係数
 	UPROPERTY(EditAnywhere, Category = "Physical")
-		FVector Gravity;								//重力
+		FVector m_Gravity;								//重力
 	UPROPERTY(VisibleAnywhere, Category = "Physical|Gravity")
 		float m_DescentTime;							//落下している時間
-
 	UPROPERTY(EditAnywhere, Category = "Sound")
-		USoundBase* WingRotationSE;								//羽の回転SE
-
+		USoundBase* m_pWingRotationSE;			//羽の回転SE
 	UPROPERTY(EditAnywhere, Category = "Flag")
 		bool m_isControl;								//操作可能フラグ
-
 	UPROPERTY(EditAnywhere, Category = "Flag")
 		bool m_isFloating;								//操作可能フラグ
-
 	UPROPERTY(VisibleAnywhere, Category = "Ring")
 		int m_RingAcquisition;							//リング獲得数
 };

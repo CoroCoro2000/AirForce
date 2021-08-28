@@ -89,10 +89,10 @@ public:
 
 private:
 	//【入力バインド】各スティックの入力
-	void Drone_Throttle(float _axisValue);
-	void Drone_Elevator(float _axisValue);
-	void Drone_Aileron(float _axisValue);
-	void Drone_Ladder(float _axisValue);
+	void Input_Throttle(float _axisValue);
+	void Input_Elevator(float _axisValue);
+	void Input_Aileron(float _axisValue);
+	void Input_Ladder(float _axisValue);
 
 	UFUNCTION(BlueprintCallable, Category = "GameMode")
 		void SwitchGameMode(const TEnumAsByte<EGAMEMODE::Type> GameMode) { m_GameMode = (GameMode == EGAMEMODE::GAMEMODE_FPS ? EGAMEMODE::GAMEMODE_TPS : EGAMEMODE::GAMEMODE_FPS); }
@@ -125,8 +125,6 @@ private:
 
 	//ステート更新処理
 	virtual void UpdateState()override;
-	//重心移動処理
-	virtual void UpdateCenterOfGravity(const float& DeltaTime)override;
 
 	//回転処理
 	void UpdateRotation(const float& DeltaTime);
@@ -164,21 +162,12 @@ private:
 	UPROPERTY(EditAnywhere)
 		UNiagaraSystem* m_pLightlineEffect;									//ラインエフェクト
 
-	TArray<AActor*> m_pHitActors;											//スプリングアームの直線に衝突しているActor
+	TArray<AActor*> m_pHitActors;												//スプリングアームの直線に衝突しているActor
 
-	UPROPERTY(EditAnywhere, Category = "Bullet")
-		AActor* m_pPlayerBullet;															//	プレイヤーの弾
-
-	//入力
-	UPROPERTY(VisibleAnywhere)
-		bool m_bCanControl;												//入力可能かどうか
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-		FVector4 m_AxisValue;							//各軸の入力値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
-
-	//UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-	//	float m_AxisAcceleration[EINPUT_AXIS::NUM];							//各軸の入力の加速値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
+		FVector4 m_AxisValue;														//各軸の入力値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
 
 	UPROPERTY(EditAnywhere)
-		UNiagaraComponent* m_pArrowEffectComponent;
+		UNiagaraComponent* m_pArrowEffectComponent;				//次のチェックポイントを指す矢印エフェクト
 };
