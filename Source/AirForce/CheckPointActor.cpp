@@ -8,21 +8,21 @@
 
 #include "CheckPointActor.h"
 #include "Components/BoxComponent.h"
+#include "PlayerDrone.h"
 
 // Sets default values
 ACheckPointActor::ACheckPointActor()
-	: m_CheckPointCollision(NULL)
-	, m_CheckPointNumber(0)
+	: m_pCheckPointCollision(NULL)
 	, m_pNextCheckPointActor(NULL)
 {
  	//毎フレーム更新する必要がないため、Tick処理を切る
 	PrimaryActorTick.bCanEverTick = false;
 
 	//ボックスコンポーネント生成
-	m_CheckPointCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("CheckPointCollision"));
-	if (m_CheckPointCollision)
+	m_pCheckPointCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("CheckPointCollision"));
+	if (m_pCheckPointCollision)
 	{
-		RootComponent = m_CheckPointCollision;
+		RootComponent = m_pCheckPointCollision;
 	}
 
 	//チェックポイントのタグを追加
@@ -34,11 +34,10 @@ void ACheckPointActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
-
-	//次のチェックポイントの番号を設定
-	if (m_pNextCheckPointActor)
+	//コリジョンがオーバーラップした時呼び出すイベント関数を登録
+	if (m_pCheckPointCollision)
 	{
-		m_pNextCheckPointActor->SetNumber(m_CheckPointNumber + 1);
+		m_pCheckPointCollision->OnComponentBeginOverlap.AddDynamic(this, &ACheckPointActor::OnComponentOverlapBegin);
 	}
 }
 
@@ -49,3 +48,28 @@ void ACheckPointActor::Tick(float DeltaTime)
 
 }
 
+//オブジェクトがオーバーラップした時呼ばれるイベント関数
+void ACheckPointActor::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor && OtherActor != this)
+	{
+		//オーバーラップしたアクターのタグがDroneなら
+		if (OtherActor->ActorHasTag(TEXT("Drone")))
+		{
+			APlayerDrone* pPlayerDrone = Cast<APlayerDrone>(OtherActor);
+
+			if (pPlayerDrone)
+			{
+				if (pPlayerDrone->GetCheckPoint())
+				{
+					//プレイヤーが指しているチェックポイントのアドレスが自身のアドレスと同じなら次のチェックポイント情報を渡し、削除する
+					if (pPlayerDrone->GetCheckPoint() == this)
+					{
+						pPlayerDrone->SetNextCheckPoint(m_pNextCheckPointActor);
+						Destroy();
+					}
+				}
+			}
+		}
+	}
+}

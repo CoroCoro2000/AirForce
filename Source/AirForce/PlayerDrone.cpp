@@ -12,7 +12,6 @@
 
 //インクルード
 #include "PlayerDrone.h"
-#include "DroneBase.h"
 #include "CheckPointActor.h"
 #include "GameUtility.h"
 #include "Components/InputComponent.h"
@@ -491,8 +490,11 @@ void APlayerDrone::UpdateArrowRotation(const float& DeltaTime)
 	m_pArrowEffect->SetRelativeRotation(NewRotation.Quaternion());
 	m_pArrowEffect->SetRelativeLocation(NewRotation.UnrotateVector(NewRotation.Vector()) * m_DistanceFromDrone);
 	m_pArrowEffect->SetWorldRotation(NewRotation.Quaternion());
+
+#ifdef DEBUG_ARROW
 	UE_LOG(LogTemp, Warning, TEXT("NewLotation   :[%s]"), *(NewRotation.Vector() * -m_DistanceFromDrone).ToString());
 	UE_LOG(LogTemp, Warning, TEXT("NewRotation   :[%s]"), *NewRotation.ToString());
+#endif // DEBUG_ARROW
 }
 
 //【入力バインド】コントローラー入力設定

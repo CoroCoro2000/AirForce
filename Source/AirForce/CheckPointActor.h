@@ -32,19 +32,16 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	//オブジェクトがオーバーラップした時呼ばれるイベント関数を登録
+	UFUNCTION()
+		virtual void OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 public:
-	//チェックポイントの番号設定
-	void SetNumber(const int& _number) { m_CheckPointNumber = _number; }
-	//チェックポイントの番号取得
-	int GetNumber()const { return m_CheckPointNumber; }
 	//次のチェックポイント情報取得
 	ACheckPointActor* GetNextCheckPoint()const { return m_pNextCheckPointActor; }
 
 private:
 	UPROPERTY(EditAnywhere)
-		UBoxComponent* m_CheckPointCollision;
-	UPROPERTY(EditAnywhere)
-		int m_CheckPointNumber;							//チェックポイントの番号
+		UBoxComponent* m_pCheckPointCollision;
 	UPROPERTY(EditAnywhere)
 		ACheckPointActor* m_pNextCheckPointActor;		//次のチェックポイント
 };

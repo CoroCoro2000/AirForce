@@ -63,6 +63,7 @@ namespace EINPUT_AXIS
 
 //--------------------------------------------------------------------
 //#define DEBUG_CAMERA			//カメラのデバッグ
+#define DEBUG_ARROW				//矢印のデバッグ
 //--------------------------------------------------------------------
 
 UCLASS()
@@ -88,6 +89,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
 		bool IsMoving(const FVector _axisValue)const { return  (!_axisValue.IsZero() ? true : false); }
 
+	//次のチェックポイントを設定する関数
+	void SetNextCheckPoint(ACheckPointActor* const _nextCheckPoint) { m_pCheckPoint = _nextCheckPoint; }
+	//チェックポイント情報取得
+	ACheckPointActor* GetCheckPoint()const { return m_pCheckPoint; }
 private:
 	//【入力バインド】各スティックの入力
 	void Input_Throttle(float _axisValue);
