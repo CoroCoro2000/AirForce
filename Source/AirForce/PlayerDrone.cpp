@@ -41,6 +41,7 @@ APlayerDrone::APlayerDrone()
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_pArrowEffect(NULL)
 	, m_DistanceFromDrone(50.f)
+	, m_TrackingSpeed(5.f)
 	, m_pCheckPoint(NULL)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
@@ -485,10 +486,11 @@ void APlayerDrone::UpdateArrowRotation(const float& DeltaTime)
 	FVector CheckPointLocation = m_pCheckPoint->GetActorLocation();
 
 	//矢印がチェックポイントを向くように回転させる
-	FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(ArrowLocation, CheckPointLocation);
-	m_pArrowEffect->SetWorldLocation(GetActorLocation());
-	m_pArrowEffect->SetRelativeRotation(NewRotation.Quaternion());
-	m_pArrowEffect->SetRelativeLocation(NewRotation.UnrotateVector(NewRotation.Vector()) * m_DistanceFromDrone);
+	FRotator ArrowRotation = m_pArrowEffect->GetComponentRotation();
+	FRotator LookAtRotation = FRotationMatrix::MakeFromX(CheckPointLocation - ArrowLocation).Rotator();
+	FRotator NewRotation = FMath::RInterpTo(ArrowRotation, LookAtRotation, DeltaTime, m_TrackingSpeed);
+
+	//回転処理
 	m_pArrowEffect->SetWorldRotation(NewRotation.Quaternion());
 
 #ifdef DEBUG_ARROW

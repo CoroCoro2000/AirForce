@@ -63,7 +63,8 @@ namespace EINPUT_AXIS
 
 //--------------------------------------------------------------------
 //#define DEBUG_CAMERA			//カメラのデバッグ
-#define DEBUG_ARROW				//矢印のデバッグ
+//#define DEBUG_ARROW				//矢印のデバッグ
+#define DEBUG_RInterpToQuaternion				
 //--------------------------------------------------------------------
 
 UCLASS()
@@ -175,10 +176,12 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
 		FVector4 m_AxisValue;														//各軸の入力値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
 
-	UPROPERTY(EditAnywhere, Category = "NextCheckPoint")
+	UPROPERTY(EditAnywhere, Category = "Arrow")
 		UNiagaraComponent* m_pArrowEffect;					//次のチェックポイントを指す矢印エフェクト
-	UPROPERTY(EditAnywhere, Category = "NextCheckPoint")
+	UPROPERTY(EditAnywhere, Category = "Arrow")
 		float m_DistanceFromDrone;										//ドローンからの距離
+	UPROPERTY(EditAnywhere, Category = "Arrow")
+		float m_TrackingSpeed;											//矢印がターゲットを追う速さ
 	UPROPERTY(EditAnywhere, Category = "NextCheckPoint")
 		ACheckPointActor* m_pCheckPoint;								//次のチェックポイント情報
 };

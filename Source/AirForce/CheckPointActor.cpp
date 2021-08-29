@@ -60,14 +60,11 @@ void ACheckPointActor::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedCo
 
 			if (pPlayerDrone)
 			{
-				if (pPlayerDrone->GetCheckPoint())
+				//プレイヤーが指しているチェックポイントのアドレスが自身のアドレスと同じなら次のチェックポイント情報を渡し、削除する
+				if (pPlayerDrone->GetCheckPoint() == this)
 				{
-					//プレイヤーが指しているチェックポイントのアドレスが自身のアドレスと同じなら次のチェックポイント情報を渡し、削除する
-					if (pPlayerDrone->GetCheckPoint() == this)
-					{
-						pPlayerDrone->SetNextCheckPoint(m_pNextCheckPointActor);
-						Destroy();
-					}
+					pPlayerDrone->SetNextCheckPoint(m_pNextCheckPointActor);
+					Destroy();
 				}
 			}
 		}

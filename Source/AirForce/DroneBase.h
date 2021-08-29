@@ -120,9 +120,9 @@ public:
 //#define DEBUG_GRAVITY				//重力のデバッグ
 //#define DEBUG_WING					//羽のデバッグ
 //#define DEBUG_COLLISION_WINDRANGE		//風の範囲の当たり判定のデバッグ表示
-#define DEBUG_COLLISION_WINDRANGE_OVERLAPDETA	//風の範囲の当たり判定にオーバーラップしているアクターの数
-#define DEBUG_WindRangeOverlap_Begin		//オーバーラップ開始時のデバッグ
-#define DEBUG_WindRangeOverlap_End		//オーバーラップ開始時のデバッグ
+//#define DEBUG_COLLISION_WINDRANGE_OVERLAPDETA	//風の範囲の当たり判定にオーバーラップしているアクターの数
+//#define DEBUG_WindRangeOverlap_Begin		//オーバーラップ開始時のデバッグ
+//#define DEBUG_WindRangeOverlap_End		//オーバーラップ開始時のデバッグ
 //--------------------------------------------------------------------
 
 UCLASS()
