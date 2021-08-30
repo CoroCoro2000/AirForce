@@ -17,8 +17,8 @@ AAlignedProceduralMesh::AAlignedProceduralMesh()
 	, m_Distance(10.f)
 	, m_MeshRelativeRotation(FRotator::ZeroRotator)
 	, m_RandomizeStatus()
-	, m_SpiralStatus()
 	, m_GridStatus()
+	, m_IsFix(false)
 {
 	//処理はエディタ上でしか実行しない為、Tickは無効にする
 	PrimaryActorTick.bCanEverTick = false;
@@ -49,61 +49,52 @@ void AAlignedProceduralMesh::Tick(float DeltaTime)
 //直線状に生成する処理
 void AAlignedProceduralMesh::CreateLinear()
 {
+	if (!m_IsFix && m_pTempInstanceTransform.Num() > 0)
+	{
+		//インデックスずれ回避のため、大きな要素数から削除
+		for (int32 lastIndex = m_pTempInstanceTransform.Num() - 1; lastIndex >= 0; --lastIndex)
+		{
+			m_pTempInstanceTransform.RemoveAt(lastIndex);
+		}
+	}
+
 	//指定した数だけメッシュを生成する
 	for (int index = 0; index < m_MeshCount; ++index)
 	{
-		FRotator initRotation = m_MeshRelativeRotation;
-		FVector initLocation = FVector::ZeroVector;
-		initLocation.Y = (float)index * m_Distance;
-		float initScale = 1.f;
-
-		//メッシュ間の距離をランダム化するかどうか
-		if (m_RandomizeStatus.bRandomizeDistance)
+		if (!m_IsFix)
 		{
-			initLocation.Y *= FMath::FRandRange(m_RandomizeStatus.RandomDistanceMin, m_RandomizeStatus.RandomDistanceMax);
+			FRotator initRotation = m_MeshRelativeRotation;
+			FVector initLocation = FVector::ZeroVector;
+			initLocation.Y = (float)index * m_Distance;
+			float initScale = 1.f;
+
+			//メッシュ間の距離をランダム化するかどうか
+			if (m_RandomizeStatus.bRandomizeDistance)
+			{
+				initLocation.Y *= FMath::FRandRange(m_RandomizeStatus.RandomDistanceMin, m_RandomizeStatus.RandomDistanceMax);
+			}
+			//メッシュのスケールをランダム化するかどうか
+			if (m_RandomizeStatus.bRandomizeScale)
+			{
+				initScale *= FMath::FRandRange(m_RandomizeStatus.RandomScaleMin, m_RandomizeStatus.RandomScaleMax);
+			}
+			//メッシュの回転をランダム化するかどうか
+			if (m_RandomizeStatus.bRandomizeRotaion)
+			{
+				initRotation.Yaw += FMath::FRandRange(-m_RandomizeStatus.RandomRotaionYawAngle, m_RandomizeStatus.RandomRotaionYawAngle);
+			}
+
+			//メッシュのトランスフォームを設定
+			FTransform initTransform = FTransform(initRotation, initLocation, FVector(initScale));
+
+			//メッシュのトランスフォーム情報を保存しておく
+			m_pTempInstanceTransform.Add(initTransform);
 		}
-		//メッシュのスケールをランダム化するかどうか
-		if (m_RandomizeStatus.bRandomizeScale)
+
+		if (index < (int)m_pTempInstanceTransform.Num())
 		{
-			initScale *= FMath::FRandRange(m_RandomizeStatus.RandomScaleMin, m_RandomizeStatus.RandomScaleMax);
+			m_pMeshes->AddInstance(m_pTempInstanceTransform[index]);
 		}
-		//メッシュの回転をランダム化するかどうか
-		if (m_RandomizeStatus.bRandomizeRotaion)
-		{
-			initRotation.Yaw += FMath::FRandRange(-m_RandomizeStatus.RandomRotaionYawAngle, m_RandomizeStatus.RandomRotaionYawAngle);
-		}
-
-		//メッシュのトランスフォームを設定
-		const FTransform initTransform = FTransform(initRotation, initLocation, FVector(initScale));
-
-		//メッシュインスタンスを追加
-		m_pMeshes->AddInstance(initTransform);
-	}
-}
-
-//曲線状に生成する処理
-void AAlignedProceduralMesh::CreateCurved()
-{
-
-}
-
-//円状に生成する処理
-void AAlignedProceduralMesh::CreateCircular()
-{
-
-}
-
-//螺旋状に生成する処理
-void AAlignedProceduralMesh::CreateSpiral()
-{
-	for (int index = 0; index < m_MeshCount; ++index)
-	{
-		FVector initLocation = (float)index * m_SpiralStatus.Direction;
-		FRotator initRotation = (float)index * m_SpiralStatus.Rotation;
-
-		FTransform initTransform = FTransform(initRotation.RotateVector(initLocation));
-
-		m_pMeshes->AddInstance(initTransform);
 	}
 }
 
@@ -131,7 +122,7 @@ void AAlignedProceduralMesh::CreateGrid()
 //メッシュ情報の更新
 void AAlignedProceduralMesh::UpdateMesh()
 {
-	if (m_MeshCount == 0) { return; }
+	if (m_MeshCount <= 0) { return; }
 	if (!m_pMeshes) { return; }
 	if (!m_pMeshes->GetStaticMesh()) { return; }
 	//更新される前のメッシュ情報をリセット
@@ -141,15 +132,6 @@ void AAlignedProceduralMesh::UpdateMesh()
 	{
 	case EARRANGEMENT::LINEAR:
 		CreateLinear();
-		break;
-	case EARRANGEMENT::CURVE:
-		CreateCurved();
-		break;
-	case EARRANGEMENT::CIRCLE:
-		CreateCircular();
-		break;
-	case EARRANGEMENT::SPIRAL:
-		CreateSpiral();
 		break;
 	case EARRANGEMENT::GRID:
 		CreateGrid();

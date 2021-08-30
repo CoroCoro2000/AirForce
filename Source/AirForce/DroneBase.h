@@ -169,6 +169,7 @@ public:
 	//	ドローンのリング獲得数取得
 	UFUNCTION(BlueprintCallable, Category = "Drone|Ring")
 		int GetRingAcquisition() { return m_RingAcquisition; }
+
 protected:
 	//羽の加速度更新処理
 	virtual void UpdateWingAccle();
@@ -182,9 +183,10 @@ protected:
 	virtual void UpdateWingRotation(const float& DeltaTime);
 	//重力更新処理
 	float UpdateGravity(const float& DeltaTime);
-
+	//風のエフェクト更新処理
+	virtual void UpdateWindEffect(const float& DeltaTime);
 	//風の影響を与える範囲の更新
-	virtual void UpdateWindRangeSphereTrace();
+	virtual void UpdateWindRangeCollision();
 
 protected:
 	//BODY

@@ -10,7 +10,6 @@
 #include "GameUtility.h"
 #include "GameFramework/Actor.h"
 #include "UObject/ConstructorHelpers.h"
-#include "Containers/UnrealString.h"
 #include "Engine/World.h"
 #include "Engine.h"
 #include "Kismet/GameplayStatics.h"

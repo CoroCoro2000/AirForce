@@ -23,7 +23,6 @@ class USpringArmComponent;
 class UCameraComponent;
 class UNiagaraSystem;
 class UNiagaraComponent;
-class ACheckPointActor;
 
 //	視点切り替え
 UENUM(BlueprintType)
@@ -53,7 +52,7 @@ namespace EINPUT_AXIS
 {
 	enum Type
 	{
-		THROTTLE = 0			UMETA(DisplayName = "THROTTLE"),	//上下
+		THROTTLE					UMETA(DisplayName = "THROTTLE"),	//上下
 		ELEVATOR					UMETA(DisplayName = "ELEVATOR"),	//前後
 		AILERON					UMETA(DisplayName = "AILERON"),		//左右
 		LADDER						UMETA(DisplayName = "LADDER"),		//旋回
@@ -63,7 +62,7 @@ namespace EINPUT_AXIS
 
 //--------------------------------------------------------------------
 //#define DEBUG_CAMERA			//カメラのデバッグ
-//#define DEBUG_ARROW				//矢印のデバッグ
+//#define DEBUG_WindEffect		//風エフェクトのデバッグ
 #define DEBUG_RInterpToQuaternion				
 //--------------------------------------------------------------------
 
@@ -90,10 +89,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
 		bool IsMoving(const FVector _axisValue)const { return  (!_axisValue.IsZero() ? true : false); }
 
-	//次のチェックポイントを設定する関数
-	void SetNextCheckPoint(ACheckPointActor* const _nextCheckPoint) { m_pCheckPoint = _nextCheckPoint; }
-	//チェックポイント情報取得
-	ACheckPointActor* GetCheckPoint()const { return m_pCheckPoint; }
 private:
 	//【入力バインド】各スティックの入力
 	void Input_Throttle(float _axisValue);
@@ -142,8 +137,8 @@ private:
 	virtual void UpdateWingRotation(const float& DeltaTime)override;
 	//カメラとの遮蔽物のコリジョン判定
 	void UpdateCameraCollsion();
-	//チェックポイント情報の更新
-	void UpdateArrowRotation(const float& DeltaTime);
+	//風のエフェクトの更新処理
+	void UpdateWindEffect(const float& DeltaTime);
 
 protected:
 	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "GameMode")
@@ -168,20 +163,15 @@ protected:
 		FVector m_CameraMoveLimit;															//カメラの移動できる上限
 	//-------------------------------------------------------------------------------------------------------
 private:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Effect")
 		UNiagaraSystem* m_pLightlineEffect;									//ラインエフェクト
+	UPROPERTY(EditAnywhere, Category = "Effect")
+		UNiagaraComponent* m_pWindEffect;									//次のチェックポイントを指す矢印エフェクト
+	UPROPERTY(EditAnywhere, Category = "Effect")
+		float m_WindRotationSpeed;												//風のエフェクト
 
 	TArray<AActor*> m_pHitActors;												//スプリングアームの直線に衝突しているActor
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
 		FVector4 m_AxisValue;														//各軸の入力値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
-
-	UPROPERTY(EditAnywhere, Category = "Arrow")
-		UNiagaraComponent* m_pArrowEffect;					//次のチェックポイントを指す矢印エフェクト
-	UPROPERTY(EditAnywhere, Category = "Arrow")
-		float m_DistanceFromDrone;										//ドローンからの距離
-	UPROPERTY(EditAnywhere, Category = "Arrow")
-		float m_TrackingSpeed;											//矢印がターゲットを追う速さ
-	UPROPERTY(EditAnywhere, Category = "NextCheckPoint")
-		ACheckPointActor* m_pCheckPoint;								//次のチェックポイント情報
 };

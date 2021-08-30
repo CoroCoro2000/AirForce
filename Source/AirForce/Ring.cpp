@@ -121,28 +121,43 @@ void ARing::UpdateColor(const float& DeltaTime)
 //リングのトランスフォーム更新
 void ARing::UpdateTransform(const float& DeltaTime)
 {
-	if (!m_bIsPassed) { return; }
 	if (!m_pRingMesh || !m_pScaleCurve) { return; }
 
-	//カウントの進行度で座標と大きさを決める
-	const FVector RingLocation = FMath::Lerp(GetActorLocation(), m_PassedDroneLocation, m_InvisibleCntRate);
-	const float Scale = m_pScaleCurve->GetFloatValue(m_MakeInvisibleCnt);
-
-	//リングを縮めながらプレイヤーを追うように移動する
-	if (Scale > 0.f)
+	//リングが通過されたら
+	if (m_bIsPassed)
 	{
-		SetActorScale3D(FVector(Scale));
-		SetActorLocation(RingLocation);
+		//カウントの進行度で座標と大きさを決める
+		const FVector RingLocation = FMath::Lerp(GetActorLocation(), m_PassedDroneLocation, m_InvisibleCntRate);
+		const float Scale = m_pScaleCurve->GetFloatValue(m_MakeInvisibleCnt);
+
+		//リングを縮めながらプレイヤーを追うように移動する
+		if (Scale > 0.f)
+		{
+			SetActorScale3D(FVector(Scale));
+			SetActorLocation(RingLocation);
+		}
+		else
+		{
+			m_bDestroy = true;
+		}
+
+		if (m_bDestroy)
+		{
+			//リングが見えなくなったらリングを消す
+			this->Destroy();
+		}
 	}
+	//リングが通過されていない間
 	else
 	{
-		m_bDestroy = true;
-	}
+		//サイン波の幅を設定
+		const float WaveWidth = 10.f * GetWorld()->GetTimeSeconds();
+		//サイン波の大きさを0から1に正規化する
+		const float SinWave = FMath::Sin(WaveWidth) * 0.5f + 0.5f;
 
-	if (m_bDestroy)
-	{
-		//リングが見えなくなったらリングを消す
-		this->Destroy();
+		//サイン波の値でリングの大きさを変える
+		const float Scale = FMath::Lerp(1.05f, 0.8f, SinWave);
+		m_pRingMesh->SetRelativeScale3D(FVector(Scale));
 	}
 }
 

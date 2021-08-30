@@ -137,7 +137,7 @@ void ADroneBase::Tick(float DeltaTime)
 	UpdateSpeed(DeltaTime);
 
 	//風の範囲のコリジョン判定更新
-	UpdateWindRangeSphereTrace();
+	UpdateWindRangeCollision();
 }
 
 //【入力バインド】コントローラー入力設定
@@ -269,8 +269,14 @@ float ADroneBase::UpdateGravity(const float& DeltaTime)
 	return newGravity;
 }
 
+//風のエフェクト更新処理
+void ADroneBase::UpdateWindEffect(const float& DeltaTime)
+{
+}
+
+
 //風の影響を与える範囲の更新
-void ADroneBase::UpdateWindRangeSphereTrace()
+void ADroneBase::UpdateWindRangeCollision()
 {
 #ifdef DEBUG_COLLISION_WINDRANGE
 	//スフィアトレースの当たり判定を表示するワイヤーフレームの色を設定

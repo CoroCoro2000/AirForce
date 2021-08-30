@@ -23,55 +23,10 @@ namespace EARRANGEMENT
 	enum Type
 	{
 		LINEAR				UMETA(DisplayName = "Linear"),
-		CURVE				UMETA(DisplayName = "Curve"),
-		CIRCLE				UMETA(DisplayName = "Circle"),
-		SPIRAL				UMETA(DisplayName = "Spiral"),
 		GRID					UMETA(DisplayName = "Grid"),
 		NUM					UMETA(Hidden),
 	};
 }
-
-USTRUCT(BlueprintType)
-struct FLinearStatus
-{
-	GENERATED_USTRUCT_BODY()
-
-		FLinearStatus()
-		: Distance(10.f)
-	{}
-
-	float Distance;
-};
-
-USTRUCT(BlueprintType)
-struct FCurveStatus
-{
-	GENERATED_USTRUCT_BODY()
-
-};
-
-USTRUCT(BlueprintType)
-struct FCircleStatus
-{
-	GENERATED_USTRUCT_BODY()
-
-};
-
-USTRUCT(BlueprintType)
-struct FSpiralStatus
-{
-	GENERATED_USTRUCT_BODY()
-
-	FSpiralStatus()
-		: Direction(FVector::ZeroVector)
-		, Rotation(FRotator::ZeroRotator)
-	{}
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		FVector Direction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		FRotator Rotation;
-};
 
 USTRUCT(BlueprintType)
 struct FGridStatus
@@ -156,32 +111,29 @@ private:
 
 	//直線状に生成する処理
 	void CreateLinear();
-	//曲線状に生成する処理
-	void CreateCurved();
-	//円状に生成する処理
-	void CreateCircular();
-	//螺旋状に生成する処理
-	void CreateSpiral();
 	//格子状に生成する処理
 	void CreateGrid();
 	//メッシュ情報の更新
 	void UpdateMesh();
+	//トランスフォームを格納する配列のリセット
+	void ClearTempTransform();
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_isFix"))
 		UHierarchicalInstancedStaticMeshComponent* m_pMeshes;							//メッシュ
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_isFix"))
 		TEnumAsByte<EARRANGEMENT::Type> m_ArrangementType;						//メッシュをどのように並べるか
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "m_ArrangementType != EARRANGEMENT::GRID"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_isFix && m_ArrangementType != EARRANGEMENT::GRID"))
 		int m_MeshCount;																						//配置するメッシュの数
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "m_ArrangementType != EARRANGEMENT::GRID"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_isFix && m_ArrangementType != EARRANGEMENT::GRID"))
 		float m_Distance;																						//メッシュ同士の間隔
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_isFix"))
 		FRotator m_MeshRelativeRotation;																//配置するメッシュの相対角度
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_isFix"))
 		FRandomizeStatus m_RandomizeStatus;														//ランダム化する際のパラメーター
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "m_ArrangementType == EARRANGEMENT::SPIRAL"))
-		FSpiralStatus m_SpiralStatus;																		//螺旋状に配置する際に設定するパラメーター
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "m_ArrangementType == EARRANGEMENT::GRID"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_isFix && m_ArrangementType == EARRANGEMENT::GRID"))
 		FGridStatus m_GridStatus;																			//格子上に配置する際に設定するパラメーター
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
+		bool m_IsFix;																								//現在の配置で固定するかどうか
+		TArray<FTransform> m_pTempInstanceTransform;										//配置されているメッシュのトランスフォームを保存しておく配列
 };

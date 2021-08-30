@@ -12,7 +12,6 @@
 
 //インクルード
 #include "PlayerDrone.h"
-#include "CheckPointActor.h"
 #include "GameUtility.h"
 #include "Components/InputComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -38,11 +37,9 @@ APlayerDrone::APlayerDrone()
 	, m_CameraSocketOffsetMax(0.f)
 	, m_CameraMoveLimit(FVector(10.f, 40.f, 20.f))
 	, m_pLightlineEffect(NULL)
+	, m_pWindEffect(NULL)
+	, m_WindRotationSpeed(5.f)
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
-	, m_pArrowEffect(NULL)
-	, m_DistanceFromDrone(50.f)
-	, m_TrackingSpeed(5.f)
-	, m_pCheckPoint(NULL)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -79,10 +76,10 @@ APlayerDrone::APlayerDrone()
 	}
 
 	//チェックポイントを指す矢印生成
-	m_pArrowEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ArrowEffect"));
-	if (m_pArrowEffect)
+	m_pWindEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ArrowEffect"));
+	if (m_pWindEffect)
 	{
-		m_pArrowEffect->SetupAttachment(m_pBodyMesh);
+		m_pWindEffect->SetupAttachment(m_pDroneCollision);
 	}
 
 	//デフォルトプレイヤーとして設定
@@ -95,8 +92,6 @@ void APlayerDrone::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//座標設定
-	m_pArrowEffect->SetRelativeLocation(FVector(m_DistanceFromDrone, 0.f, 0.f));
 }
 
 //毎フレーム処理
@@ -129,7 +124,7 @@ void APlayerDrone::Tick(float DeltaTime)
 	//SwitchViewPort();
 
 	//チェックポイント情報の更新
-	UpdateArrowRotation(DeltaTime);
+	UpdateWindEffect(DeltaTime);
 }
 
 //カメラの初期設定
@@ -409,18 +404,21 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 //速度更新処理
 void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 {
-	//Super::UpdateSpeed(DeltaTime);
 
 	//オートマチックで操作するとき
 	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
 	{
 		float speed = 3.5f;
-		FVector Auto = FVector::ZeroVector;
-		Auto += m_pCamera->GetRightVector() * speed * m_AxisAccel.X;
-		Auto += m_pCamera->GetForwardVector() * speed * -m_AxisAccel.Y;
-		Auto += m_pCamera->GetUpVector() * speed * m_AxisAccel.Z;
-		m_Speed = Auto.Size();
-		AddActorWorldOffset(Auto * MOVE_CORRECTION, true);
+		m_Velocity = FVector::ZeroVector;
+		m_Velocity += m_pCamera->GetRightVector() * speed * m_AxisAccel.X;
+		m_Velocity += m_pCamera->GetForwardVector() * speed * -m_AxisAccel.Y;
+		m_Velocity += m_pCamera->GetUpVector() * speed * m_AxisAccel.Z;
+		m_Speed = m_Velocity.Size();
+		AddActorWorldOffset(m_Velocity * MOVE_CORRECTION, true);
+	}
+	else
+	{
+		Super::UpdateSpeed(DeltaTime);
 	}
 }
 
@@ -476,27 +474,32 @@ void  APlayerDrone::UpdateCameraCollsion()
 
 }
 
-//矢印の回転更新
-void APlayerDrone::UpdateArrowRotation(const float& DeltaTime)
+//風のエフェクトの更新処理
+void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 {
-	if (!m_pArrowEffect || !m_pCheckPoint) { return; }
+	if (m_pWindEffect) 
+	{
+		//エフェクトとチェックポイントの座標を取得
+		FVector EffectLocation = m_pWindEffect->GetComponentLocation();
+		FVector  Direction = EffectLocation + m_Velocity.GetSafeNormal();
+		//エフェクトが進行方向へ向くようにする
+		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction - EffectLocation).Rotator();
+		//移動量の大きさからエフェクトの不透明度を設定
+		float AccelRate = FMath::Clamp(m_AxisAccel.Size() / m_WingAccelMax, 0.f, 1.f);
+		float WindOpacity = FMath::Lerp(0.f, 1.f, AccelRate);
 
-	//矢印とチェックポイントの座標を取得
-	FVector ArrowLocation = m_pArrowEffect->GetComponentLocation();
-	FVector CheckPointLocation = m_pCheckPoint->GetActorLocation();
-
-	//矢印がチェックポイントを向くように回転させる
-	FRotator ArrowRotation = m_pArrowEffect->GetComponentRotation();
-	FRotator LookAtRotation = FRotationMatrix::MakeFromX(CheckPointLocation - ArrowLocation).Rotator();
-	FRotator NewRotation = FMath::RInterpTo(ArrowRotation, LookAtRotation, DeltaTime, m_TrackingSpeed);
-
-	//回転処理
-	m_pArrowEffect->SetWorldRotation(NewRotation.Quaternion());
-
-#ifdef DEBUG_ARROW
-	UE_LOG(LogTemp, Warning, TEXT("NewLotation   :[%s]"), *(NewRotation.Vector() * -m_DistanceFromDrone).ToString());
-	UE_LOG(LogTemp, Warning, TEXT("NewRotation   :[%s]"), *NewRotation.ToString());
-#endif // DEBUG_ARROW
+		//回転処理
+		m_pWindEffect->SetWorldRotation(LookAtRotation.Quaternion() * MOVE_CORRECTION);
+		//エフェクトの不透明度を変更
+		m_pWindEffect->SetVariableFloat(TEXT("User.WindOpacity"), WindOpacity);
+	}
+#ifdef DEBUG_WindEffect
+	else
+	{
+		//NULLだった場合ログ表示
+		UE_LOG(LogTemp, Error, TEXT("NULL:m_pWindEffect"));
+	}
+#endif // DEBUG_WindEffect
 }
 
 //【入力バインド】コントローラー入力設定
