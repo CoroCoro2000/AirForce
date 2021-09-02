@@ -38,6 +38,10 @@ void AGameManager::BeginPlay()
 {
 	Super::BeginPlay();
 	FFileHelper::LoadFileToStringArray(m_RapTimeText, *(FPaths::GameDir() + ScoreTxt));
+	for (int i = 0; i < m_RapTimeText.Num(); i++)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *(m_RapTimeText[i]));
+	}
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (PlayerController)
@@ -78,6 +82,7 @@ void AGameManager::Tick(float DeltaTime)
 		//レースが始まっているならラップタイムを計測する
 		if (m_isStart & !m_isGoal)
 		{
+			//m_RapTime = 40.432888;
 			m_RapTime += DeltaTime;
 		}
 			
@@ -86,10 +91,10 @@ void AGameManager::Tick(float DeltaTime)
 			if (!m_isScoreWrite)
 			{
 				m_RapTime = CGameUtility::SetDecimalTruncation(m_RapTime, 3);
-				m_RapTimeText.Add(FString::SanitizeFloat(m_RapTime));
-
+				m_RapTime *= 1000.f;
+				m_RapTimeText.Add(FString::FromInt(int(m_RapTime)));
 				//ラップタイム並び替え
-				m_RapTimeText.Sort();
+				RapTimeSort();
 
 				if (m_RapTimeText.Num() > m_RankingDisplayNum)
 				{
@@ -98,7 +103,13 @@ void AGameManager::Tick(float DeltaTime)
 						m_RapTimeText.RemoveAt(i);
 					}
 				}
+
 				FFileHelper::SaveStringArrayToFile(m_RapTimeText, *(FPaths::GameDir() + ScoreTxt));
+
+				for (int i = 0; i < m_RapTimeText.Num(); i++)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("%s"), *(m_RapTimeText[i]));
+				}
 				m_isScoreWrite = true;
 				//UE_LOG(LogTemp, Warning, TEXT("%f"), m_RapTime);
 			}
@@ -147,9 +158,19 @@ void AGameManager::NextSceneDown()
 //ラップタイム並び替え
 void AGameManager::RapTimeSort()
 {
-	FString _Time;
+	TArray<int> SortRapTime;	//ソート用ラップタイム
+
 	for (int i = 0; i < m_RapTimeText.Num(); i++)
 	{
+		SortRapTime.Add(FCString::Atof(*(m_RapTimeText[i])));
+	}
+
+	//ソート用ラップタイムの並び替え
+	SortRapTime.Sort();
+
+	for (int i = 0; i < m_RapTimeText.Num(); i++)
+	{
+		m_RapTimeText[i] = FString::SanitizeFloat(SortRapTime[i]);
 	}
 }
 

@@ -119,6 +119,9 @@ public:
 	//ゴールフラグの取得
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetIsGoal()const { return m_isGoal; }
+	//スコア書き込みフラグの取得
+	UFUNCTION(BlueprintCallable, Category = "Flag")
+		bool GetIsScoreWrite()const { return m_isScoreWrite; }
 	//シーン遷移フラグの取得
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetisSceneTransition()const { return m_isSceneTransition; }
@@ -138,6 +141,17 @@ public:
 	//ラップタイムのミリ秒取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int GetRapMiliSecond()const { return (m_RapTime - (int)m_RapTime) * 1000; }
+
+	//ラップタイムの分取得
+	UFUNCTION(BlueprintCallable, Category = "Stage")
+		int OutputRapMinute()const { return (int)m_RapTime / 1000 / 60; }
+	//ラップタイムの秒取得
+	UFUNCTION(BlueprintCallable, Category = "Stage")
+		int OutputRapSecond()const { return (int)m_RapTime / 1000 % 60; }
+	//ラップタイムのミリ秒取得
+	UFUNCTION(BlueprintCallable, Category = "Stage")
+		int OutputRapMiliSecond()const { return (int)m_RapTime % 1000; }
+
 	//レース後のシーン遷移取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		TEnumAsByte<ENEXTSCENE::Type> GetNextScene()const { return m_NextScene.GetNextScene(); }
