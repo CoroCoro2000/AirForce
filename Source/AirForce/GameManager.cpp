@@ -10,6 +10,7 @@
 #include "GameManager.h"
 #include "GameUtility.h"
 #include "Misc/FileHelper.h"
+#include "Engine/LevelStreaming.h"
 #include "Kismet/GameplayStatics.h"
 
 #define ScoreTxt "Score.txt"
@@ -28,6 +29,8 @@ AGameManager::AGameManager()
 	, m_isScoreWrite(false)
 	, m_isNewRecord(false)
 	, m_Drone(NULL)
+	, m_LatentAction(0, 1, TEXT("Completed"), this)
+	, m_bLoadComplete(false)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -174,3 +177,34 @@ void AGameManager::RapTimeSort()
 	}
 }
 
+//レベルのロード処理
+void AGameManager::LoadLevel(const FName& _level)
+{
+	m_bLoadComplete = false;
+	UGameplayStatics::LoadStreamLevel(this, _level, false, false, m_LatentAction);
+}
+
+//レベルのアンロード処理
+void AGameManager::UnloadLevel(const FName& _level)
+{
+	m_bLoadComplete = false;
+	UGameplayStatics::UnloadStreamLevel(this, _level, m_LatentAction, false);
+}
+
+//レベルの表示処理
+bool AGameManager::ShowLevel(const FName& _level) const
+{
+	ULevelStreaming* levelstream = UGameplayStatics::GetStreamingLevel(GetWorld(), _level);
+	check(levelstream != nullptr);
+	levelstream->SetShouldBeVisible(true);
+	return levelstream->IsLevelVisible();
+}
+
+//レベルの非表示処理
+bool AGameManager::HideLevel(const FName& _level) const
+{
+	ULevelStreaming* levelstream = UGameplayStatics::GetStreamingLevel(GetWorld(), _level);
+	check(levelstream != nullptr);
+	levelstream->SetShouldBeVisible(false);
+	return !levelstream->IsLevelVisible();
+}

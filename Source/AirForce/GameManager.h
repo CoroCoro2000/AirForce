@@ -159,6 +159,23 @@ public:
 	//ラップタイム並び替え
 	UFUNCTION(BlueprintCallable, Category = "Result")
 		void RapTimeSort();
+
+	//レベルコントローラ関数
+//-----------------------------------------------------------
+//レベルロード完了時に呼び出される関数
+	UFUNCTION()
+		void Completed() { m_bLoadComplete = true; }
+	//レベルのロード処理
+	void LoadLevel(const FName& _level);
+	//レベルのアンロード処理
+	void UnloadLevel(const FName& _level);
+	//レベルの表示処理
+	bool ShowLevel(const FName& _level) const;
+	//レベルの非表示処理
+	bool HideLevel(const FName& _level) const;
+	//ロード/アンロードが終了したか確認する関数
+	bool IsCompleted() const { return m_bLoadComplete; }
+	//-----------------------------------------------------------
 private:
 	UPROPERTY(EditAnywhere, Category = "Flag")
 		TEnumAsByte<ECURRENTSCENE::Type> m_CurrentScene;				//現在のシーンステート
@@ -195,4 +212,9 @@ private:
 		int m_GoalRingNumber;						//ゴールのリングの通し番号
 
 	float m_LeftStickInputValue;
+
+	UPROPERTY(VisibleAnywhere, Category = "LevelController")
+		FLatentActionInfo m_LatentAction;
+	UPROPERTY(VisibleAnywhere, Category = "LevelController")
+		bool m_bLoadComplete;
 };

@@ -55,7 +55,7 @@ APlayerDrone::APlayerDrone()
 	m_pSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	if (m_pSpringArm && m_pBodyMesh)
 	{
-		m_pSpringArm->SetupAttachment(m_pBodyMesh);
+		m_pSpringArm->SetupAttachment(m_pDroneCollision);
 	}
 
 	//カメラ生成
@@ -123,7 +123,7 @@ void APlayerDrone::Tick(float DeltaTime)
 	//視点の切り替え
 	//SwitchViewPort();
 
-	//チェックポイント情報の更新
+	//風のエフェクト更新処理
 	UpdateWindEffect(DeltaTime);
 }
 
@@ -408,11 +408,17 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 	//オートマチックで操作するとき
 	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
 	{
+		FRotator BodyRotation = m_pBodyMesh->GetComponentRotation();
+		BodyRotation.Pitch = 0.f;
+		BodyRotation.Roll = 0.f;
+
+		FQuat BodyQuat = BodyRotation.Quaternion();
+
 		float speed = 3.5f;
 		m_Velocity = FVector::ZeroVector;
-		m_Velocity += m_pCamera->GetRightVector() * speed * m_AxisAccel.X;
-		m_Velocity += m_pCamera->GetForwardVector() * speed * -m_AxisAccel.Y;
-		m_Velocity += m_pCamera->GetUpVector() * speed * m_AxisAccel.Z;
+		m_Velocity += BodyQuat.GetRightVector() * speed * m_AxisAccel.X;
+		m_Velocity += BodyQuat.GetForwardVector() * speed * -m_AxisAccel.Y;
+		m_Velocity += BodyQuat.GetUpVector() * speed * m_AxisAccel.Z;
 		m_Speed = m_Velocity.Size();
 		AddActorWorldOffset(m_Velocity * MOVE_CORRECTION, true);
 	}
@@ -453,16 +459,29 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 
 #endif // DEBUG_CAMERA
 
+	FRotator BodyRotation = m_pBodyMesh->GetComponentRotation();
+	BodyRotation.Pitch = 0.f;
+	BodyRotation.Roll = 0.f;
+	FQuat BodyQuat = BodyRotation.Quaternion();
+
+	FVector CameraLocation = m_pCamera->GetComponentLocation();
+	FVector DroneLocation = GetActorLocation() + BodyQuat.GetForwardVector() * 100000000.f;
+	FRotator LookAtRotation = FRotationMatrix::MakeFromX(DroneLocation - CameraLocation).Rotator();
+	FRotator CameraRotation = m_pCamera->GetComponentRotation();
+	FRotator NewRotation = FMath::RInterpTo(CameraRotation, LookAtRotation, DeltaTime, 10.f);
+	NewRotation.Roll = 0.f;
+
 	FRotator Camera = FRotator::ZeroRotator;
-	Camera.Pitch = m_pBodyMesh->GetRelativeRotation().Pitch * -1.f;
+	//NewRotation.Pitch = m_pBodyMesh->GetComponentRotation().Pitch * -1.f;
+	//Camera.Pitch = m_pBodyMesh->GetRelativeRotation().Pitch * -1.f;
 	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
 	{
-		Camera.Roll = m_pBodyMesh->GetRelativeRotation().Roll * -1.f;
+		//Camera.Roll = m_pBodyMesh->GetRelativeRotation().Roll * -1.f;
 	}
-		
-	FVector Direction = m_pBodyMesh->GetUpVector();
 
-	m_pSpringArm->SetRelativeRotation(Camera.Quaternion());
+	//m_pSpringArm->SetRelativeRotation(Camera.Quaternion());
+	m_pSpringArm->SetRelativeRotation(FRotator(0.f, m_pBodyMesh->GetRelativeRotation().Yaw, 0.f));
+	m_pCamera->SetWorldRotation(NewRotation.Quaternion());
 
 	//ソケット
 	m_pSpringArm->SocketOffset = FVector(m_AxisAccel.Y, m_AxisAccel.X, 0.f) * m_CameraSocketOffsetMax / m_WingAccelMax;
@@ -485,7 +504,8 @@ void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 		//エフェクトが進行方向へ向くようにする
 		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction - EffectLocation).Rotator();
 		//移動量の大きさからエフェクトの不透明度を設定
-		float AccelRate = FMath::Clamp(m_AxisAccel.Size() / m_WingAccelMax, 0.f, 1.f);
+		FVector Accel = m_AxisAccel;
+		float AccelRate = FMath::Clamp(Accel.Size() / m_WingAccelMax, 0.f, 1.f);
 		float WindOpacity = FMath::Lerp(0.f, 1.f, AccelRate);
 
 		//回転処理
