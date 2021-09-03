@@ -76,10 +76,10 @@ APlayerDrone::APlayerDrone()
 	}
 
 	//チェックポイントを指す矢印生成
-	m_pWindEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ArrowEffect"));
+	m_pWindEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("WindEffect"));
 	if (m_pWindEffect)
 	{
-		m_pWindEffect->SetupAttachment(m_pDroneCollision);
+		m_pWindEffect->SetupAttachment(m_pCamera);
 	}
 
 	//デフォルトプレイヤーとして設定
@@ -470,21 +470,15 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	FRotator CameraRotation = m_pCamera->GetComponentRotation();
 	FRotator NewRotation = FMath::RInterpTo(CameraRotation, LookAtRotation, DeltaTime, 10.f);
 	NewRotation.Roll = 0.f;
-
 	FRotator Camera = FRotator::ZeroRotator;
-	//NewRotation.Pitch = m_pBodyMesh->GetComponentRotation().Pitch * -1.f;
-	//Camera.Pitch = m_pBodyMesh->GetRelativeRotation().Pitch * -1.f;
-	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
-	{
-		//Camera.Roll = m_pBodyMesh->GetRelativeRotation().Roll * -1.f;
-	}
 
-	//m_pSpringArm->SetRelativeRotation(Camera.Quaternion());
 	m_pSpringArm->SetRelativeRotation(FRotator(0.f, m_pBodyMesh->GetRelativeRotation().Yaw, 0.f));
 	m_pCamera->SetWorldRotation(NewRotation.Quaternion());
 
 	//ソケット
 	m_pSpringArm->SocketOffset = FVector(m_AxisAccel.Y, m_AxisAccel.X, 0.f) * m_CameraSocketOffsetMax / m_WingAccelMax;
+	//移動量に応じて視野角を変更
+	m_pCamera->SetFieldOfView(90.f - m_AxisAccel.Y * 10.f);
 }
 
 //カメラとの遮蔽物のコリジョン判定
@@ -504,9 +498,7 @@ void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 		//エフェクトが進行方向へ向くようにする
 		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction - EffectLocation).Rotator();
 		//移動量の大きさからエフェクトの不透明度を設定
-		FVector Accel = m_AxisAccel;
-		float AccelRate = FMath::Clamp(Accel.Size() / m_WingAccelMax, 0.f, 1.f);
-		float WindOpacity = FMath::Lerp(0.f, 1.f, AccelRate);
+		float WindOpacity = FMath::Lerp(0.f, 0.2f, m_AxisAccel.Y);
 
 		//回転処理
 		m_pWindEffect->SetWorldRotation(LookAtRotation.Quaternion() * MOVE_CORRECTION);
