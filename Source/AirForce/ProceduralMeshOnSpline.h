@@ -15,7 +15,7 @@
 
 //前方宣言
 class USplineComponent;
-class UHierarchicalInstancedStaticMeshComponent;
+class UInstancedStaticMeshComponent;
 
 //デバッグ用define
 //#define DEBUG_TRANSFORM			//トランスフォームのログ出力
@@ -49,15 +49,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline")
 		USplineComponent* m_pSpline;							//オブジェクトを配置する位置を示すスプライン
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		UHierarchicalInstancedStaticMeshComponent* m_pMeshes;	//スプライン上に配置されるメッシュ
+		UInstancedStaticMeshComponent* m_pMeshes;	//スプライン上に配置されるメッシュ
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
 		int m_MeshCount;												//配置するメッシュの数
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		FRotator m_MeshRelativeRotation;						//配置するメッシュの相対角度
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		bool m_bLockRotationPitch;								//メッシュのPitch軸回転をロックするかどうか
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		bool m_bLockRotationYaw;									//メッシュのYaw軸回転をロックするかどうか
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		bool m_bLockRotationRoll;									//メッシュのRoll軸回転をロックするかどうか
+		FRotator m_Rotation;
 };

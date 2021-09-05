@@ -8,17 +8,14 @@
 //インクルード
 #include "ProceduralMeshOnSpline.h"
 #include "Components/SplineComponent.h"
-#include "Components/HierarchicalInstancedStaticMeshComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
 
 // Sets default values
 AProceduralMeshOnSpline::AProceduralMeshOnSpline()
 	: m_pSpline(NULL)
 	, m_pMeshes(NULL)
 	, m_MeshCount(1)
-	, m_MeshRelativeRotation(FRotator::ZeroRotator)
-	, m_bLockRotationPitch(false)
-	, m_bLockRotationYaw(false)
-	, m_bLockRotationRoll(false)
+	, m_Rotation(FRotator::ZeroRotator)
 {
 	//処理はエディタ上でしか実行しない為、Tickは無効にする
 	PrimaryActorTick.bCanEverTick = false;
@@ -31,11 +28,10 @@ AProceduralMeshOnSpline::AProceduralMeshOnSpline()
 	}
 
 	//メッシュコンポーネント生成
-	m_pMeshes = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>("Meshes");
+	m_pMeshes = CreateDefaultSubobject<UInstancedStaticMeshComponent>("Meshes");
 	if (m_pMeshes && m_pSpline)
 	{
 		m_pMeshes->SetupAttachment(m_pSpline);
-		m_pMeshes->SetMobility(EComponentMobility::Static);
 	}
 }
 
@@ -77,13 +73,8 @@ void AProceduralMeshOnSpline::UpdateMeshOnSpline()
 		const FVector initLocation = m_pSpline->GetLocationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local);
 		FRotator initRotation = m_pSpline->GetRotationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local);
 
-		//回転軸がロックされている場合、スプラインに沿って回転しないようにする
-		initRotation.Pitch *= (m_bLockRotationPitch) ? 0.f : 1.f;
-		initRotation.Yaw *= (m_bLockRotationYaw) ? 0.f : 1.f;
-		initRotation.Roll *= (m_bLockRotationRoll) ? 0.f : 1.f;
-
 		//配置するメッシュのトランスフォームを設定
-		const FTransform initTransform = FTransform(initRotation + m_MeshRelativeRotation, initLocation);
+		const FTransform initTransform = FTransform(initRotation + m_Rotation, initLocation);
 
 		//メッシュインスタンスを追加
 		m_pMeshes->AddInstance(initTransform);
