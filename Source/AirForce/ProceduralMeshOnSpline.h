@@ -52,6 +52,4 @@ protected:
 		UInstancedStaticMeshComponent* m_pMeshes;	//スプライン上に配置されるメッシュ
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
 		int m_MeshCount;												//配置するメッシュの数
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		FRotator m_Rotation;
 };

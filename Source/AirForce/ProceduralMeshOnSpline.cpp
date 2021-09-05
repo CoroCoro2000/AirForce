@@ -15,7 +15,6 @@ AProceduralMeshOnSpline::AProceduralMeshOnSpline()
 	: m_pSpline(NULL)
 	, m_pMeshes(NULL)
 	, m_MeshCount(1)
-	, m_Rotation(FRotator::ZeroRotator)
 {
 	//処理はエディタ上でしか実行しない為、Tickは無効にする
 	PrimaryActorTick.bCanEverTick = false;
@@ -74,7 +73,7 @@ void AProceduralMeshOnSpline::UpdateMeshOnSpline()
 		FRotator initRotation = m_pSpline->GetRotationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local);
 
 		//配置するメッシュのトランスフォームを設定
-		const FTransform initTransform = FTransform(initRotation + m_Rotation, initLocation);
+		const FTransform initTransform = FTransform(initRotation, initLocation);
 
 		//メッシュインスタンスを追加
 		m_pMeshes->AddInstance(initTransform);

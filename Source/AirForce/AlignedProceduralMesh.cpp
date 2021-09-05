@@ -8,6 +8,7 @@
 
 #include "AlignedProceduralMesh.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
+#include "GameUtility.h"
 
 // Sets default values
 AAlignedProceduralMesh::AAlignedProceduralMesh()
@@ -18,7 +19,7 @@ AAlignedProceduralMesh::AAlignedProceduralMesh()
 	, m_MeshRelativeRotation(FRotator::ZeroRotator)
 	, m_RandomizeStatus()
 	, m_GridStatus()
-	, m_IsFix(false)
+	, m_bFix(false)
 {
 	//処理はエディタ上でしか実行しない為、Tickは無効にする
 	PrimaryActorTick.bCanEverTick = false;
@@ -49,19 +50,13 @@ void AAlignedProceduralMesh::Tick(float DeltaTime)
 //直線状に生成する処理
 void AAlignedProceduralMesh::CreateLinear()
 {
-	if (!m_IsFix && m_pTempInstanceTransform.Num() > 0)
+	//固定されていなければ指定した数だけ生成する
+	if (!m_bFix)
 	{
-		//インデックスずれ回避のため、大きな要素数から削除
-		for (int32 lastIndex = m_pTempInstanceTransform.Num() - 1; lastIndex >= 0; --lastIndex)
-		{
-			m_pTempInstanceTransform.RemoveAt(lastIndex);
-		}
-	}
+		//トランスフォームのリセット
+		m_TempInstanceTransform.Empty();
 
-	//指定した数だけメッシュを生成する
-	for (int index = 0; index < m_MeshCount; ++index)
-	{
-		if (!m_IsFix)
+		for (int index = 0; index < m_MeshCount; ++index)
 		{
 			FRotator initRotation = m_MeshRelativeRotation;
 			FVector initLocation = FVector::ZeroVector;
@@ -71,29 +66,37 @@ void AAlignedProceduralMesh::CreateLinear()
 			//メッシュ間の距離をランダム化するかどうか
 			if (m_RandomizeStatus.bRandomizeDistance)
 			{
-				initLocation.Y *= FMath::FRandRange(m_RandomizeStatus.RandomDistanceMin, m_RandomizeStatus.RandomDistanceMax);
+				float RandomDistance = FMath::FRandRange(m_RandomizeStatus.RandomDistanceMin, m_RandomizeStatus.RandomDistanceMax);
+				initLocation.Y *= CGameUtility::SetDecimalTruncation(RandomDistance, 3);
 			}
 			//メッシュのスケールをランダム化するかどうか
 			if (m_RandomizeStatus.bRandomizeScale)
 			{
-				initScale *= FMath::FRandRange(m_RandomizeStatus.RandomScaleMin, m_RandomizeStatus.RandomScaleMax);
+				float RandomScale = FMath::FRandRange(m_RandomizeStatus.RandomScaleMin, m_RandomizeStatus.RandomScaleMax);
+				initScale *= CGameUtility::SetDecimalTruncation(RandomScale, 3);
 			}
 			//メッシュの回転をランダム化するかどうか
 			if (m_RandomizeStatus.bRandomizeRotaion)
 			{
-				initRotation.Yaw += FMath::FRandRange(-m_RandomizeStatus.RandomRotaionYawAngle, m_RandomizeStatus.RandomRotaionYawAngle);
+				float RandomRotation = FMath::FRandRange(-m_RandomizeStatus.RandomRotaionYawAngle, m_RandomizeStatus.RandomRotaionYawAngle);
+				initRotation.Yaw += CGameUtility::SetDecimalTruncation(RandomRotation, 3);
 			}
 
 			//メッシュのトランスフォームを設定
 			FTransform initTransform = FTransform(initRotation, initLocation, FVector(initScale));
 
-			//メッシュのトランスフォーム情報を保存しておく
-			m_pTempInstanceTransform.Add(initTransform);
+			//メッシュの追加
+			m_pMeshes->AddInstance(initTransform);
+			//メッシュのトランスフォーム情報を保存
+			m_TempInstanceTransform.Add(initTransform);
 		}
-
-		if (index < (int)m_pTempInstanceTransform.Num())
+	}
+	//固定されているときは変更前の状態で生成する
+	else
+	{
+		for (FTransform transform : m_TempInstanceTransform)
 		{
-			m_pMeshes->AddInstance(m_pTempInstanceTransform[index]);
+			m_pMeshes->AddInstance(transform);
 		}
 	}
 }
@@ -122,7 +125,6 @@ void AAlignedProceduralMesh::CreateGrid()
 //メッシュ情報の更新
 void AAlignedProceduralMesh::UpdateMesh()
 {
-	if (m_MeshCount <= 0) { return; }
 	if (!m_pMeshes) { return; }
 	if (!m_pMeshes->GetStaticMesh()) { return; }
 	//更新される前のメッシュ情報をリセット
@@ -148,6 +150,8 @@ void AAlignedProceduralMesh::UpdateMesh()
 //エディタ上で配置時、または内部の値が変更された時に呼び出される関数
 void AAlignedProceduralMesh::OnConstruction(const FTransform& Transform)
 {
+	Super::OnConstruction(Transform);
+
 	//メッシュを生成する
 	UpdateMesh();
 }

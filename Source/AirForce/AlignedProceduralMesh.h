@@ -115,25 +115,23 @@ private:
 	void CreateGrid();
 	//メッシュ情報の更新
 	void UpdateMesh();
-	//トランスフォームを格納する配列のリセット
-	void ClearTempTransform();
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_isFix"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_bFix"))
 		UHierarchicalInstancedStaticMeshComponent* m_pMeshes;							//メッシュ
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_isFix"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_bFix"))
 		TEnumAsByte<EARRANGEMENT::Type> m_ArrangementType;						//メッシュをどのように並べるか
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_isFix && m_ArrangementType != EARRANGEMENT::GRID"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_bFix && m_ArrangementType != EARRANGEMENT::GRID"))
 		int m_MeshCount;																						//配置するメッシュの数
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_isFix && m_ArrangementType != EARRANGEMENT::GRID"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_bFix && m_ArrangementType != EARRANGEMENT::GRID"))
 		float m_Distance;																						//メッシュ同士の間隔
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_isFix"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_bFix"))
 		FRotator m_MeshRelativeRotation;																//配置するメッシュの相対角度
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_isFix"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_bFix"))
 		FRandomizeStatus m_RandomizeStatus;														//ランダム化する際のパラメーター
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_isFix && m_ArrangementType == EARRANGEMENT::GRID"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_bFix && m_ArrangementType == EARRANGEMENT::GRID"))
 		FGridStatus m_GridStatus;																			//格子上に配置する際に設定するパラメーター
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		bool m_IsFix;																								//現在の配置で固定するかどうか
-		TArray<FTransform> m_pTempInstanceTransform;										//配置されているメッシュのトランスフォームを保存しておく配列
+		bool m_bFix;																								//現在の配置で固定するかどうか
+	TArray<FTransform> m_TempInstanceTransform;										//配置されているメッシュのトランスフォームを保存しておく配列
 };
