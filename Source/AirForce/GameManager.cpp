@@ -9,8 +9,8 @@
 //インクルード
 #include "GameManager.h"
 #include "GameUtility.h"
+#include "Sound/SoundBase.h"
 #include "Misc/FileHelper.h"
-#include "Engine/LevelStreaming.h"
 #include "Kismet/GameplayStatics.h"
 
 #define ScoreTxt "Score.txt"
@@ -23,14 +23,13 @@ AGameManager::AGameManager()
 	, m_isGoal(false)
 	, m_isSceneTransition(false)
 	, m_CountDownTime(4.f)
+	, m_CountDownText("")
 	, m_RapTime(0.f)
 	, m_DefaultTime(0.f)
 	, m_RankingDisplayNum(5)
 	, m_isScoreWrite(false)
 	, m_isNewRecord(false)
 	, m_Drone(NULL)
-	, m_LatentAction(0, 1, TEXT("Completed"), this)
-	, m_bLoadComplete(false)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -79,26 +78,29 @@ void AGameManager::Tick(float DeltaTime)
 		//レースが始まっていないならカウントダウンをする
 		if (!m_isStart)
 		{
-			m_CountDownTime -= DeltaTime;
+			CountDown(DeltaTime);
 		}
 			
 		//レースが始まっているならラップタイムを計測する
 		if (m_isStart & !m_isGoal)
 		{
-			//m_RapTime = 40.432888;
 			m_RapTime += DeltaTime;
 		}
-			
+		
+		//ゴールしたなら
 		if (m_isGoal)
 		{
+			//スコアを書き込みしたか確認
 			if (!m_isScoreWrite)
 			{
+				//ラップタイムを1000倍した値をテキストファイルに記入
 				m_RapTime = CGameUtility::SetDecimalTruncation(m_RapTime, 3);
 				m_RapTime *= 1000.f;
 				m_RapTimeText.Add(FString::FromInt(int(m_RapTime)));
 				//ラップタイム並び替え
 				RapTimeSort();
 
+				//不要な下位のスコアを削除
 				if (m_RapTimeText.Num() > m_RankingDisplayNum)
 				{
 					for (int i = m_RankingDisplayNum; i < m_RapTimeText.Num(); i++)
@@ -107,21 +109,13 @@ void AGameManager::Tick(float DeltaTime)
 					}
 				}
 
+				//テキストファイル書き込み
 				FFileHelper::SaveStringArrayToFile(m_RapTimeText, *(FPaths::GameDir() + ScoreTxt));
-
-				for (int i = 0; i < m_RapTimeText.Num(); i++)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("%s"), *(m_RapTimeText[i]));
-				}
+				//書き込みフラグをONにする
 				m_isScoreWrite = true;
 				//UE_LOG(LogTemp, Warning, TEXT("%f"), m_RapTime);
 			}
 			
-		}
-
-		if (m_CountDownTime <= 1.f)
-		{
-			m_isStart = true;
 		}
 			
 		//	レースがスタートして、ゴールしていない間操作可能にする
@@ -134,7 +128,27 @@ void AGameManager::Tick(float DeltaTime)
 	}
 }
 
-//
+//カウントダウン処理
+void AGameManager::CountDown(float DeltaTime)
+{
+	FString m_prevCountDownText = m_CountDownText;	//1フレーム前のカウントダウンテキスト
+
+	m_CountDownTime -= DeltaTime;
+	m_CountDownText = FString::FromInt(int(m_CountDownTime) + 1);
+
+	if (m_CountDownText != m_prevCountDownText)
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), m_CountDownSE);
+	}
+
+	if (m_CountDownTime <= 0.f)
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), m_StartSE);
+		m_CountDownText = "";
+		m_isStart = true;
+	}
+
+}//
 void AGameManager::NextSceneUp()
 {
 	if (!m_isSceneTransition) { return; }
@@ -175,36 +189,4 @@ void AGameManager::RapTimeSort()
 	{
 		m_RapTimeText[i] = FString::SanitizeFloat(SortRapTime[i]);
 	}
-}
-
-//レベルのロード処理
-void AGameManager::LoadLevel(const FName& _level)
-{
-	m_bLoadComplete = false;
-	UGameplayStatics::LoadStreamLevel(this, _level, false, false, m_LatentAction);
-}
-
-//レベルのアンロード処理
-void AGameManager::UnloadLevel(const FName& _level)
-{
-	m_bLoadComplete = false;
-	UGameplayStatics::UnloadStreamLevel(this, _level, m_LatentAction, false);
-}
-
-//レベルの表示処理
-bool AGameManager::ShowLevel(const FName& _level) const
-{
-	ULevelStreaming* levelstream = UGameplayStatics::GetStreamingLevel(GetWorld(), _level);
-	check(levelstream != nullptr);
-	levelstream->SetShouldBeVisible(true);
-	return levelstream->IsLevelVisible();
-}
-
-//レベルの非表示処理
-bool AGameManager::HideLevel(const FName& _level) const
-{
-	ULevelStreaming* levelstream = UGameplayStatics::GetStreamingLevel(GetWorld(), _level);
-	check(levelstream != nullptr);
-	levelstream->SetShouldBeVisible(false);
-	return !levelstream->IsLevelVisible();
 }

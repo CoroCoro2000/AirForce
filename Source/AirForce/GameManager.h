@@ -16,6 +16,8 @@
 #include "Ring.h"
 #include "GameManager.generated.h"
 
+class USoundBase;
+
 //シーン管理列挙
 UENUM(BlueprintType)
 namespace ECURRENTSCENE
@@ -129,6 +131,10 @@ public:
 	//レース前のカウントダウン時間の取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		float GetCountDownTime()const { return m_CountDownTime; }
+	//レース前のカウントダウンテキストの取得
+	UFUNCTION(BlueprintCallable, Category = "Stage")
+		FString GetCountDownText()const { return m_CountDownText; }
+
 	//ラップタイムの取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		float GetRapTime()const { return m_RapTime; }
@@ -160,22 +166,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Result")
 		void RapTimeSort();
 
-	//レベルコントローラ関数
-//-----------------------------------------------------------
-//レベルロード完了時に呼び出される関数
-	UFUNCTION()
-		void Completed() { m_bLoadComplete = true; }
-	//レベルのロード処理
-	void LoadLevel(const FName& _level);
-	//レベルのアンロード処理
-	void UnloadLevel(const FName& _level);
-	//レベルの表示処理
-	bool ShowLevel(const FName& _level) const;
-	//レベルの非表示処理
-	bool HideLevel(const FName& _level) const;
-	//ロード/アンロードが終了したか確認する関数
-	bool IsCompleted() const { return m_bLoadComplete; }
-	//-----------------------------------------------------------
 private:
 	UPROPERTY(EditAnywhere, Category = "Flag")
 		TEnumAsByte<ECURRENTSCENE::Type> m_CurrentScene;				//現在のシーンステート
@@ -189,21 +179,23 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
 		bool m_isGoal;								//ゴールフラグ
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
-		bool m_isSceneTransition;			//レース後のシーン遷移フラグ
+		bool m_isSceneTransition;					//レース後のシーン遷移フラグ
 
 	UPROPERTY(EditAnywhere, Category = "Stage")
-		float m_CountDownTime;				//レース前のカウントダウン
+		float m_CountDownTime;						//レース前のカウントダウン
+	UPROPERTY(VisibleAnywhere, Category = "Stage")
+		FString m_CountDownText;					//レース前のカウントダウン表示テキスト
 	UPROPERTY(VisibleAnywhere, Category = "Stage")
 		float m_RapTime;							//ゴールするまでの時間
 
 	UPROPERTY(VisibleAnywhere, Category = "Result")
-		TArray<FString> m_RapTimeText;
+		TArray<FString> m_RapTimeText;				//スコアテキスト
 	UPROPERTY(EditAnywhere, Category = "Result")
-		float m_DefaultTime;
+		float m_DefaultTime;						//ランキングデフォルトタイム
 	UPROPERTY(EditAnywhere, Category = "Result")
-		int m_RankingDisplayNum;							
+		int m_RankingDisplayNum;					//ランキングに残す数
 	UPROPERTY(VisibleAnywhere, Category = "Result")
-		bool m_isScoreWrite;							//スコア書き込みフラグ
+		bool m_isScoreWrite;						//スコア書き込みフラグ
 	UPROPERTY(VisibleAnywhere, Category = "Result")
 		bool m_isNewRecord;							//最速タイム更新フラグ
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
@@ -211,10 +203,10 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
 		int m_GoalRingNumber;						//ゴールのリングの通し番号
 
-	float m_LeftStickInputValue;
+	UPROPERTY(EditAnywhere, Category = "Sound")
+		USoundBase* m_CountDownSE;						//カウントダウンSE
+	UPROPERTY(EditAnywhere, Category = "Sound")
+		USoundBase* m_StartSE;						//スタートSE
 
-	UPROPERTY(VisibleAnywhere, Category = "LevelController")
-		FLatentActionInfo m_LatentAction;
-	UPROPERTY(VisibleAnywhere, Category = "LevelController")
-		bool m_bLoadComplete;
+	float m_LeftStickInputValue;
 };
