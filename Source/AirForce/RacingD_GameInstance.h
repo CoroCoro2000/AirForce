@@ -17,7 +17,7 @@ namespace ECURRENT_LEVEL
 	{
 		TITLE						UMETA(DisplayName = "Title"),
 		SELECT						UMETA(DisplayName = "Select"),
-		RACE						UMETA(DisplayName = "Race"),
+		RACE							UMETA(DisplayName = "Race"),
 		RESULT						UMETA(DisplayName = "	Result"),
 		NUM							UMETA(Hidden),
 	};
@@ -36,7 +36,25 @@ public:
 	URacingD_GameInstance();
 	
 	
-
+	//レベルコントローラ関数
+//-----------------------------------------------------------
+//レベルロード完了時に呼び出される関数
+	UFUNCTION()
+		void Completed() { m_bLoadComplete = true; }
+	//レベルのロード処理
+	void LoadLevel(const FName& _level);
+	//レベルのアンロード処理
+	void UnloadLevel(const FName& _level);
+	//レベルの表示処理
+	bool ShowLevel(const FName& _level) const;
+	//レベルの非表示処理
+	bool HideLevel(const FName& _level) const;
+	//ロード/アンロードが終了したか確認する関数
+	bool IsCompleted() const { return m_bLoadComplete; }
+	//-----------------------------------------------------------
 private:
-	AGameManager* m_pGameManager;					//レベルごとのマネージャークラス
+	UPROPERTY(VisibleAnywhere, Category = "LevelController")
+		FLatentActionInfo m_LatentAction;
+	UPROPERTY(VisibleAnywhere, Category = "LevelController")
+		bool m_bLoadComplete;
 };
