@@ -498,7 +498,8 @@ void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 		//エフェクトが進行方向へ向くようにする
 		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction - EffectLocation).Rotator();
 		//移動量の大きさからエフェクトの不透明度を設定
-		float WindOpacity = FMath::Lerp(0.f, 0.2f, m_AxisAccel.Y);
+		float OpacityRate = FMath::Abs(m_AxisAccel.GetSafeNormal().Y);
+		float WindOpacity = FMath::Lerp(0.f, 0.2f, OpacityRate);
 
 		//回転処理
 		m_pWindEffect->SetWorldRotation(LookAtRotation.Quaternion() * MOVE_CORRECTION);
