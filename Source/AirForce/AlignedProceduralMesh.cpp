@@ -54,7 +54,10 @@ void AAlignedProceduralMesh::CreateLinear()
 	if (!m_bFix)
 	{
 		//トランスフォームのリセット
-		m_TempInstanceTransform.Empty();
+		if ((int)m_TempInstanceTransform.Num() > 0)
+		{
+			m_TempInstanceTransform.Empty();
+		}
 
 		for (int index = 0; index < m_MeshCount; ++index)
 		{
