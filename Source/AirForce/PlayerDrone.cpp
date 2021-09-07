@@ -34,7 +34,7 @@ APlayerDrone::APlayerDrone()
 	, m_CameraTargetLength(90.f)
 	, m_FieldOfView(90.f)
 	, m_CameraSocketOffset(FVector::ZeroVector)
-	, m_CameraSocketOffsetMax(0.f)
+	, m_CameraSocketOffsetMax(FVector(30.f, 45.f, 30.f))
 	, m_CameraMoveLimit(FVector(10.f, 40.f, 20.f))
 	, m_pLightlineEffect(NULL)
 	, m_pWindEffect(NULL)
@@ -459,21 +459,35 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 
 #endif // DEBUG_CAMERA
 
-	FRotator BodyRotation = m_pBodyMesh->GetComponentRotation();
-	BodyRotation.Pitch = 0.f;
-	BodyRotation.Roll = 0.f;
-	FQuat BodyQuat = BodyRotation.Quaternion();
+	//FRotator BodyRotation = m_pBodyMesh->GetComponentRotation();
+	//BodyRotation.Pitch = 0.f;
+	//BodyRotation.Roll = 0.f;
+	//FQuat BodyQuat = BodyRotation.Quaternion();
 
-	FVector CameraLocation = m_pCamera->GetComponentLocation();
-	FVector DroneLocation = GetActorLocation() + BodyQuat.GetForwardVector() * 100000000.f;
-	FRotator LookAtRotation = FRotationMatrix::MakeFromX(DroneLocation - CameraLocation).Rotator();
-	FRotator CameraRotation = m_pCamera->GetComponentRotation();
-	FRotator NewRotation = FMath::RInterpTo(CameraRotation, LookAtRotation, DeltaTime, 10.f);
-	NewRotation.Roll = 0.f;
-	FRotator Camera = FRotator::ZeroRotator;
+	//FVector CameraLocation = m_pCamera->GetComponentLocation();
+	//FVector DroneLocation = GetActorLocation() + BodyQuat.GetForwardVector() * 100000000.f;
+	//FRotator LookAtRotation = FRotationMatrix::MakeFromX(DroneLocation - CameraLocation).Rotator();
+	//FRotator CameraRotation = m_pCamera->GetComponentRotation();
+	//FRotator NewRotation = FMath::RInterpTo(CameraRotation, LookAtRotation, DeltaTime, 10.f);
+	//NewRotation.Roll = 0.f;
+	//FRotator Camera = FRotator::ZeroRotator;
 
-	m_pSpringArm->SetRelativeRotation(FRotator(0.f, m_pBodyMesh->GetRelativeRotation().Yaw, 0.f));
-	m_pCamera->SetWorldRotation(NewRotation.Quaternion());
+	//m_pCamera->SetWorldRotation(NewRotation.Quaternion());
+	FRotator CameraRotation = m_pCamera->GetRelativeRotation();
+	if (FMath::Abs(m_AxisAccel.X) > 0.f)
+	{
+		if (FMath::Abs(m_pCamera->GetRelativeRotation().Roll) < 10.f)
+		{
+			CameraRotation.Roll += m_AxisValue.X * 2.f * DeltaTime;
+		}
+	}
+	else
+	{
+		CameraRotation.Roll *= m_Deceleration;
+	}
+
+	m_pCamera->SetRelativeRotation(CameraRotation * MOVE_CORRECTION);
+	m_pSpringArm->SetRelativeRotation(FRotator(0.f, m_pBodyMesh->GetRelativeRotation().Yaw, 0.f) * MOVE_CORRECTION);
 
 	//ソケット
 	m_pSpringArm->SocketOffset = FVector(m_AxisAccel.Y, m_AxisAccel.X, 0.f) * m_CameraSocketOffsetMax / m_WingAccelMax;

@@ -158,7 +158,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
 		FVector m_CameraSocketOffset;										//カメラの位置
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
-		float m_CameraSocketOffsetMax;													//カメラがソケットする上限
+		FVector m_CameraSocketOffsetMax;													//カメラがソケットする上限
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
 		FVector m_CameraMoveLimit;															//カメラの移動できる上限
 	//-------------------------------------------------------------------------------------------------------
