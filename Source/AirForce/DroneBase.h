@@ -185,8 +185,6 @@ protected:
 	float UpdateGravity(const float& DeltaTime);
 	//風のエフェクト更新処理
 	virtual void UpdateWindEffect(const float& DeltaTime);
-	//風の影響を与える範囲の更新
-	virtual void UpdateWindRangeCollision();
 
 protected:
 	//BODY
@@ -210,12 +208,6 @@ protected:
 	//最大の加速度の倍率
 	UPROPERTY(EditAnywhere, Category = "Wing")
 		float m_WingAccelMax;
-	//ドローンの周りに影響を与える風の強さ
-	UPROPERTY(EditAnywhere, Category = "Wing")
-		float m_WindSpeed;
-	//風の影響範囲内にいるアクター
-	UPROPERTY(EditAnywhere, Category = "Wing")
-		TArray<AActor*> m_pWindRangeActors;
 
 	//移動フラグ管理
 	MoveDirection m_MoveDirectionFlag;
