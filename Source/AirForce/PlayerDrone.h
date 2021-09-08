@@ -63,7 +63,7 @@ namespace EINPUT_AXIS
 //--------------------------------------------------------------------
 //#define DEBUG_CAMERA			//カメラのデバッグ
 //#define DEBUG_WindEffect		//風エフェクトのデバッグ
-//#define DEBUG_IsOverHeightMax
+#define DEBUG_IsOverHeightMax
 //--------------------------------------------------------------------
 
 UCLASS()
@@ -141,7 +141,7 @@ private:
 	void UpdateWindEffect(const float& DeltaTime);
 
 	//高度の上限をを超えているか確認
-	bool IsOverHeightMax();
+	bool IsOverHeightMax()const;
 protected:
 	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "GameMode")
 		TEnumAsByte<EGAMEMODE::Type> m_GameMode;	//	視点切り替え

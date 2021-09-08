@@ -519,26 +519,43 @@ void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 }
 
 //高度の上限をを超えているか確認
-bool APlayerDrone::IsOverHeightMax()
+bool APlayerDrone::IsOverHeightMax() const
 {
 	//レイの開始点と終点を設定(ドローンの座標から高度の上限の長さ)
 	FVector Start = GetActorLocation();
 	FVector End = Start;
 	End.Z -= m_HeightMax;
-
-	FHitResult OutHit;
+	//ヒット結果を格納する配列
+	TArray<FHitResult> OutHits;
+	//トレースする対象(自身は対象から外す)
 	FCollisionQueryParams CollisionParam;
 	CollisionParam.AddIgnoredActor(this);
 
-	bool isHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
-	
+	//レイを飛ばし、WorldStaticのコリジョンチャンネルを持つオブジェクトのヒット判定を取得する
+	bool isHit = GetWorld()->LineTraceMultiByObjectType(OutHits, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+	bool OverHeightMax = true;
+
+	//レイがヒットしたらヒットしたアクターのタグを確認し、Groundのタグを持つアクターがあれば高度上限を越えていないのでフラグを降ろす
+	if (isHit)
+	{
+		for (const FHitResult& HitResult : OutHits)
+		{
+			if (HitResult.GetActor())
+			{
+				if (HitResult.GetActor()->ActorHasTag(TEXT("Ground")))
+				{
+					OverHeightMax = false;
+				}
+			}
+		}
+	}
 #ifdef DEBUG_IsOverHeightMax
-	//上限を超えていないときは青、超えたら黄色
-	FColor LineColor = isHit ? FColor::Blue : FColor::Yellow;
+	//上限を越えたら黄色、越えていないなら青
+	FColor LineColor = OverHeightMax ? FColor::Yellow : FColor::Blue;
 	DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.f);
 #endif // DEBUG_IsOverHeightMax
 
-	return !isHit;
+	return OverHeightMax;
 }
 
 //【入力バインド】コントローラー入力設定
