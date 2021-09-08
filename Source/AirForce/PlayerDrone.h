@@ -63,7 +63,7 @@ namespace EINPUT_AXIS
 //--------------------------------------------------------------------
 //#define DEBUG_CAMERA			//カメラのデバッグ
 //#define DEBUG_WindEffect		//風エフェクトのデバッグ
-#define DEBUG_RInterpToQuaternion				
+//#define DEBUG_IsOverHeightMax
 //--------------------------------------------------------------------
 
 UCLASS()
@@ -140,6 +140,8 @@ private:
 	//風のエフェクトの更新処理
 	void UpdateWindEffect(const float& DeltaTime);
 
+	//高度の上限をを超えているか確認
+	bool IsOverHeightMax();
 protected:
 	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "GameMode")
 		TEnumAsByte<EGAMEMODE::Type> m_GameMode;	//	視点切り替え
@@ -174,4 +176,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
 		FVector4 m_AxisValue;														//各軸の入力値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
+	UPROPERTY(EditAnywhere, Category = "Drone")
+		float m_HeightMax;															//ドローンが飛ぶことのできる地面からの高さの範囲
 };

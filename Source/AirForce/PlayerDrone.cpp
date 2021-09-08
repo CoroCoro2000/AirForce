@@ -40,6 +40,7 @@ APlayerDrone::APlayerDrone()
 	, m_pWindEffect(NULL)
 	, m_WindRotationSpeed(5.f)
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
+	, m_HeightMax(500.f)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -408,18 +409,21 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 	//オートマチックで操作するとき
 	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
 	{
-		FRotator BodyRotation = m_pBodyMesh->GetComponentRotation();
-		BodyRotation.Pitch = 0.f;
-		BodyRotation.Roll = 0.f;
-
-		FQuat BodyQuat = BodyRotation.Quaternion();
-
+		float RotYaw = m_pBodyMesh->GetComponentRotation().Yaw;
+		FQuat BodyQuat = FRotator(0.f, RotYaw, 0.f).Quaternion();
 		float speed = 3.5f;
 		m_Velocity = FVector::ZeroVector;
 		m_Velocity += BodyQuat.GetRightVector() * speed * m_AxisAccel.X;
 		m_Velocity += BodyQuat.GetForwardVector() * speed * -m_AxisAccel.Y;
 		m_Velocity += BodyQuat.GetUpVector() * speed * m_AxisAccel.Z;
 		m_Speed = m_Velocity.Size();
+
+		//高度が上限を超えていたらそれ以上上に進まないようにする
+		if (IsOverHeightMax() && m_Velocity.Z > 0.f)
+		{
+			m_Velocity.Z = 0.f;
+		}
+
 		AddActorWorldOffset(m_Velocity * MOVE_CORRECTION, true);
 	}
 	else
@@ -458,21 +462,6 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 		DeltaTime + 0.05f);
 
 #endif // DEBUG_CAMERA
-
-	//FRotator BodyRotation = m_pBodyMesh->GetComponentRotation();
-	//BodyRotation.Pitch = 0.f;
-	//BodyRotation.Roll = 0.f;
-	//FQuat BodyQuat = BodyRotation.Quaternion();
-
-	//FVector CameraLocation = m_pCamera->GetComponentLocation();
-	//FVector DroneLocation = GetActorLocation() + BodyQuat.GetForwardVector() * 100000000.f;
-	//FRotator LookAtRotation = FRotationMatrix::MakeFromX(DroneLocation - CameraLocation).Rotator();
-	//FRotator CameraRotation = m_pCamera->GetComponentRotation();
-	//FRotator NewRotation = FMath::RInterpTo(CameraRotation, LookAtRotation, DeltaTime, 10.f);
-	//NewRotation.Roll = 0.f;
-	//FRotator Camera = FRotator::ZeroRotator;
-
-	//m_pCamera->SetWorldRotation(NewRotation.Quaternion());
 	FRotator CameraRotation = m_pCamera->GetRelativeRotation();
 	if (FMath::Abs(m_AxisAccel.X) > 0.f)
 	{
@@ -527,6 +516,29 @@ void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 		UE_LOG(LogTemp, Error, TEXT("NULL:m_pWindEffect"));
 	}
 #endif // DEBUG_WindEffect
+}
+
+//高度の上限をを超えているか確認
+bool APlayerDrone::IsOverHeightMax()
+{
+	//レイの開始点と終点を設定(ドローンの座標から高度の上限の長さ)
+	FVector Start = GetActorLocation();
+	FVector End = Start;
+	End.Z -= m_HeightMax;
+
+	FHitResult OutHit;
+	FCollisionQueryParams CollisionParam;
+	CollisionParam.AddIgnoredActor(this);
+
+	bool isHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+	
+#ifdef DEBUG_IsOverHeightMax
+	//上限を超えていないときは青、超えたら黄色
+	FColor LineColor = isHit ? FColor::Blue : FColor::Yellow;
+	DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.f);
+#endif // DEBUG_IsOverHeightMax
+
+	return !isHit;
 }
 
 //【入力バインド】コントローラー入力設定
