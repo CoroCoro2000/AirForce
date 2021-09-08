@@ -14,6 +14,7 @@
 #include "GameFramework/Actor.h"
 #include "DroneBase.h"
 #include "Ring.h"
+#include "Kismet/KismetTextLibrary.h"
 #include "GameManager.generated.h"
 
 class USoundBase;
@@ -137,16 +138,16 @@ public:
 
 	//ラップタイムの取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
-		float GetRapTime()const { return m_RapTime; }
+		int GetRapTime()const { return m_RapTime; }
 	//ラップタイムの分取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
-		int GetRapMinute()const { return (int)m_RapTime / 60; }
+		FText GetRapMinute()const { return UKismetTextLibrary::Conv_IntToText((int)m_RapTime / 60, false, true, 1); }
 	//ラップタイムの秒取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
-		int GetRapSecond()const { return (int)m_RapTime % 60; }
+		FText GetRapSecond()const { return UKismetTextLibrary::Conv_IntToText((int)m_RapTime % 60, false, true, 2); }
 	//ラップタイムのミリ秒取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
-		int GetRapMiliSecond()const { return (m_RapTime - (int)m_RapTime) * 1000; }
+		FText GetRapMiliSecond()const { return UKismetTextLibrary::Conv_IntToText((m_RapTime - (int)m_RapTime) * 1000, false, true, 3); }
 
 	//ラップタイムの分取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
