@@ -418,10 +418,10 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 		m_Velocity += BodyQuat.GetUpVector() * speed * m_AxisAccel.Z;
 		m_Speed = m_Velocity.Size();
 
-		//高度が上限を超えていたらそれ以上上に進まないようにする
-		if (IsOverHeightMax() && m_Velocity.Z > 0.f)
+		//高度上限を超えていたら自動的に高度を下げる
+		if (IsOverHeightMax())
 		{
-			m_Velocity.Z = 0.f;
+			m_Velocity.Z = -3.f;
 		}
 
 		AddActorWorldOffset(m_Velocity * MOVE_CORRECTION, true);
