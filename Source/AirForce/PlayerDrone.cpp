@@ -40,7 +40,7 @@ APlayerDrone::APlayerDrone()
 	, m_pWindEffect(NULL)
 	, m_WindRotationSpeed(5.f)
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
-	, m_HeightMax(500.f)
+	, m_HeightMax(400.f)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -463,16 +463,16 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 
 #endif // DEBUG_CAMERA
 	FRotator CameraRotation = m_pCamera->GetRelativeRotation();
-	if (FMath::Abs(m_AxisAccel.X) > 0.f)
+	if (FMath::Abs(m_AxisValue.X) > 0.2f)
 	{
-		if (FMath::Abs(m_pCamera->GetRelativeRotation().Roll) < 10.f)
+		if (FMath::Abs(m_pCamera->GetRelativeRotation().Roll) < FMath::Abs(m_pBodyMesh->GetRelativeRotation().Roll))
 		{
-			CameraRotation.Roll += m_AxisValue.X * 2.f * DeltaTime;
+			CameraRotation.Roll += m_AxisValue.X * 5.f * DeltaTime;
 		}
 	}
 	else
 	{
-		CameraRotation.Roll *= m_Deceleration;
+		CameraRotation.Roll *= 0.94f;
 	}
 
 	m_pCamera->SetRelativeRotation(CameraRotation * MOVE_CORRECTION);
