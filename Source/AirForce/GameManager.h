@@ -141,28 +141,35 @@ public:
 		int GetRapTime()const { return m_RapTime; }
 	//ラップタイムの分取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
-		FText GetRapMinute()const { return UKismetTextLibrary::Conv_IntToText((int)m_RapTime / 60, false, true, 1); }
+		FText GetRapMinuteText()const { return UKismetTextLibrary::Conv_IntToText((int)m_RapTime / 60, false, true, 1); }
 	//ラップタイムの秒取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
-		FText GetRapSecond()const { return UKismetTextLibrary::Conv_IntToText((int)m_RapTime % 60, false, true, 2); }
+		FText GetRapSecondText()const { return UKismetTextLibrary::Conv_IntToText((int)m_RapTime % 60, false, true, 2); }
 	//ラップタイムのミリ秒取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
-		FText GetRapMiliSecond()const { return UKismetTextLibrary::Conv_IntToText((m_RapTime - (int)m_RapTime) * 1000, false, true, 3); }
+		FText GetRapMiliSecondText()const { return UKismetTextLibrary::Conv_IntToText((m_RapTime - (int)m_RapTime) * 1000, false, true, 3); }
 
 	//ラップタイムの分取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
-		int OutputRapMinute()const { return (int)m_RapTime / 1000 / 60; }
+		int GetRapMinute()const { return (int)m_RapTime / 60; }
 	//ラップタイムの秒取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
-		int OutputRapSecond()const { return (int)m_RapTime / 1000 % 60; }
+		int GetRapSecond()const { return (int)m_RapTime % 60; }
 	//ラップタイムのミリ秒取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
-		int OutputRapMiliSecond()const { return (int)m_RapTime % 1000; }
+		int GetRapMiliSecond()const { return (m_RapTime - (int)m_RapTime) * 1000; }
 
 	//レース後のシーン遷移取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		TEnumAsByte<ENEXTSCENE::Type> GetNextScene()const { return m_NextScene.GetNextScene(); }
 
+	//ラップタイムテキスト取得
+	UFUNCTION(BlueprintCallable, Category = "Result")
+		FText GetRapTimeRanking(int n) { return n < m_RapTimeText.Num() ? FText::FromString(m_RapTimeText[n]) : FText::FromString(m_RapDefaultText); }
+
+	//今回のタイムのプレイヤーの順位取得
+	UFUNCTION(BlueprintCallable, Category = "Result")
+		int GetPlayerRank() { return m_PlayerRank; }
 	//ラップタイム並び替え
 	UFUNCTION(BlueprintCallable, Category = "Result")
 		void RapTimeSort();
@@ -190,9 +197,13 @@ private:
 		float m_RapTime;							//ゴールするまでの時間
 
 	UPROPERTY(VisibleAnywhere, Category = "Result")
-		TArray<FString> m_RapTimeText;				//スコアテキスト
+		TArray<FString> m_RapTimeText;			//ラップテキスト
 	UPROPERTY(EditAnywhere, Category = "Result")
-		float m_DefaultTime;						//ランキングデフォルトタイム
+		FString m_RapDefaultText;				//ラップデフォルトテキスト
+	UPROPERTY(EditAnywhere, Category = "Result")
+		FString m_RapTimeTextPath;				//ラップテキストパス
+	UPROPERTY(EditAnywhere, Category = "Result")
+		int m_PlayerRank;						//プレイヤーの順位
 	UPROPERTY(EditAnywhere, Category = "Result")
 		int m_RankingDisplayNum;					//ランキングに残す数
 	UPROPERTY(VisibleAnywhere, Category = "Result")

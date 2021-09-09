@@ -24,8 +24,9 @@ AGameManager::AGameManager()
 	, m_isSceneTransition(false)
 	, m_CountDownTime(4.f)
 	, m_CountDownText("")
+	, m_RapDefaultText("")
 	, m_RapTime(0.f)
-	, m_DefaultTime(0.f)
+	, m_PlayerRank(0)
 	, m_RankingDisplayNum(5)
 	, m_isScoreWrite(false)
 	, m_isNewRecord(false)
@@ -39,7 +40,7 @@ AGameManager::AGameManager()
 void AGameManager::BeginPlay()
 {
 	Super::BeginPlay();
-	FFileHelper::LoadFileToStringArray(m_RapTimeText, *(FPaths::GameDir() + ScoreTxt));
+	FFileHelper::LoadFileToStringArray(m_RapTimeText, *(FPaths::GameDir() + m_RapTimeTextPath));
 	for (int i = 0; i < m_RapTimeText.Num(); i++)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *(m_RapTimeText[i]));
@@ -93,12 +94,23 @@ void AGameManager::Tick(float DeltaTime)
 			//スコアを書き込みしたか確認
 			if (!m_isScoreWrite)
 			{
-				//ラップタイムを1000倍した値をテキストファイルに記入
+				//ラップタイムをテキストファイルに記入
 				m_RapTime = CGameUtility::SetDecimalTruncation(m_RapTime, 3);
-				m_RapTime *= 1000.f;
-				m_RapTimeText.Add(FString::FromInt(int(m_RapTime)));
+				FString rapText = GetRapMinuteText().ToString() + ":" + GetRapSecondText().ToString() + "." + GetRapMiliSecondText().ToString();
+				m_RapTimeText.Add(rapText);
+
 				//ラップタイム並び替え
 				RapTimeSort();
+
+				//今回のタイムのランキング確認
+				for (int i = m_RapTimeText.Num() - 1; i >= 0; i--)
+				{
+					if (rapText == m_RapTimeText[i])
+					{
+						m_PlayerRank = i;
+						break;
+					}
+				}
 
 				//不要な下位のスコアを削除
 				if (m_RapTimeText.Num() > m_RankingDisplayNum)
@@ -108,12 +120,11 @@ void AGameManager::Tick(float DeltaTime)
 						m_RapTimeText.RemoveAt(i);
 					}
 				}
-
 				//テキストファイル書き込み
-				FFileHelper::SaveStringArrayToFile(m_RapTimeText, *(FPaths::GameDir() + ScoreTxt));
+				FFileHelper::SaveStringArrayToFile(m_RapTimeText, *(FPaths::GameDir() + m_RapTimeTextPath));
+
 				//書き込みフラグをONにする
 				m_isScoreWrite = true;
-				//UE_LOG(LogTemp, Warning, TEXT("%f"), m_RapTime);
 			}
 			
 		}
@@ -175,18 +186,19 @@ void AGameManager::NextSceneDown()
 //ラップタイム並び替え
 void AGameManager::RapTimeSort()
 {
-	TArray<int> SortRapTime;	//ソート用ラップタイム
+	FString SortRapTime;	//ソート用ラップタイム
 
-	for (int i = 0; i < m_RapTimeText.Num(); i++)
+	//バブルソートで並び替え
+	for (int i = 0; i < m_RapTimeText.Num()-1; i++)
 	{
-		SortRapTime.Add(FCString::Atof(*(m_RapTimeText[i])));
-	}
-
-	//ソート用ラップタイムの並び替え
-	SortRapTime.Sort();
-
-	for (int i = 0; i < m_RapTimeText.Num(); i++)
-	{
-		m_RapTimeText[i] = FString::SanitizeFloat(SortRapTime[i]);
+		for (int j = i+1; j < m_RapTimeText.Num(); j++)
+		{
+			if (m_RapTimeText[i] > m_RapTimeText[j])
+			{
+				SortRapTime = m_RapTimeText[i];
+				m_RapTimeText[i] = m_RapTimeText[j];
+				m_RapTimeText[j] = SortRapTime;
+			}
+		}
 	}
 }
