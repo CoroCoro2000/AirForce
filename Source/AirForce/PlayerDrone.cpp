@@ -41,6 +41,8 @@ APlayerDrone::APlayerDrone()
 	, m_WindRotationSpeed(5.f)
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_HeightMax(400.f)
+	, m_HeightFromGround(0.f)
+	, m_DistanceToSlope(0.f)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -342,34 +344,37 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 		(m_Wings[EWING::RIGHT_FORWARD].AccelState + m_Wings[EWING::LEFT_BACKWARD].AccelState) - (m_Wings[EWING::LEFT_FORWARD].AccelState + m_Wings[EWING::RIGHT_BACKWARD].AccelState));
 	m_AngularVelocity.Z = FMath::Abs(m_AngularVelocity.Z) * m_AxisAccel.W;
 
+	FRotator BodyRotation = m_pBodyMesh->GetRelativeRotation();
+
 	//	オートマチックで操作するとき
 	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
 	{
 		float deg = 15.f;
+
 		//前後にドローンが傾きすぎないように補正
-		if (((m_pBodyMesh->GetRelativeRotation().Pitch < -deg) && (m_AngularVelocity.Y < 0.f) )|| ( (m_pBodyMesh->GetRelativeRotation().Pitch > deg) && (m_AngularVelocity.Y > 0.f)))
+		if (((BodyRotation.Pitch < -deg) && (m_AngularVelocity.Y < 0.f) )|| ( (BodyRotation.Pitch > deg) && (m_AngularVelocity.Y > 0.f)))
 		{
 			m_AngularVelocity.Y = 0.f;
 		}
-		else if ((m_pBodyMesh->GetRelativeRotation().Pitch > 0.f) && (m_AngularVelocity.Y == 0.f))
+		else if ((BodyRotation.Pitch > 0.f) && (m_AngularVelocity.Y == 0.f))
 		{
 			m_AngularVelocity.Y = -1.f;
 		}
-		else if ((m_pBodyMesh->GetRelativeRotation().Pitch < 0.f) && (m_AngularVelocity.Y == 0.f))
+		else if ((BodyRotation.Pitch < 0.f) && (m_AngularVelocity.Y == 0.f))
 		{
 			m_AngularVelocity.Y = 1.f;
 		}
 
 		//左右にドローンが傾きすぎないように補正
-		if ((m_pBodyMesh->GetRelativeRotation().Roll < -deg) && (m_AngularVelocity.X < 0.f) || (m_pBodyMesh->GetRelativeRotation().Roll > deg) && (m_AngularVelocity.X > 0.f))
+		if ((BodyRotation.Roll < -deg) && (m_AngularVelocity.X < 0.f) || (BodyRotation.Roll > deg) && (m_AngularVelocity.X > 0.f))
 		{
 			m_AngularVelocity.X = 0.f;
 		}
-		else if ((m_pBodyMesh->GetRelativeRotation().Roll > 0.f) && (m_AngularVelocity.X == 0.f))
+		else if ((BodyRotation.Roll > 0.f) && (m_AngularVelocity.X == 0.f))
 		{
 			m_AngularVelocity.X = -1.f;
 		}
-		else if ((m_pBodyMesh->GetRelativeRotation().Roll < 0.f) && (m_AngularVelocity.X == 0.f))
+		else if ((BodyRotation.Roll < 0.f) && (m_AngularVelocity.X == 0.f))
 		{
 			m_AngularVelocity.X = 1.f;
 		}
@@ -395,6 +400,36 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 		}
 	}
 
+	if (m_MoveDirectionFlag.sFlag.RightTurning && m_MoveDirectionFlag.sFlag.Left)
+	{
+		if (m_AngularVelocity.X < 0.f)
+		{
+			m_AngularVelocity.X *= -1.f;
+		}
+	}
+	else if (m_MoveDirectionFlag.sFlag.RightTurning)
+	{
+		if (m_AngularVelocity.X < 0.f)
+		{
+			m_AngularVelocity.X *= -1.f;
+		}
+	}
+
+	if (m_MoveDirectionFlag.sFlag.LeftTurning && m_MoveDirectionFlag.sFlag.Right)
+	{
+		if (m_AngularVelocity.X > 0.f)
+		{
+			m_AngularVelocity.X *= -1.f;
+		}
+	}
+	else if (m_MoveDirectionFlag.sFlag.LeftTurning)
+	{
+		if (m_AngularVelocity.X > 0.f)
+		{
+			m_AngularVelocity.X *= -1.f;
+		}
+	}
+
 	//オイラー角をクォータニオンに変換
 	FQuat qAngularVelocity = FQuat::MakeFromEuler(m_AngularVelocity);
 	//ドローンを回転させる
@@ -405,7 +440,6 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 //速度更新処理
 void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 {
-
 	//オートマチックで操作するとき
 	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
 	{
@@ -444,24 +478,58 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	//NULLチェック
 	if (!m_pCamera || !m_pSpringArm || !m_pBodyMesh) { return; }
 
-#ifdef DEBUG_CAMERA
-	//カメラの前方にレイを飛ばす
-	//DrawDebugLine(GetWorld(),
-	//	m_pCamera->GetComponentLocation(),
-	//	m_pCamera->GetComponentLocation() + m_pCamera->GetForwardVector() * 1000.f,
-	//	FColor::Blue,
-	//	false,
-	//	DeltaTime + 2.f);
+	//レイの開始点と終点を設定(ドローンの座標から前方に向かって)
+	float RotYaw = m_pBodyMesh->GetComponentRotation().Yaw;
+	FQuat BodyQuat = FRotator(0.f, RotYaw, 0.f).Quaternion();
 
-	//プレイヤーの前方にレイを飛ばす
-	DrawDebugLine(GetWorld(),
-		m_pBodyMesh->GetComponentLocation(),
-		m_pBodyMesh->GetComponentLocation() + m_pBodyMesh->GetForwardVector() * 1000.f,
-		FColor::Red,
-		false,
-		DeltaTime + 0.05f);
+	FVector Start = GetActorLocation();
+	FVector End = Start + BodyQuat.GetForwardVector() * 1000.f;
+	//ヒット結果を格納する配列
+	TArray<FHitResult> OutHits;
+	//トレースする対象(自身は対象から外す)
+	FCollisionQueryParams CollisionParam;
+	CollisionParam.AddIgnoredActor(this);
 
-#endif // DEBUG_CAMERA
+	//レイを飛ばし、WorldStaticのコリジョンチャンネルを持つオブジェクトのヒット判定を取得する
+	bool isHit = GetWorld()->LineTraceMultiByObjectType(OutHits, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+	bool isClimbingSlope = false;
+	//レイがヒットしたらアクターのタグを確認し、Groundのタグを持つアクターがあればカメラを上げるフラグを立てる
+	if (isHit)
+	{
+		for (const FHitResult& HitResult : OutHits)
+		{
+			if (HitResult.GetActor())
+			{
+				if (HitResult.GetActor()->ActorHasTag(TEXT("Ground")))
+				{
+					isClimbingSlope = true;
+
+					m_DistanceToSlope = FVector::Dist(GetActorLocation(), HitResult.Location);
+				}
+			}
+		}
+	}
+
+	//坂を上っているなら、進行方向を見上げるようにカメラを移動させる
+	float SocketOffsetZ = m_pSpringArm->SocketOffset.Z;
+	if (isClimbingSlope)
+	{
+		if (m_pSpringArm->SocketOffset.Z > -30.f)
+		{
+			SocketOffsetZ -= 15.f * DeltaTime;
+		}
+	}
+	else
+	{
+		SocketOffsetZ *= 0.94f;
+	}
+
+#ifdef DEBUG_UpdateCamera
+	FColor LineColor = isClimbingSlope ? FColor::Yellow : FColor::Blue;
+	//デバッグ用のラインを描画
+	DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.f);
+
+#endif // DEBUG_UpdateCamera
 	FRotator CameraRotation = m_pCamera->GetRelativeRotation();
 	if (FMath::Abs(m_AxisValue.X) > 0.2f)
 	{
@@ -475,11 +543,27 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 		CameraRotation.Roll *= 0.94f;
 	}
 
+	if (isClimbingSlope)
+	{
+		if (CameraRotation.Pitch < 15.f)
+		{
+			CameraRotation.Pitch += 10.f * DeltaTime;
+		}
+	}
+	else
+	{
+		CameraRotation.Pitch *= 0.94f;
+	}
+
 	m_pCamera->SetRelativeRotation(CameraRotation * MOVE_CORRECTION);
 	m_pSpringArm->SetRelativeRotation(FRotator(0.f, m_pBodyMesh->GetRelativeRotation().Yaw, 0.f) * MOVE_CORRECTION);
 
 	//ソケット
-	m_pSpringArm->SocketOffset = FVector(m_AxisAccel.Y, m_AxisAccel.X, 0.f) * m_CameraSocketOffsetMax / m_WingAccelMax;
+	FVector NewSocketOffset = FVector(m_AxisAccel.Y, m_AxisAccel.X, 0.f) * m_CameraSocketOffsetMax / m_WingAccelMax;
+	m_pSpringArm->SocketOffset.X = NewSocketOffset.X;
+	m_pSpringArm->SocketOffset.Y = NewSocketOffset.Y;
+	m_pSpringArm->SocketOffset.Z = SocketOffsetZ;
+
 	//移動量に応じて視野角を変更
 	m_pCamera->SetFieldOfView(90.f - m_AxisAccel.Y * 10.f);
 }
@@ -495,11 +579,11 @@ void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 {
 	if (m_pWindEffect) 
 	{
-		//エフェクトとチェックポイントの座標を取得
+		//エフェクトとドローンの座標を取得
 		FVector EffectLocation = m_pWindEffect->GetComponentLocation();
-		FVector  Direction = EffectLocation + m_Velocity.GetSafeNormal();
+		FVector  DroneLocation = m_pBodyMesh->GetComponentLocation();
 		//エフェクトが進行方向へ向くようにする
-		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction - EffectLocation).Rotator();
+		FRotator LookAtRotation = FRotationMatrix::MakeFromX(DroneLocation - EffectLocation).Rotator();
 		//移動量の大きさからエフェクトの不透明度を設定
 		float OpacityRate = FMath::Abs(m_AxisAccel.GetSafeNormal().Y);
 		float WindOpacity = FMath::Lerp(0.f, 0.2f, OpacityRate);
@@ -519,7 +603,7 @@ void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 }
 
 //高度の上限をを超えているか確認
-bool APlayerDrone::IsOverHeightMax() const
+bool APlayerDrone::IsOverHeightMax()
 {
 	//レイの開始点と終点を設定(ドローンの座標から高度の上限の長さ)
 	FVector Start = GetActorLocation();
@@ -535,7 +619,7 @@ bool APlayerDrone::IsOverHeightMax() const
 	bool isHit = GetWorld()->LineTraceMultiByObjectType(OutHits, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
 	bool OverHeightMax = true;
 
-	//レイがヒットしたらヒットしたアクターのタグを確認し、Groundのタグを持つアクターがあれば高度上限を越えていないのでフラグを降ろす
+	//レイがヒットしたらアクターのタグを確認し、Groundのタグを持つアクターがあれば高度上限を越えていないのでフラグを降ろす
 	if (isHit)
 	{
 		for (const FHitResult& HitResult : OutHits)
@@ -545,6 +629,8 @@ bool APlayerDrone::IsOverHeightMax() const
 				if (HitResult.GetActor()->ActorHasTag(TEXT("Ground")))
 				{
 					OverHeightMax = false;
+					//地面からの高さを計測
+					m_HeightFromGround = FVector::Dist(GetActorLocation(), HitResult.Location);
 				}
 			}
 		}
