@@ -24,7 +24,6 @@ ADroneBase::ADroneBase()
 	, m_WingAccele(0.f)
 	, m_WingAccelMin(0.75f)
 	, m_WingAccelMax(1.5f)
-	, m_WindSpeed(2.f)
 	, m_MoveDirectionFlag()
 	, m_StateFlag()
 	, m_Speed(0.f)
@@ -136,8 +135,6 @@ void ADroneBase::Tick(float DeltaTime)
 	//速度更新処理
 	UpdateSpeed(DeltaTime);
 
-	//風の範囲のコリジョン判定更新
-	UpdateWindRangeCollision();
 }
 
 //【入力バインド】コントローラー入力設定
@@ -274,139 +271,6 @@ void ADroneBase::UpdateWindEffect(const float& DeltaTime)
 {
 }
 
-
-//風の影響を与える範囲の更新
-void ADroneBase::UpdateWindRangeCollision()
-{
-#ifdef DEBUG_COLLISION_WINDRANGE
-	//スフィアトレースの当たり判定を表示するワイヤーフレームの色を設定
-	FColor SphereColor = FColor::Blue;
-#endif //DEBUG_COLLISION_WINDRANGE
-
-	//球状の当たり判定を作成
-	FCollisionShape WindRangeSphere = FCollisionShape::MakeSphere(100.f);
-	//ヒット結果を格納する配列
-	TArray<FHitResult> OutHits;
-	//ドローンの座標を球の座標にする
-	FVector SpherePosition = GetActorLocation();
-
-	//当たり判定を無視する項目を決める(自身を無視するように設定)
-	FCollisionQueryParams CollisionParams;
-	CollisionParams.AddIgnoredActor(this);
-
-	//球状のレイを飛ばし、当たったらtrueを返す
-	bool isHit = GetWorld()->SweepMultiByChannel(OutHits, SpherePosition, SpherePosition, FQuat::Identity, ECollisionChannel::ECC_WorldDynamic, WindRangeSphere, CollisionParams);
-
-	//ヒットしたオブジェクトがある場合
-	if (isHit && (int)OutHits.Num() > 0)
-	{
-		//ヒットしたアクターを追加する
-		for (int index = 0; index < (int)OutHits.Num(); ++index)
-		{
-			//ヒットした結果を格納
-			FHitResult hitResult = OutHits[index];
-
-			//今ヒットしたアクターが、格納されていない場合
-			if (m_pWindRangeActors.Contains(hitResult.GetActor()) == false)
-			{
-				//ヒットしたアクターのタグ名がTreeなら
-				if (hitResult.GetActor()->ActorHasTag("Tree"))
-				{
-					//追加で保持する
-					m_pWindRangeActors.Add(hitResult.GetActor());
-
-					AStaticMeshActor* pStaticMeshActor = Cast<AStaticMeshActor>(hitResult.GetActor());
-					//格納したアクターに風の影響を与える
-					if (pStaticMeshActor)
-					{
-						if (pStaticMeshActor->GetStaticMeshComponent())
-						{
-							pStaticMeshActor->GetStaticMeshComponent()->SetScalarParameterValueOnMaterials(TEXT("WindSpeed"), 10.f);
-
-#ifdef DEBUG_COLLISION_WINDRANGE
-							//当たっていたらワイヤーフレームを黄色にする
-							SphereColor = FColor::Yellow;
-#endif //DEBUG_COLLISION_WINDRANGE
-						}
-					}
-				}
-			}
-		}
-
-		//TArrayの検索をしやすくするため、ヒットしたActorのポインタを配列にまとめる
-		TArray<AActor*> pTempWindRangeActors;
-		for (int index = 0; index < (int)OutHits.Num(); ++index)
-		{
-			FHitResult hitResult = OutHits[index];
-			//ヒットしたアクターのタグ名がTreeなら
-			if (hitResult.GetActor()->ActorHasTag(TEXT("Tree")))
-			{
-				pTempWindRangeActors.Add(hitResult.GetActor());
-			}
-		}
-
-		//風の範囲内にいたアクターで、今範囲外にいるアクターがある場合
-		if ((int)m_pWindRangeActors.Num() > 0)
-		{
-			for (int index = 0; index < (int)m_pWindRangeActors.Num(); ++index)
-			{
-				AActor* pCurrentWindRangeActor = m_pWindRangeActors[index];
-				//風の範囲内にいたアクターが、今ヒットしたActorの配列に入っていない場合
-				if (pTempWindRangeActors.Contains(pCurrentWindRangeActor) == false)
-				{
-					//風の影響を元に戻す
-					AStaticMeshActor* pStaticMeshActor = Cast<AStaticMeshActor>(pCurrentWindRangeActor);
-					if (pStaticMeshActor)
-					{
-						if (pStaticMeshActor->GetStaticMeshComponent())
-						{
-							pStaticMeshActor->GetStaticMeshComponent()->SetScalarParameterValueOnMaterials(TEXT("WindSpeed"), 1.f);
-						}
-					}
-
-					//風の範囲内の配列から削除
-					m_pWindRangeActors.Remove(pCurrentWindRangeActor);
-				}
-			}
-		}
-#ifdef DEBUG_COLLISION_WINDRANGE_OVERLAPDETA
-		UE_LOG(LogTemp, Warning, TEXT("TempWindRangeActors:%i"), pTempWindRangeActors.Num());
-#endif // DEBUG_COLLISION_WINDRANGE_OVERLAPDETA
-
-	}
-	//風の範囲内にオブジェクトがない場合
-	else
-	{
-		//範囲内にないため、全開放
-		if ((int)m_pWindRangeActors.Num() > 0)
-		{
-			for (int index = 0; index < (int)m_pWindRangeActors.Num(); ++index)
-			{
-				AActor* pCurrentWindRangeActor = m_pWindRangeActors[index];
-				//風の影響を元に戻す
-				AStaticMeshActor* pStaticMeshActor = Cast<AStaticMeshActor>(pCurrentWindRangeActor);
-				if (pStaticMeshActor)
-				{
-					if (pStaticMeshActor->GetStaticMeshComponent())
-					{
-						pStaticMeshActor->GetStaticMeshComponent()->SetScalarParameterValueOnMaterials(TEXT("WindSpeed"), 1.f);
-					}
-				}
-
-				//風の範囲内の配列から削除
-				m_pWindRangeActors.Remove(pCurrentWindRangeActor);
-			}
-		}
-	}
-
-#ifdef DEBUG_COLLISION_WINDRANGE_OVERLAPDETA
-	UE_LOG(LogTemp, Warning, TEXT("WindRangeActors:%i"), m_pWindRangeActors.Num());
-#endif // DEBUG_COLLISION_WINDRANGE_OVERLAPDETA
-#ifdef DEBUG_COLLISION_WINDRANGE
-	//当たり判定の球を描画(当たっていれば黄色、当たっていなければ青)
-	DrawDebugSphere(GetWorld(), SpherePosition, 100.f, 12, SphereColor, 0.f, 1.f);
-#endif //DEBUG_COLLISION_WINDRANGE
-}
 
 //オーバーラップ開始時に呼ばれる処理
 void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
