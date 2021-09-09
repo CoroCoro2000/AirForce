@@ -25,6 +25,9 @@
 #include "Engine/StaticMeshActor.h"
 #include "DrawDebugHelpers.h"
 
+#define SLOPE_MIN 0.f
+#define SLOPE_MAX 50.f
+
 //コンストラクタ
 APlayerDrone::APlayerDrone()
 	: m_GameMode(EGAMEMODE::GAMEMODE_TPS)
@@ -483,7 +486,7 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	FQuat BodyQuat = FRotator(0.f, RotYaw, 0.f).Quaternion();
 
 	FVector Start = GetActorLocation();
-	FVector End = Start + BodyQuat.GetForwardVector() * 1000.f;
+	FVector End = Start + BodyQuat.GetForwardVector() * 1500.f;
 	//ヒット結果を格納する配列
 	TArray<FHitResult> OutHits;
 	//トレースする対象(自身は対象から外す)
@@ -504,24 +507,11 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 				{
 					isClimbingSlope = true;
 
+					//傾斜との距離を測定する
 					m_DistanceToSlope = FVector::Dist(GetActorLocation(), HitResult.Location);
 				}
 			}
 		}
-	}
-
-	//坂を上っているなら、進行方向を見上げるようにカメラを移動させる
-	float SocketOffsetZ = m_pSpringArm->SocketOffset.Z;
-	if (isClimbingSlope)
-	{
-		if (m_pSpringArm->SocketOffset.Z > -30.f)
-		{
-			SocketOffsetZ -= 15.f * DeltaTime;
-		}
-	}
-	else
-	{
-		SocketOffsetZ *= 0.94f;
 	}
 
 #ifdef DEBUG_UpdateCamera
@@ -543,26 +533,34 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 		CameraRotation.Roll *= 0.94f;
 	}
 
+	//レイが傾斜に当たっていたら、現在の高さと傾斜との距離から勾配を求める
 	if (isClimbingSlope)
 	{
-		if (CameraRotation.Pitch < 15.f)
-		{
-			CameraRotation.Pitch += 10.f * DeltaTime;
-		}
+		float radSlope = FMath::Atan2(m_HeightFromGround, m_DistanceToSlope);
+		float degSlope = FMath::ClampAngle(FMath::RadiansToDegrees(radSlope), SLOPE_MIN, SLOPE_MAX);
+		FRotator NewPRotation = FMath::RInterpTo(
+			FRotator(CameraRotation.Pitch, 0.f, 0.f),
+			FRotator(degSlope, 0.f, 0.f),
+			DeltaTime,
+			4.f);
+		CameraRotation.Pitch = NewPRotation.Pitch;
+
+		m_pSpringArm->SocketOffset.Z = FMath::Lerp(0.f, -50.f, FMath::Clamp(NewPRotation.Pitch / SLOPE_MAX, 0.f, 1.f));
 	}
 	else
 	{
 		CameraRotation.Pitch *= 0.94f;
+		m_pSpringArm->SocketOffset.Z *= 0.94f;
 	}
 
+	//カメラの回転を更新
 	m_pCamera->SetRelativeRotation(CameraRotation * MOVE_CORRECTION);
 	m_pSpringArm->SetRelativeRotation(FRotator(0.f, m_pBodyMesh->GetRelativeRotation().Yaw, 0.f) * MOVE_CORRECTION);
 
-	//ソケット
+	//ソケットの位置を更新
 	FVector NewSocketOffset = FVector(m_AxisAccel.Y, m_AxisAccel.X, 0.f) * m_CameraSocketOffsetMax / m_WingAccelMax;
 	m_pSpringArm->SocketOffset.X = NewSocketOffset.X;
 	m_pSpringArm->SocketOffset.Y = NewSocketOffset.Y;
-	m_pSpringArm->SocketOffset.Z = SocketOffsetZ;
 
 	//移動量に応じて視野角を変更
 	m_pCamera->SetFieldOfView(90.f - m_AxisAccel.Y * 10.f);
