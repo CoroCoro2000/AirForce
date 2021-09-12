@@ -26,7 +26,7 @@
 #include "DrawDebugHelpers.h"
 
 #define SLOPE_MIN 0.f
-#define SLOPE_MAX 50.f
+#define SLOPE_MAX 45.f
 
 //コンストラクタ
 APlayerDrone::APlayerDrone()
@@ -496,19 +496,21 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	//レイを飛ばし、WorldStaticのコリジョンチャンネルを持つオブジェクトのヒット判定を取得する
 	bool isHit = GetWorld()->LineTraceMultiByObjectType(OutHits, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
 	bool isClimbingSlope = false;
-	//レイがヒットしたらアクターのタグを確認し、Groundのタグを持つアクターがあればカメラを上げるフラグを立てる
+	//レイがヒットしたらアクターのタグを確認
 	if (isHit)
 	{
+		//Slopeのタグを持つアクターがあればカメラを上げるフラグを立てる
 		for (const FHitResult& HitResult : OutHits)
 		{
 			if (HitResult.GetActor())
 			{
-				if (HitResult.GetActor()->ActorHasTag(TEXT("Ground")))
+				if (HitResult.GetActor()->ActorHasTag(TEXT("Slope")))
 				{
 					isClimbingSlope = true;
 
 					//傾斜との距離を測定する
 					m_DistanceToSlope = FVector::Dist(GetActorLocation(), HitResult.Location);
+					break;
 				}
 			}
 		}
@@ -629,6 +631,7 @@ bool APlayerDrone::IsOverHeightMax()
 					OverHeightMax = false;
 					//地面からの高さを計測
 					m_HeightFromGround = FVector::Dist(GetActorLocation(), HitResult.Location);
+					break;
 				}
 			}
 		}

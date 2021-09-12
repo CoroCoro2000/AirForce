@@ -167,8 +167,8 @@ void ARing::SetActivate(const bool& _isActive)
 	if (!m_pRingMesh) { return; }
 
 	//メッシュのオーバーラップイベントと可視性のON/OFFを切り替える
-	m_pRingMesh->SetGenerateOverlapEvents(_isActive);
-	m_pRingMesh->SetHiddenInGame(!_isActive);
+	m_pRingMesh->SetGenerateOverlapEvents(true);
+	m_pRingMesh->SetHiddenInGame(true);
 
 	//見えていない間は更新の必要がないのでTickを切る
 	PrimaryActorTick.bCanEverTick = _isActive;
@@ -189,7 +189,7 @@ void ARing::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 				m_bIsPassBegin = true;
 				m_bIsPassed = true;
 				//エフェクトの再生
-				m_pNiagaraEffectComp->Activate();
+				//m_pNiagaraEffectComp->Activate();
 				//リングの当たり判定を切る
 				m_pRingMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			}
