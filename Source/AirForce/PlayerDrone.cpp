@@ -403,36 +403,6 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 		}
 	}
 
-	if (m_MoveDirectionFlag.sFlag.RightTurning && m_MoveDirectionFlag.sFlag.Left)
-	{
-		if (m_AngularVelocity.X < 0.f)
-		{
-			m_AngularVelocity.X *= -1.f;
-		}
-	}
-	else if (m_MoveDirectionFlag.sFlag.RightTurning)
-	{
-		if (m_AngularVelocity.X < 0.f)
-		{
-			m_AngularVelocity.X *= -1.f;
-		}
-	}
-
-	if (m_MoveDirectionFlag.sFlag.LeftTurning && m_MoveDirectionFlag.sFlag.Right)
-	{
-		if (m_AngularVelocity.X > 0.f)
-		{
-			m_AngularVelocity.X *= -1.f;
-		}
-	}
-	else if (m_MoveDirectionFlag.sFlag.LeftTurning)
-	{
-		if (m_AngularVelocity.X > 0.f)
-		{
-			m_AngularVelocity.X *= -1.f;
-		}
-	}
-
 	//オイラー角をクォータニオンに変換
 	FQuat qAngularVelocity = FQuat::MakeFromEuler(m_AngularVelocity);
 	//ドローンを回転させる
@@ -443,17 +413,20 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 //速度更新処理
 void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 {
+	if (!m_pBodyMesh) { return; }
+
 	//オートマチックで操作するとき
 	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
 	{
 		float RotYaw = m_pBodyMesh->GetComponentRotation().Yaw;
 		FQuat BodyQuat = FRotator(0.f, RotYaw, 0.f).Quaternion();
+
 		float speed = 3.5f;
 		m_Velocity = FVector::ZeroVector;
-		m_Velocity += BodyQuat.GetRightVector() * speed * m_AxisAccel.X;
-		m_Velocity += BodyQuat.GetForwardVector() * speed * -m_AxisAccel.Y;
-		m_Velocity += BodyQuat.GetUpVector() * speed * m_AxisAccel.Z;
-		m_Speed = m_Velocity.Size();
+		m_Velocity += BodyQuat.GetRightVector() * speed * m_AxisAccel.X * (IsReverseInput(m_AxisAccel.X, m_AxisValue.X) ? m_Turning : 1.f);
+		m_Velocity += BodyQuat.GetForwardVector() * speed * -m_AxisAccel.Y * (IsReverseInput(m_AxisAccel.Y, m_AxisValue.Y) ? m_Turning : 1.f);
+		m_Velocity += BodyQuat.GetUpVector() * speed * m_AxisAccel.Z * (IsReverseInput(m_AxisAccel.Z, m_AxisValue.Z) ? m_Turning : 1.f);
+		m_Speed = m_Velocity.Size() * MOVE_CORRECTION;
 
 		//高度上限を超えていたら自動的に高度を下げる
 		if (IsOverHeightMax())

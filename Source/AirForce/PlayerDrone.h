@@ -54,16 +54,15 @@ namespace EINPUT_AXIS
 	{
 		THROTTLE					UMETA(DisplayName = "THROTTLE"),	//上下
 		ELEVATOR					UMETA(DisplayName = "ELEVATOR"),	//前後
-		AILERON					UMETA(DisplayName = "AILERON"),		//左右
+		AILERON					UMETA(DisplayName = "AILERON"),	//左右
 		LADDER						UMETA(DisplayName = "LADDER"),		//旋回
 		NUM							UMETA(Hidden)
 	};
 }
 
 //--------------------------------------------------------------------
-//#define DEBUG_UpdateCamera			//カメラのデバッグ
-//#define DEBUG_WindEffect		//風エフェクトのデバッグ
-//#define DEBUG_IsOverHeightMax
+#define DEBUG_UpdateCamera			//カメラのデバッグ
+#define DEBUG_IsOverHeightMax
 //--------------------------------------------------------------------
 
 UCLASS()
@@ -139,6 +138,9 @@ private:
 	void UpdateCameraCollsion();
 	//風のエフェクトの更新処理
 	void UpdateWindEffect(const float& DeltaTime);
+
+	//進行軸と入力軸が逆向きか確認
+	bool IsReverseInput(const float& _movingAxis, const float& _axisValue)const { return (_movingAxis < 0.f && 0.f < _axisValue) || (_movingAxis > 0.f && 0.f > _axisValue); }
 
 	//高度の上限をを超えているか確認
 	bool IsOverHeightMax();

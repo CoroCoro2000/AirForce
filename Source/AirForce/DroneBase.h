@@ -226,6 +226,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Physical")
 		float m_Deceleration;							//減速度
 	UPROPERTY(EditAnywhere, Category = "Physical")
+		float m_Turning;								//逆入力した時の減速率
+	UPROPERTY(EditAnywhere, Category = "Physical")
 		float m_DroneWeight;							//ドローンの重量(kg)
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
 		FVector m_Velocity;								//このドローンにかかっている力の量
