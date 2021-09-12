@@ -61,8 +61,8 @@ namespace EINPUT_AXIS
 }
 
 //--------------------------------------------------------------------
-#define DEBUG_UpdateCamera			//カメラのデバッグ
-#define DEBUG_IsOverHeightMax
+//#define DEBUG_UpdateCamera			//カメラのデバッグ
+//#define DEBUG_IsOverHeightMax
 //--------------------------------------------------------------------
 
 UCLASS()
