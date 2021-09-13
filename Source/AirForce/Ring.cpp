@@ -150,14 +150,14 @@ void ARing::UpdateTransform(const float& DeltaTime)
 	//ƒŠƒ“ƒO‚ª’Ê‰ß‚³‚ê‚Ä‚¢‚È‚¢ŠÔ
 	else
 	{
-		//ƒTƒCƒ“”g‚Ì•‚ðÝ’è
-		const float WaveWidth = 10.f * GetWorld()->GetTimeSeconds();
-		//ƒTƒCƒ“”g‚Ì‘å‚«‚³‚ð0‚©‚ç1‚É³‹K‰»‚·‚é
-		const float SinWave = FMath::Sin(WaveWidth) * 0.5f + 0.5f;
+		////ƒTƒCƒ“”g‚Ì•‚ðÝ’è
+		//const float WaveWidth = 10.f * GetWorld()->GetTimeSeconds();
+		////ƒTƒCƒ“”g‚Ì‘å‚«‚³‚ð0‚©‚ç1‚É³‹K‰»‚·‚é
+		//const float SinWave = FMath::Sin(WaveWidth) * 0.5f + 0.5f;
 
-		//ƒTƒCƒ“”g‚Ì’l‚ÅƒŠƒ“ƒO‚Ì‘å‚«‚³‚ð•Ï‚¦‚é
-		const float Scale = FMath::Lerp(1.05f, 0.8f, SinWave);
-		m_pRingMesh->SetRelativeScale3D(FVector(Scale));
+		////ƒTƒCƒ“”g‚Ì’l‚ÅƒŠƒ“ƒO‚Ì‘å‚«‚³‚ð•Ï‚¦‚é
+		//const float Scale = FMath::Lerp(1.05f, 0.8f, SinWave);
+		//m_pRingMesh->SetRelativeScale3D(FVector(Scale));
 	}
 }
 

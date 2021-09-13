@@ -31,8 +31,18 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
+	//チェックポイントの範囲内にいるかどうか判定
+	FORCEINLINE bool IsWithinRangeOfCheckpoint()const;
+	//識別番号取得
+	FORCEINLINE int GetNumber()const { return m_CheckNumber; }
+	//次も同じ番号にするかのフラグ取得
+	FORCEINLINE int GetIsSameNumberNext()const { return m_bSameNumberNext; }
 	//通過判定フラグを取得
 	FORCEINLINE bool GetIsPassed()const { return m_bPassed; }
+	//識別番号設定
+	FORCEINLINE void SetNumber(const int _number) { m_CheckNumber = _number; }
+	//チェックポイントをアクティブ化する
+	FORCEINLINE void SetActive(const bool& _isActive) { m_bActive = _isActive; }
 
 protected:
 	UPROPERTY(EditAnywhere)
@@ -40,5 +50,13 @@ protected:
 	UPROPERTY(EditAnywhere)
 		UBoxComponent* m_pCheckPointCollision;				//チェックポイントの通過判定用コリジョン
 	UPROPERTY(VisibleAnywhere)
+		int m_CheckNumber;												//識別番号
+	UPROPERTY(VisibleAnywhere)
+		bool m_bSameNumberNext;									//次の要素も同じ番号にするかどうか
+	UPROPERTY(VisibleAnywhere)
 		bool m_bPassed;													//通過済みどうかのフラグ
+	UPROPERTY(VisibleAnywhere)
+		bool m_bActive;														//アクティブ状態かどうか
+	UPROPERTY(EditAnywhere)
+		float m_RadiusOfSearchRange;								//検索する範囲(半径)
 };
