@@ -31,6 +31,12 @@ void ACheckPointManager::BeginPlay()
 		{
 			pCheckPoint->SetNumber(CheckPointNumber);
 
+			//0番目のチェックポイントだけアクティブな状態にしておく
+			if (pCheckPoint->GetNumber() == 0)
+			{
+				pCheckPoint->SetEveryUpdate(true);
+			}
+
 			//次のチェックポイントを同番号にする場合はインクリメントさせない
 			if (!pCheckPoint->GetIsSameNumberNext())
 			{
@@ -45,5 +51,17 @@ void ACheckPointManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	for (ACheckPoint* pCheckPoint : m_pCheckPoints)
+	{
+		if (pCheckPoint)
+		{
+			//通過済みのチェックポイントの検索処理を終了し、配列から外す
+			if (pCheckPoint->GetIsPassed())
+			{
+				pCheckPoint->SetEveryUpdate(false);
+				m_pCheckPoints.Remove(pCheckPoint);
+			}
+		}
+	}
 }
 

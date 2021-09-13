@@ -10,6 +10,8 @@
 class UStaticMeshComponent;
 class UBoxComponent;
 
+#define DEBUG_IsWithinRangeOfCheckpoint
+
 UCLASS()
 class AIRFORCE_API ACheckPoint : public AActor
 {
@@ -31,18 +33,21 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	//チェックポイントの範囲内にいるかどうか判定
-	FORCEINLINE bool IsWithinRangeOfCheckpoint()const;
 	//識別番号取得
 	FORCEINLINE int GetNumber()const { return m_CheckNumber; }
 	//次も同じ番号にするかのフラグ取得
 	FORCEINLINE int GetIsSameNumberNext()const { return m_bSameNumberNext; }
 	//通過判定フラグを取得
 	FORCEINLINE bool GetIsPassed()const { return m_bPassed; }
+	//範囲内にドローンがいるかどうかの判定取得
+	FORCEINLINE bool GetIsDroneInRange()const { return m_bIsDroneInRange; }
 	//識別番号設定
 	FORCEINLINE void SetNumber(const int _number) { m_CheckNumber = _number; }
-	//チェックポイントをアクティブ化する
-	FORCEINLINE void SetActive(const bool& _isActive) { m_bActive = _isActive; }
+	//チェックポイントを毎フレーム更新するかどうかを設定
+	FORCEINLINE void SetEveryUpdate(const bool& _bEveryUpdate) { PrimaryActorTick.bCanEverTick = _bEveryUpdate; }
+private:
+	//範囲内のドローンを探す処理
+	void FindDroneInRange();
 
 protected:
 	UPROPERTY(EditAnywhere)
@@ -51,12 +56,13 @@ protected:
 		UBoxComponent* m_pCheckPointCollision;				//チェックポイントの通過判定用コリジョン
 	UPROPERTY(VisibleAnywhere)
 		int m_CheckNumber;												//識別番号
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 		bool m_bSameNumberNext;									//次の要素も同じ番号にするかどうか
 	UPROPERTY(VisibleAnywhere)
 		bool m_bPassed;													//通過済みどうかのフラグ
 	UPROPERTY(VisibleAnywhere)
-		bool m_bActive;														//アクティブ状態かどうか
+		bool m_bIsDroneInRange;										//範囲内にドローンがいるか判定するフラグ
 	UPROPERTY(EditAnywhere)
 		float m_RadiusOfSearchRange;								//検索する範囲(半径)
+
 };
