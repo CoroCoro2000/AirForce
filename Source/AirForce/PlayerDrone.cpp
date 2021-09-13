@@ -524,8 +524,8 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	}
 	else
 	{
-		CameraRotation.Pitch *= 0.94f;
-		m_pSpringArm->SocketOffset.Z *= 0.94f;
+		CameraRotation.Pitch *= 0.96f;
+		m_pSpringArm->SocketOffset.Z *= 0.96f;
 	}
 
 	//ƒJƒƒ‰‚Ì‰ñ“]‚ğXV
