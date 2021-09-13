@@ -27,6 +27,7 @@
 
 #define SLOPE_MIN 0.f
 #define SLOPE_MAX 45.f
+#define SPEED_MAX 5.25f
 
 //コンストラクタ
 APlayerDrone::APlayerDrone()
@@ -558,12 +559,18 @@ void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 		//エフェクトが進行方向へ向くようにする
 		FRotator LookAtRotation = FRotationMatrix::MakeFromX(DroneLocation - EffectLocation).Rotator();
 		//移動量の大きさからエフェクトの不透明度を設定
-		float OpacityRate = FMath::Abs(m_AxisAccel.GetSafeNormal().Y);
-		float WindOpacity = FMath::Lerp(0.f, 0.2f, OpacityRate);
+		float AccelValue = FVector(m_Velocity.X, m_Velocity.Y, 0.f).Size() / SPEED_MAX;
 
+		float rate = FMath::Clamp(AccelValue, 0.f, 1.f);
+		float WindOpacity = FMath::Lerp(0.f, 1.f, rate);
+		float WindMask = FMath::Lerp(9.f, 2.f, rate);
+
+		float effectScale = FMath::Lerp(2.f, 1.f, rate);
 		//回転処理
+		m_pWindEffect->SetRelativeScale3D(FVector(effectScale));
 		m_pWindEffect->SetWorldRotation(LookAtRotation.Quaternion() * MOVE_CORRECTION);
 		//エフェクトの不透明度を変更
+		m_pWindEffect->SetVariableFloat(TEXT("User.Mask"), WindOpacity);
 		m_pWindEffect->SetVariableFloat(TEXT("User.WindOpacity"), WindOpacity);
 	}
 #ifdef DEBUG_WindEffect

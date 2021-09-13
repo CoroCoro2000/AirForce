@@ -43,12 +43,12 @@ public:
 	FORCEINLINE bool GetIsDroneInRange()const { return m_bIsDroneInRange; }
 	//識別番号設定
 	FORCEINLINE void SetNumber(const int _number) { m_CheckNumber = _number; }
-	//チェックポイントを毎フレーム更新するかどうかを設定
-	FORCEINLINE void SetEveryUpdate(const bool& _bEveryUpdate) { PrimaryActorTick.bCanEverTick = _bEveryUpdate; }
 private:
 	//範囲内のドローンを探す処理
 	void FindDroneInRange();
 
+	//エディタ上で配置時、または内部の値が変更された時に呼び出される関数
+	virtual void OnConstruction(const FTransform& Transform)override;
 protected:
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* m_pGateMesh;					//チェックポイントのモデルメッシュ
@@ -62,7 +62,6 @@ protected:
 		bool m_bPassed;													//通過済みどうかのフラグ
 	UPROPERTY(VisibleAnywhere)
 		bool m_bIsDroneInRange;										//範囲内にドローンがいるか判定するフラグ
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Raycast")
 		float m_RadiusOfSearchRange;								//検索する範囲(半径)
-
 };

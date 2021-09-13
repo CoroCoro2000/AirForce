@@ -31,10 +31,9 @@ void ACheckPointManager::BeginPlay()
 		{
 			pCheckPoint->SetNumber(CheckPointNumber);
 
-			//0番目のチェックポイントだけアクティブな状態にしておく
-			if (pCheckPoint->GetNumber() == 0)
+			if (pCheckPoint->GetNumber() != 0)
 			{
-				pCheckPoint->SetEveryUpdate(true);
+				pCheckPoint->PrimaryActorTick.bCanEverTick = false;
 			}
 
 			//次のチェックポイントを同番号にする場合はインクリメントさせない
@@ -51,14 +50,16 @@ void ACheckPointManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	for (ACheckPoint* pCheckPoint : m_pCheckPoints)
+	//要素番号がずれるため、大きい要素番号から順にループさせる
+	for (int32 index = m_pCheckPoints.Num() - 1; index >= 0; --index)
 	{
+		ACheckPoint* pCheckPoint = m_pCheckPoints[index];
+		//通過済みのチェックポイントのtickを切り、配列から外す
 		if (pCheckPoint)
 		{
-			//通過済みのチェックポイントの検索処理を終了し、配列から外す
 			if (pCheckPoint->GetIsPassed())
 			{
-				pCheckPoint->SetEveryUpdate(false);
+				pCheckPoint->PrimaryActorTick.bCanEverTick = false;
 				m_pCheckPoints.Remove(pCheckPoint);
 			}
 		}

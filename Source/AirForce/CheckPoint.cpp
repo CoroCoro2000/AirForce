@@ -16,7 +16,7 @@ ACheckPoint::ACheckPoint()
 	, m_RadiusOfSearchRange(50.f)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	//メッシュ生成
 	m_pGateMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GateMesh"));
@@ -57,8 +57,11 @@ void ACheckPoint::Tick(float DeltaTime)
 //範囲内のドローンを探す処理
 void ACheckPoint::FindDroneInRange()
 {
+	if (!m_pCheckPointCollision) { return; }
+
 	//検索範囲の座標を設定
-	FVector FindRangeLocation = GetActorLocation();
+	FVector Start = m_pCheckPointCollision->GetComponentLocation();
+
 	//ヒット結果を格納する配列
 	TArray<FHitResult> OutHits;
 	//トレースする対象の無視する項目を設定(自身は無視)
@@ -68,8 +71,8 @@ void ACheckPoint::FindDroneInRange()
 	//球状のレイを飛ばし、範囲内のオブジェクトを取得する
 	bool isHit = GetWorld()->SweepMultiByChannel(
 		OutHits,
-		FindRangeLocation,
-		FindRangeLocation,
+		Start,
+		Start,
 		FQuat::Identity,
 		ECollisionChannel::ECC_Pawn,
 		FCollisionShape::MakeSphere(m_RadiusOfSearchRange),
@@ -96,9 +99,10 @@ void ACheckPoint::FindDroneInRange()
 	{
 		m_bIsDroneInRange = false;
 	}
+
 #ifdef DEBUG_IsWithinRangeOfCheckpoint
 	FColor SphereColor = m_bIsDroneInRange ? FColor::Blue : FColor::Yellow;
-	DrawDebugSphere(GetWorld(), FindRangeLocation, m_RadiusOfSearchRange, 32, SphereColor);
+	DrawDebugSphere(GetWorld(), Start, m_RadiusOfSearchRange, 32, SphereColor);
 #endif //DEBUG_IsWithinRangeOfCheckpoint
 }
 
@@ -113,4 +117,18 @@ void ACheckPoint::OnComponentOverlapBegin(UPrimitiveComponent* HitComp, AActor* 
 			m_bPassed = true;
 		}
 	}
+}
+
+//エディタ上で配置時、または内部の値が変更された時に呼び出される関数
+void ACheckPoint::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+#ifdef DEBUG_IsWithinRangeOfCheckpoint
+	if (!m_pCheckPointCollision) { return; }
+
+	FVector Start = m_pCheckPointCollision->GetComponentLocation();
+	DrawDebugSphere(GetWorld(), Start, m_RadiusOfSearchRange, 16, FColor::Blue);
+#endif // DEBUG_IsWithinRangeOfCheckpoint
+
 }
