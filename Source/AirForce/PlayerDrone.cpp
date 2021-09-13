@@ -27,6 +27,7 @@
 
 #define SLOPE_MIN 0.f
 #define SLOPE_MAX 45.f
+#define SPEED_MIN -5.25f
 #define SPEED_MAX 5.25f
 
 //コンストラクタ
@@ -324,8 +325,16 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 			{
 				m_AxisAccel[i] = 0.f;
 			}
-				
-			m_AxisAccel[i] *= m_Deceleration;
+			
+			//0に近くなったら一定量で0にする
+			if (FMath::Abs(m_AxisAccel[i]) > 0.005f)
+			{
+				m_AxisAccel[i] *= m_Deceleration;
+			}
+			else
+			{
+				m_AxisAccel[i] = 0.f;
+			}
 		}
 
 		//m_AxisAccel[i] = CGameUtility::SetDecimalTruncation(m_AxisAccel[i], 3);
@@ -427,6 +436,8 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 		m_Velocity += BodyQuat.GetRightVector() * speed * m_AxisAccel.X * (IsReverseInput(m_AxisAccel.X, m_AxisValue.X) ? m_Turning : 1.f);
 		m_Velocity += BodyQuat.GetForwardVector() * speed * -m_AxisAccel.Y * (IsReverseInput(m_AxisAccel.Y, m_AxisValue.Y) ? m_Turning : 1.f);
 		m_Velocity += BodyQuat.GetUpVector() * speed * m_AxisAccel.Z * (IsReverseInput(m_AxisAccel.Z, m_AxisValue.Z) ? m_Turning : 1.f);
+		//上限でクランプ
+		m_Velocity = m_Velocity.GetClampedToSize(SPEED_MIN, SPEED_MAX);
 		m_Speed = m_Velocity.Size() * MOVE_CORRECTION;
 
 		//高度上限を超えていたら自動的に高度を下げる
@@ -551,7 +562,7 @@ void  APlayerDrone::UpdateCameraCollsion()
 //風のエフェクトの更新処理
 void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 {
-	if (m_pWindEffect) 
+	if (m_pWindEffect)
 	{
 		//エフェクトとドローンの座標を取得
 		FVector EffectLocation = m_pWindEffect->GetComponentLocation();
@@ -559,16 +570,15 @@ void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 		//エフェクトが進行方向へ向くようにする
 		FRotator LookAtRotation = FRotationMatrix::MakeFromX(DroneLocation - EffectLocation).Rotator();
 		//移動量の大きさからエフェクトの不透明度を設定
-		float AccelValue = FVector(m_Velocity.X, m_Velocity.Y, 0.f).Size() / SPEED_MAX;
+		float AccelValue = FMath::Clamp(FVector2D(m_Velocity.X, m_Velocity.Y).Size() / SPEED_MAX, 0.f, 1.f);
+		float WindOpacity = (m_AxisAccel.Y < 0.f) ? AccelValue * 0.7f : 0.f;
+		float WindMask = FMath::Lerp(50.f, 40.f, AccelValue);
+		float effectScale =FMath::Lerp(2.f, 1.f, AccelValue);
+		float effectLocationX = FMath::Lerp(-40.f, 0.f, AccelValue);
 
-		float rate = FMath::Clamp(AccelValue, 0.f, 1.f);
-		float WindOpacity = FMath::Lerp(0.f, 1.f, rate);
-		float WindMask = FMath::Lerp(9.f, 2.f, rate);
-
-		float effectScale = FMath::Lerp(2.f, 1.f, rate);
-		//回転処理
 		m_pWindEffect->SetRelativeScale3D(FVector(effectScale));
-		m_pWindEffect->SetWorldRotation(LookAtRotation.Quaternion() * MOVE_CORRECTION);
+		m_pWindEffect->SetWorldRotation(LookAtRotation.Quaternion());
+		m_pWindEffect->SetRelativeLocation(FVector(effectLocationX, 0.f, 0.f));
 		//エフェクトの不透明度を変更
 		m_pWindEffect->SetVariableFloat(TEXT("User.Mask"), WindOpacity);
 		m_pWindEffect->SetVariableFloat(TEXT("User.WindOpacity"), WindOpacity);
