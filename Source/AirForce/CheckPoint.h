@@ -10,7 +10,7 @@
 class UStaticMeshComponent;
 class UBoxComponent;
 
-#define DEBUG_IsWithinRangeOfCheckpoint
+//#define DEBUG_IsWithinRangeOfCheckpoint
 
 UCLASS()
 class AIRFORCE_API ACheckPoint : public AActor
