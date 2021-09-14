@@ -43,6 +43,11 @@ ADroneBase::ADroneBase()
 	, m_isControl(false)
 	, m_isFloating(true)
 	, m_RingAcquisition(0)
+	,isPlayer(false)
+	,flag(false)
+	, m_SaveVelocity(FVector::ZeroVector)
+	, m_SaveQuat(FQuat::Identity)
+
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -263,7 +268,6 @@ float ADroneBase::UpdateGravity(const float& DeltaTime)
 	UE_LOG(LogTemp, Warning, TEXT("newGravity%f"), newGravity);
 #endif // DEBUG_GRAVITY
 
-
 	return newGravity;
 }
 
@@ -279,6 +283,12 @@ void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedCom
 	if (OtherActor && OtherActor != this)
 	{
 		//タグがPlayerだった場合
+		if (OtherActor->ActorHasTag(TEXT("Player")))
+		{
+			return;
+		}
+
+		//タグがRingだった場合
 		if (OtherActor->ActorHasTag(TEXT("Ring")))
 		{
 			m_RingAcquisition++;
@@ -294,21 +304,33 @@ void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* 
 {
 	if (OtherActor && OtherActor != this)
 	{
+		//タグがPlayerだった場合
+		if (OtherActor->ActorHasTag(TEXT("Player")))
+		{
+			return;
+		}
 		m_isFloating = false;
 
-		FVector progressVector = m_AxisAccel;
+		if (FVector(m_AxisAccel).GetAbsMax() > 0.1f)
+		{
 
-		//ヒットしたアクターの法線ベクトルを取得
-		FVector HitActorNormal = Hit.Normal;
+			FVector progressVector = m_AxisAccel;
 
-		//進行ベクトルと法線ベクトルの内積を求める
-		float dot = progressVector | HitActorNormal;
+			//ヒットしたアクターの法線ベクトルを取得
+			FVector HitActorNormal = Hit.Normal;
 
-		//反射ベクトルを求める
-		FVector reflectVector = progressVector - dot * 2.f * HitActorNormal;
+			//進行ベクトルと法線ベクトルの内積を求める
+			float dot = progressVector | HitActorNormal;
 
-		//反射ベクトルを進行方向に設定
-		m_AxisAccel = reflectVector * 0.5f;
+			//反射ベクトルを求める
+			FVector reflectVector = progressVector - dot * 2.f * HitActorNormal;
+
+			//反射ベクトルを進行方向に設定
+			m_AxisAccel = reflectVector * 0.5f;
+		}
+
+
+
 		m_isFloating = true;
 	}
 }

@@ -177,11 +177,15 @@ private:
 	TArray<AActor*> m_pHitActors;												//スプリングアームの直線に衝突しているActor
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-		FVector4 m_AxisValue;														//各軸の入力値(0:THROTTLE、1:ELEVATOR、2:AILERON、3:LADDER)
+		FVector4 m_AxisValue;														//各軸の入力値(0:AILERON、1:ELEVATOR、2:THROTTLE、3:LADDER)
+
 	UPROPERTY(EditAnywhere, Category = "Drone")
 		float m_HeightMax;															//ドローンが飛ぶことのできる地面からの高さの範囲
 	UPROPERTY(EditAnywhere, Category = "Drone")
 		float m_HeightFromGround;												//地面からの高さ
 	UPROPERTY(EditAnywhere, Category = "Drone")
 		float m_DistanceToSlope;													//斜面までの距離
+
+	FVector4 m_AxisValuePerFrame;													//毎フレーム更新される入力の値
+
 };

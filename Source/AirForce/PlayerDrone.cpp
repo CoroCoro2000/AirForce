@@ -23,6 +23,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/StaticMeshActor.h"
+#include "Misc/FileHelper.h"
 #include "DrawDebugHelpers.h"
 
 #define SLOPE_MIN 0.f
@@ -48,6 +49,7 @@ APlayerDrone::APlayerDrone()
 	, m_HeightMax(400.f)
 	, m_HeightFromGround(0.f)
 	, m_DistanceToSlope(0.f)
+	, m_AxisValuePerFrame(FVector4(0.f, 0.f, 0.f, 0.f))
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -100,12 +102,31 @@ void APlayerDrone::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//テキストファイル読み込み
+	if (!isPlayer)
+	{
+		FFileHelper::LoadFileToStringArray(m_SaveVelocityX, *(FPaths::GameDir() + FString("VX.txt")));
+		FFileHelper::LoadFileToStringArray(m_SaveVelocityY, *(FPaths::GameDir() + FString("VY.txt")));
+		FFileHelper::LoadFileToStringArray(m_SaveVelocityZ, *(FPaths::GameDir() + FString("VZ.txt")));
+		FFileHelper::LoadFileToStringArray(m_SaveQuatX, *(FPaths::GameDir() + FString("QX.txt")));
+		FFileHelper::LoadFileToStringArray(m_SaveQuatY, *(FPaths::GameDir() + FString("QY.txt")));
+		FFileHelper::LoadFileToStringArray(m_SaveQuatZ, *(FPaths::GameDir() + FString("QZ.txt")));
+		FFileHelper::LoadFileToStringArray(m_SaveQuatW, *(FPaths::GameDir() + FString("QW.txt")));
+		flame = 0;
+	}
 }
 
 //毎フレーム処理
 void APlayerDrone::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (isPlayer && m_isControl)
+	{
+		//入力量をフレームに同期
+		m_AxisValuePerFrame = m_AxisValue;
+		UE_LOG(LogTemp, Error, TEXT("%f %dFPS"), MOVE_CORRECTION,int(1/DeltaTime));
+	}
 
 	//羽の更新処理
 	UpdateWingAccle();
@@ -167,23 +188,23 @@ float APlayerDrone::RightInputValueToWingAcceleration(const int _arrayIndex)
 	float wingsAccel[EWING::NUM] = { 0.f,0.f,0.f,0.f };
 
 	//スロットルの入力がある時
-	if (m_AxisValue.Z != 0.f)
+	if (m_AxisValuePerFrame.Z != 0.f)
 	{
 		for (float& wingAccel : wingsAccel)
 		{
-			wingAccel += m_AxisValue.Z;
+			wingAccel += m_AxisValuePerFrame.Z;
 		}
 	}
 
 	//ラダーの入力がある時
-	if (m_AxisValue.W != 0.f)
+	if (m_AxisValuePerFrame.W != 0.f)
 	{
 		//右入力がされているかどうか
-		const bool isRight = (m_AxisValue.W > 0.f ? true : false);
-		wingsAccel[EWING::LEFT_FORWARD] += FMath::Abs(m_AxisValue.W) * (isRight ? -1.f : 1.f);
-		wingsAccel[EWING::LEFT_BACKWARD] += FMath::Abs(m_AxisValue.W) * (isRight ? 1.f : -1.f);
-		wingsAccel[EWING::RIGHT_FORWARD] += FMath::Abs(m_AxisValue.W) * (isRight ? 1.f : -1.f);
-		wingsAccel[EWING::RIGHT_BACKWARD] += FMath::Abs(m_AxisValue.W) * (isRight ? -1.f : 1.f);
+		const bool isRight = (m_AxisValuePerFrame.W > 0.f ? true : false);
+		wingsAccel[EWING::LEFT_FORWARD] += FMath::Abs(m_AxisValuePerFrame.W) * (isRight ? -1.f : 1.f);
+		wingsAccel[EWING::LEFT_BACKWARD] += FMath::Abs(m_AxisValuePerFrame.W) * (isRight ? 1.f : -1.f);
+		wingsAccel[EWING::RIGHT_FORWARD] += FMath::Abs(m_AxisValuePerFrame.W) * (isRight ? 1.f : -1.f);
+		wingsAccel[EWING::RIGHT_BACKWARD] += FMath::Abs(m_AxisValuePerFrame.W) * (isRight ? -1.f : 1.f);
 	}
 	return wingsAccel[_arrayIndex];
 }
@@ -194,21 +215,21 @@ float APlayerDrone::LeftInputValueToWingAcceleration(const int _arrayIndex)
 	float wingAccel[EWING::NUM] = { 0.f,0.f,0.f,0.f };
 
 	//エレベーターの入力がある時
-	if (m_AxisValue.Y != 0.f)
+	if (m_AxisValuePerFrame.Y != 0.f)
 	{
 		//前入力がされているかどうか
-		const bool isForward = (m_AxisValue.Y > 0.f ? true : false);
-		const float axisAbsValue = FMath::Abs(m_AxisValue.Y);
+		const bool isForward = (m_AxisValuePerFrame.Y > 0.f ? true : false);
+		const float axisAbsValue = FMath::Abs(m_AxisValuePerFrame.Y);
 		wingAccel[(isForward ? EWING::LEFT_BACKWARD : EWING::LEFT_FORWARD)] += axisAbsValue;
 		wingAccel[(isForward ? EWING::RIGHT_BACKWARD : EWING::RIGHT_FORWARD)] += axisAbsValue;
 	}
 
 	//エルロンの入力がある時
-	if (m_AxisValue.X != 0.f)
+	if (m_AxisValuePerFrame.X != 0.f)
 	{
 		//右入力がされているかどうか
-		const bool isRight = (m_AxisValue.X > 0.f ? true : false);
-		const float axisAbsValue = FMath::Abs(m_AxisValue.X);
+		const bool isRight = (m_AxisValuePerFrame.X > 0.f ? true : false);
+		const float axisAbsValue = FMath::Abs(m_AxisValuePerFrame.X);
 		wingAccel[(isRight ? EWING::LEFT_FORWARD : EWING::RIGHT_FORWARD)] += axisAbsValue;
 		wingAccel[(isRight ? EWING::LEFT_BACKWARD : EWING::RIGHT_BACKWARD)] += axisAbsValue;
 	}
@@ -219,8 +240,8 @@ float APlayerDrone::LeftInputValueToWingAcceleration(const int _arrayIndex)
 void APlayerDrone::UpdateWingAccle()
 {
 	//各スティックの入力の値をを取得
-	FVector2D RightAxis = FVector2D(m_AxisValue.W, m_AxisValue.Z);
-	FVector2D LeftAxis = FVector2D(m_AxisValue.X, m_AxisValue.Y);
+	FVector2D RightAxis = FVector2D(m_AxisValuePerFrame.W, m_AxisValuePerFrame.Z);
+	FVector2D LeftAxis = FVector2D(m_AxisValuePerFrame.X, m_AxisValuePerFrame.Y);
 
 	//入力がなければ終了
 	if ((RightAxis.IsZero() && LeftAxis.IsZero()) || !m_isControl)
@@ -266,8 +287,8 @@ void APlayerDrone::UpdateWingRotation(const float& DeltaTime)
 {
 	//2軸の入力量を合成する
 	const float InputValueSize = FMath::Clamp((
-		FVector2D(m_AxisValue.W, m_AxisValue.Z).Size() +
-		FVector2D(m_AxisValue.X, m_AxisValue.Y).Size()) / 2,
+		FVector2D(m_AxisValuePerFrame.W, m_AxisValuePerFrame.Z).Size() +
+		FVector2D(m_AxisValuePerFrame.X, m_AxisValuePerFrame.Y).Size()) / 2,
 		0.f, 1.f);
 
 	//毎秒m_rpsMax * WingAccel回分回転するために毎フレーム羽を回す角度を求める
@@ -303,19 +324,19 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 	for (int i = 0; i < EINPUT_AXIS::NUM; i++)
 	{
 		//浮力がホバリング状態より大きいとき
-		if (m_AxisValue[i] > 0.f)
+		if (m_AxisValuePerFrame[i] > 0.f)
 		{
 			if (m_AxisAccel[i] < m_WingAccelMax)
 			{
-				m_AxisAccel[i] += m_AxisValue[i] * DeltaTime;
+				m_AxisAccel[i] += m_AxisValuePerFrame[i] * DeltaTime;
 			}
 		}
 		//浮力がホバリング状態より小さい時
-		else if (m_AxisValue[i] < 0.f)
+		else if (m_AxisValuePerFrame[i] < 0.f)
 		{
 			if (m_AxisAccel[i] > -m_WingAccelMax)
 			{
-				m_AxisAccel[i] += m_AxisValue[i] * DeltaTime;
+				m_AxisAccel[i] += m_AxisValuePerFrame[i] * DeltaTime;
 			}
 		}
 		//浮力が重力と釣り合う時(ホバリング状態)
@@ -339,7 +360,7 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 
 		//m_AxisAccel[i] = CGameUtility::SetDecimalTruncation(m_AxisAccel[i], 3);
 		m_AxisAccel[i] = FMath::Clamp(m_AxisAccel[i], -m_WingAccelMax, m_WingAccelMax);
-	}
+	}	
 }
 
 //ドローンの回転処理
@@ -417,7 +438,16 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 	FQuat qAngularVelocity = FQuat::MakeFromEuler(m_AngularVelocity);
 	//ドローンを回転させる
 	//UE_LOG(LogTemp, Warning, TEXT("qAngularVelocity:%s"), *qAngularVelocity.ToString());
-	m_pBodyMesh->AddLocalRotation(qAngularVelocity * MOVE_CORRECTION, true);
+
+	if (isPlayer)
+	{
+		m_pBodyMesh->AddLocalRotation(qAngularVelocity * MOVE_CORRECTION, true);
+		m_SaveQuat = m_pBodyMesh->GetRelativeRotation().Quaternion();
+	}
+	else
+	{
+		m_pBodyMesh->SetRelativeRotation(m_SaveQuat * MOVE_CORRECTION);
+	}
 }
 
 //速度更新処理
@@ -433,9 +463,9 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 
 		float speed = 3.5f;
 		m_Velocity = FVector::ZeroVector;
-		m_Velocity += BodyQuat.GetRightVector() * speed * m_AxisAccel.X * (IsReverseInput(m_AxisAccel.X, m_AxisValue.X) ? m_Turning : 1.f);
-		m_Velocity += BodyQuat.GetForwardVector() * speed * -m_AxisAccel.Y * (IsReverseInput(m_AxisAccel.Y, m_AxisValue.Y) ? m_Turning : 1.f);
-		m_Velocity += BodyQuat.GetUpVector() * speed * m_AxisAccel.Z * (IsReverseInput(m_AxisAccel.Z, m_AxisValue.Z) ? m_Turning : 1.f);
+		m_Velocity += BodyQuat.GetRightVector() * speed * m_AxisAccel.X * (IsReverseInput(m_AxisAccel.X, m_AxisValuePerFrame.X) ? m_Turning : 1.f);
+		m_Velocity += BodyQuat.GetForwardVector() * speed * -m_AxisAccel.Y * (IsReverseInput(m_AxisAccel.Y, m_AxisValuePerFrame.Y) ? m_Turning : 1.f);
+		m_Velocity += BodyQuat.GetUpVector() * speed * m_AxisAccel.Z * (IsReverseInput(m_AxisAccel.Z, m_AxisValuePerFrame.Z) ? m_Turning : 1.f);
 		//上限でクランプ
 		m_Velocity = m_Velocity.GetClampedToSize(SPEED_MIN, SPEED_MAX);
 		m_Speed = m_Velocity.Size() * MOVE_CORRECTION;
@@ -446,7 +476,64 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 			m_Velocity.Z = -3.f;
 		}
 
-		AddActorWorldOffset(m_Velocity * MOVE_CORRECTION, true);
+
+
+		AddActorWorldOffset((isPlayer ? m_Velocity : m_SaveVelocity) * MOVE_CORRECTION, true);
+
+
+		if (m_isControl)
+		{
+			if (isPlayer)
+			{
+				m_SaveVelocityX.Add(FString::SanitizeFloat(m_Velocity.X));
+				m_SaveVelocityY.Add(FString::SanitizeFloat(m_Velocity.Y));
+				m_SaveVelocityZ.Add(FString::SanitizeFloat(m_Velocity.Z));
+				m_SaveQuatX.Add(FString::SanitizeFloat(m_SaveQuat.X));
+				m_SaveQuatY.Add(FString::SanitizeFloat(m_SaveQuat.Y));
+				m_SaveQuatZ.Add(FString::SanitizeFloat(m_SaveQuat.Z));
+				m_SaveQuatW.Add(FString::SanitizeFloat(m_SaveQuat.W));
+
+				if (FPS == 60.f)
+				{
+					////テキストファイル書き込み
+					FFileHelper::SaveStringArrayToFile(m_SaveVelocityX, *(FPaths::GameDir() + FString("VX.txt")));
+					FFileHelper::SaveStringArrayToFile(m_SaveVelocityY, *(FPaths::GameDir() + FString("VY.txt")));
+					FFileHelper::SaveStringArrayToFile(m_SaveVelocityZ, *(FPaths::GameDir() + FString("VZ.txt")));
+					FFileHelper::SaveStringArrayToFile(m_SaveQuatX, *(FPaths::GameDir() + FString("QX.txt")));
+					FFileHelper::SaveStringArrayToFile(m_SaveQuatY, *(FPaths::GameDir() + FString("QY.txt")));
+					FFileHelper::SaveStringArrayToFile(m_SaveQuatZ, *(FPaths::GameDir() + FString("QZ.txt")));
+					FFileHelper::SaveStringArrayToFile(m_SaveQuatW, *(FPaths::GameDir() + FString("QW.txt")));
+				}
+			}
+
+			else
+			{
+				if (!isPlayer && flame < m_SaveVelocityX.Num() - 1)
+				{
+					m_SaveVelocity.X = FCString::Atof(*(m_SaveVelocityX[flame]));
+					m_SaveVelocity.Y = FCString::Atof(*(m_SaveVelocityY[flame]));
+					m_SaveVelocity.Z = FCString::Atof(*(m_SaveVelocityZ[flame]));
+					m_SaveQuat.X = FCString::Atof(*(m_SaveQuatX[flame]));
+					m_SaveQuat.Y = FCString::Atof(*(m_SaveQuatY[flame]));
+					m_SaveQuat.Z = FCString::Atof(*(m_SaveQuatZ[flame]));
+					m_SaveQuat.W = FCString::Atof(*(m_SaveQuatW[flame]));
+					flame++;
+				}
+			}
+		}
+		else if (!m_isControl && isPlayer)
+		{
+			////テキストファイル書き込み
+			FFileHelper::SaveStringArrayToFile(m_SaveVelocityX, *(FPaths::GameDir() + FString("VX.txt")));
+			FFileHelper::SaveStringArrayToFile(m_SaveVelocityY, *(FPaths::GameDir() + FString("VY.txt")));
+			FFileHelper::SaveStringArrayToFile(m_SaveVelocityZ, *(FPaths::GameDir() + FString("VZ.txt")));
+			FFileHelper::SaveStringArrayToFile(m_SaveQuatX, *(FPaths::GameDir() + FString("QX.txt")));
+			FFileHelper::SaveStringArrayToFile(m_SaveQuatY, *(FPaths::GameDir() + FString("QY.txt")));
+			FFileHelper::SaveStringArrayToFile(m_SaveQuatZ, *(FPaths::GameDir() + FString("QZ.txt")));
+			FFileHelper::SaveStringArrayToFile(m_SaveQuatW, *(FPaths::GameDir() + FString("QW.txt")));
+
+			flag = true;
+		}
 	}
 	else
 	{
@@ -508,11 +595,11 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 
 #endif // DEBUG_UpdateCamera
 	FRotator CameraRotation = m_pCamera->GetRelativeRotation();
-	if (FMath::Abs(m_AxisValue.X) > 0.2f)
+	if (FMath::Abs(m_AxisValuePerFrame.X) > 0.2f)
 	{
 		if (FMath::Abs(m_pCamera->GetRelativeRotation().Roll) < FMath::Abs(m_pBodyMesh->GetRelativeRotation().Roll))
 		{
-			CameraRotation.Roll += m_AxisValue.X * 5.f * DeltaTime;
+			CameraRotation.Roll += m_AxisValuePerFrame.X * 5.f * DeltaTime;
 		}
 	}
 	else
@@ -639,12 +726,14 @@ bool APlayerDrone::IsOverHeightMax()
 void APlayerDrone::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	//軸マッピング
-	InputComponent->BindAxis(TEXT("Throttle"), this, &APlayerDrone::Input_Throttle);
-	InputComponent->BindAxis(TEXT("Elevator"), this, &APlayerDrone::Input_Elevator);
-	InputComponent->BindAxis(TEXT("Aileron"), this, &APlayerDrone::Input_Aileron);
-	InputComponent->BindAxis(TEXT("Ladder"), this, &APlayerDrone::Input_Ladder);
+	if (isPlayer)
+	{
+		//軸マッピング
+		InputComponent->BindAxis(TEXT("Throttle"), this, &APlayerDrone::Input_Throttle);
+		InputComponent->BindAxis(TEXT("Elevator"), this, &APlayerDrone::Input_Elevator);
+		InputComponent->BindAxis(TEXT("Aileron"), this, &APlayerDrone::Input_Aileron);
+		InputComponent->BindAxis(TEXT("Ladder"), this, &APlayerDrone::Input_Ladder);
+	}
 }
 
 //【入力バインド】スロットル(上下)の入力があった場合呼び出される関数
@@ -653,6 +742,7 @@ void APlayerDrone::Input_Throttle(float _axisValue)
 	if (m_isControl)
 	{
 		m_AxisValue.Z = FMath::Clamp(_axisValue, -1.f, 1.f);
+		m_AxisValue.Z = CGameUtility::SetDecimalTruncation(m_AxisValue.Z, 3);
 	}
 	else
 	{
@@ -687,6 +777,7 @@ void APlayerDrone::Input_Elevator(float _axisValue)
 	if (m_isControl)
 	{
 		m_AxisValue.Y = FMath::Clamp(_axisValue, -1.f, 1.f);
+		m_AxisValue.Y = CGameUtility::SetDecimalTruncation(m_AxisValue.Y, 3);
 	}
 	else
 	{
@@ -720,6 +811,7 @@ void APlayerDrone::Input_Aileron(float _axisValue)
 	if (m_isControl)
 	{
 		m_AxisValue.X = FMath::Clamp(_axisValue, -1.f, 1.f);
+		m_AxisValue.X = CGameUtility::SetDecimalTruncation(m_AxisValue.X, 3);
 	}
 	else
 	{
@@ -754,6 +846,7 @@ void APlayerDrone::Input_Ladder(float _axisValue)
 	if (m_isControl)
 	{
 		m_AxisValue.W = FMath::Clamp(_axisValue, -1.f, 1.f);
+		m_AxisValue.W = CGameUtility::SetDecimalTruncation(m_AxisValue.W, 3);
 	}
 	else
 	{

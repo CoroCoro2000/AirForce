@@ -214,6 +214,21 @@ protected:
 	//ステートフラグ管理
 	State m_StateFlag;
 
+	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
+		TArray<FString>m_SaveVelocityX;								//プレイヤーの毎フレームX座標移動量
+	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
+		TArray<FString>m_SaveVelocityY;								//プレイヤーの毎フレームX座標移動量
+	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
+		TArray<FString>m_SaveVelocityZ;								//プレイヤーの毎フレームZ座標移動量
+	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
+		TArray<FString>m_SaveQuatX;									//プレイヤーの毎フレームクオータニオンX回転量
+	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
+		TArray<FString>m_SaveQuatY;									//プレイヤーの毎フレームクオータニオンY回転量
+	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
+		TArray<FString>m_SaveQuatZ;									//プレイヤーの毎フレームクオータニオンZ回転量
+	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
+		TArray<FString>m_SaveQuatW;									//プレイヤーの毎フレームクオータニオンW回転量
+
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
 		float  m_Speed;									//ドローンの秒速(m)
 
@@ -249,4 +264,12 @@ protected:
 		bool m_isFloating;								//操作可能フラグ
 	UPROPERTY(VisibleAnywhere, Category = "Ring")
 		int m_RingAcquisition;							//リング獲得数
+
+	UPROPERTY(EditAnywhere, Category = "Drone")
+		bool isPlayer;
+	bool flag;
+	int flame;
+
+	FVector m_SaveVelocity;															//
+	FQuat m_SaveQuat;
 };
