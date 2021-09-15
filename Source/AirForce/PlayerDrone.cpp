@@ -31,6 +31,8 @@
 #define SPEED_MIN -5.25f
 #define SPEED_MAX 5.25f
 
+#define ROTATION_MAX 5.f
+
 //コンストラクタ
 APlayerDrone::APlayerDrone()
 	: m_GameMode(EGAMEMODE::GAMEMODE_TPS)
@@ -50,6 +52,7 @@ APlayerDrone::APlayerDrone()
 	, m_HeightFromGround(0.f)
 	, m_DistanceToSlope(0.f)
 	, m_AxisValuePerFrame(FVector4(0.f, 0.f, 0.f, 0.f))
+	, m_CameraRotationYaw(0.f)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -476,8 +479,6 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 			m_Velocity.Z = -3.f;
 		}
 
-
-
 		AddActorWorldOffset((isPlayer ? m_Velocity : m_SaveVelocity) * MOVE_CORRECTION, true);
 
 
@@ -595,16 +596,31 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 
 #endif // DEBUG_UpdateCamera
 	FRotator CameraRotation = m_pCamera->GetRelativeRotation();
-	if (FMath::Abs(m_AxisValuePerFrame.X) > 0.2f)
+	if (FMath::Abs(m_AxisValuePerFrame.X) > 0.f)
 	{
+		//カメラをボディと同じ角度で傾ける
 		if (FMath::Abs(m_pCamera->GetRelativeRotation().Roll) < FMath::Abs(m_pBodyMesh->GetRelativeRotation().Roll))
 		{
 			CameraRotation.Roll += m_AxisValuePerFrame.X * 5.f * DeltaTime;
 		}
+
+		//左右の進行方向に回り込むように回転
+		if (FMath::Abs(m_CameraRotationYaw) < ROTATION_MAX)
+		{
+			m_CameraRotationYaw -= m_AxisValuePerFrame.X * 5.f * DeltaTime;
+		}
 	}
 	else
 	{
-		CameraRotation.Roll *= 0.94f;
+		if (CGameUtility::SetDecimalTruncation(FMath::Abs(CameraRotation.Roll), 3) != 0.f)
+		{
+			CameraRotation.Roll *= 0.94f;
+		}
+
+		if (CGameUtility::SetDecimalTruncation(FMath::Abs(m_CameraRotationYaw), 3) != 0.f)
+		{
+			m_CameraRotationYaw *= 0.94f;
+		}
 	}
 
 	//レイが傾斜に当たっていたら、現在の高さと傾斜との距離から勾配を求める
@@ -619,7 +635,7 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 			4.f);
 		CameraRotation.Pitch = NewPRotation.Pitch;
 
-		m_pSpringArm->SocketOffset.Z = FMath::Lerp(0.f, -50.f, FMath::Clamp(NewPRotation.Pitch / SLOPE_MAX, 0.f, 1.f));
+		m_pSpringArm->SocketOffset.Z = FMath::Lerp(0.f, -SLOPE_MAX, FMath::Clamp(NewPRotation.Pitch / SLOPE_MAX, 0.f, 1.f));
 	}
 	else
 	{
@@ -629,7 +645,7 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 
 	//カメラの回転を更新
 	m_pCamera->SetRelativeRotation(CameraRotation * MOVE_CORRECTION);
-	m_pSpringArm->SetRelativeRotation(FRotator(0.f, m_pBodyMesh->GetRelativeRotation().Yaw, 0.f) * MOVE_CORRECTION);
+	m_pSpringArm->SetRelativeRotation(FRotator(0.f, m_pBodyMesh->GetRelativeRotation().Yaw + m_CameraRotationYaw, 0.f) * MOVE_CORRECTION);
 
 	//ソケットの位置を更新
 	FVector NewSocketOffset = FVector(m_AxisAccel.Y, m_AxisAccel.X, 0.f) * m_CameraSocketOffsetMax / m_WingAccelMax;

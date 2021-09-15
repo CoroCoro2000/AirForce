@@ -17,13 +17,11 @@
 //#define DEBUG_LOG
 
 //¬”‘ænˆÊ–¢–Ø‚èÌ‚Ä
-float CGameUtility::SetDecimalTruncation(float value, int n)
+float CGameUtility::SetDecimalTruncation(float value, const int& n)
 {
-    UE_LOG(LogTemp, Warning, TEXT("before:%f"), value);
     value = value * FMath::Pow(10, n);
     value = FMath::FloorToInt(value);
     value /= FMath::Pow(10, n);
-    UE_LOG(LogTemp, Warning, TEXT("after:%f"), value);
     return value;
 }
 

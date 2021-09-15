@@ -18,7 +18,7 @@ class CGameUtility
 {
 public:
 	//小数第n位未満切り捨て
-	static float SetDecimalTruncation(float value, int n);
+	static float SetDecimalTruncation(float value, const int& n);
 
 	//*レベル内全てに対して検索を行うため、Tickで使う場合は注意すること。
 	//タグからアクターを取得する関数(第1引数：この関数を呼び出すアクター、第2引数：検索するアクターのタグ名)

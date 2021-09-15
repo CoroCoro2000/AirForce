@@ -188,4 +188,5 @@ private:
 
 	FVector4 m_AxisValuePerFrame;													//毎フレーム更新される入力の値
 
+	float m_CameraRotationYaw;													
 };
