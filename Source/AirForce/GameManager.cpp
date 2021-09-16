@@ -61,18 +61,20 @@ void AGameManager::BeginPlay()
 		m_PlayerDrone = Cast<ADroneBase>(pDrone);
 	}
 
-	//既にプレイした人がいたならゴーストドローンを生成
-	if (m_RapTimeText.Num() > 0)
+	if (m_CurrentScene == ECURRENTSCENE::SCENE_FIRST)
 	{
-		FString ghostPath = TEXT("/Game/BP/GhostDroneBP.GhostDroneBP_C");
-		TSubclassOf<AActor> ghostSoftClass = TSoftClassPtr<AActor>(FSoftObjectPath(*ghostPath)).LoadSynchronous(); // 上記で設定したパスに該当するクラスを取得
-		if (ghostSoftClass)
+		//既にプレイした人がいたならゴーストドローンを生成
+		if (m_RapTimeText.Num() > 0)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("GhostSpawn"));
-			AActor* ghostDrone = GetWorld()->SpawnActor<AActor>(ghostSoftClass); // スポーン処理
-			m_GhostDrone = Cast<ADroneBase>(ghostDrone);
-			m_GhostDrone->SetActorLocation(m_PlayerDrone->GetActorLocation());
-			m_GhostDrone->SetActorRotation(m_PlayerDrone->GetActorRotation());
+			FString ghostPath = TEXT("/Game/BP/GhostDroneBP.GhostDroneBP_C");
+			TSubclassOf<AActor> ghostSoftClass = TSoftClassPtr<AActor>(FSoftObjectPath(*ghostPath)).LoadSynchronous(); // 上記で設定したパスに該当するクラスを取得
+			if (ghostSoftClass)
+			{
+				AActor* ghostDrone = GetWorld()->SpawnActor<AActor>(ghostSoftClass); // スポーン処理
+				m_GhostDrone = Cast<ADroneBase>(ghostDrone);
+				m_GhostDrone->SetActorLocation(m_PlayerDrone->GetActorLocation());
+				m_GhostDrone->SetActorRotation(m_PlayerDrone->GetActorRotation());
+			}
 		}
 	}
 }
