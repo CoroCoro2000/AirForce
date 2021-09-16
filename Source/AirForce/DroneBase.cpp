@@ -272,6 +272,10 @@ void ADroneBase::UpdateRotation(const float& DeltaTime)
 			{
 				BodyRotation.Roll *= m_Deceleration;
 			}
+			else
+			{
+				BodyRotation.Roll = 0.f;
+			}
 		}
 	}
 

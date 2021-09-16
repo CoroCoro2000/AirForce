@@ -145,4 +145,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
 		FVector4 m_AxisValue;												//各軸の入力値(0:AILERON、1:ELEVATOR、2:THROTTLE、3:LADDER)
+
+	float m_CameraRotationYaw;
 };
