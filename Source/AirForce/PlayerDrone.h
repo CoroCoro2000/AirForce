@@ -24,28 +24,6 @@ class UCameraComponent;
 class UNiagaraSystem;
 class UNiagaraComponent;
 
-//	視点切り替え
-UENUM(BlueprintType)
-namespace EGAMEMODE
-{
-	enum Type
-	{
-		GAMEMODE_FPS	UMETA(DisplayName = "FPS"),		//1人称
-		GAMEMODE_TPS	UMETA(DisplayName = "TPS"),		//3人称
-	};
-}
-
-//ドローンの操作状態列挙
-UENUM(BlueprintType)
-namespace EDRONEMODE
-{
-	enum Type
-	{
-		DRONEMODE_AUTOMATICK	UMETA(DisplayName = "AUTO"),	//オートマチック
-		DRONEMODE_MANUAL			UMETA(DisplayName = "MANUAL")	//マニュアル
-	};
-}
-
 //各軸の入力情報を管理する列挙
 UENUM(BlueprintType)
 namespace EINPUT_AXIS
@@ -88,6 +66,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
 		bool IsMoving(const FVector _axisValue)const { return  (!_axisValue.IsZero() ? true : false); }
 
+	//レースの座標ファイル書き込み
+	void WritingRaceVector();
+
+	//レースのクオータニオンファイル書き込み
+	void WritingRaceQuaternion();
 private:
 	//【入力バインド】各スティックの入力
 	void Input_Throttle(float _axisValue);
@@ -119,8 +102,8 @@ private:
 	float LeftInputValueToWingAcceleration(const int _arrayIndex);
 
 	//羽の加速度更新処理
-	virtual void UpdateWingAccle();
-
+	virtual void UpdateWingAccle(const float& DeltaTime);
+	 
 	//入力の加速度更新処理
 	virtual void UpdateAxisAcceleration(const float& DeltaTime);
 
@@ -132,27 +115,15 @@ private:
 
 	//移動処理
 	void UpdateSpeed(const float& DeltaTime)override;
-	//羽の回転更新処理
-	virtual void UpdateWingRotation(const float& DeltaTime)override;
+
 	//カメラとの遮蔽物のコリジョン判定
 	void UpdateCameraCollsion();
+
 	//風のエフェクトの更新処理
 	void UpdateWindEffect(const float& DeltaTime);
-
-	//進行軸と入力軸が逆向きか確認
-	bool IsReverseInput(const float& _movingAxis, const float& _axisValue)const { return (_movingAxis < 0.f && 0.f < _axisValue) || (_movingAxis > 0.f && 0.f > _axisValue); }
-
-	//高度の上限をを超えているか確認
-	bool IsOverHeightMax();
 protected:
-	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "GameMode")
-		TEnumAsByte<EGAMEMODE::Type> m_GameMode;	//	視点切り替え
-
-	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "GameMode")
-		TEnumAsByte<EDRONEMODE::Type> m_DroneMode;	//	ドローン操作切り替え
-	//-------------------------------------------------------------------------------------------------------
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerCamera")
-		USpringArmComponent* m_pSpringArm;
+		USpringArmComponent* m_pSpringArm;									//スプリングアーム
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerCamera")
 		UCameraComponent* m_pCamera;										//カメラ
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
@@ -162,31 +133,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
 		FVector m_CameraSocketOffset;										//カメラの位置
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
-		FVector m_CameraSocketOffsetMax;													//カメラがソケットする上限
+		FVector m_CameraSocketOffsetMax;									//カメラが追従する範囲の上限
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
-		FVector m_CameraMoveLimit;															//カメラの移動できる上限
+		FVector m_CameraMoveLimit;											//カメラの移動できる上限
 	//-------------------------------------------------------------------------------------------------------
 private:
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		UNiagaraSystem* m_pLightlineEffect;									//ラインエフェクト
-	UPROPERTY(EditAnywhere, Category = "Effect")
-		UNiagaraComponent* m_pWindEffect;									//次のチェックポイントを指す矢印エフェクト
-	UPROPERTY(EditAnywhere, Category = "Effect")
-		float m_WindRotationSpeed;												//風のエフェクト
 
-	TArray<AActor*> m_pHitActors;												//スプリングアームの直線に衝突しているActor
+	TArray<AActor*> m_pHitActors;											//スプリングアームの直線に衝突しているActor
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-		FVector4 m_AxisValue;														//各軸の入力値(0:AILERON、1:ELEVATOR、2:THROTTLE、3:LADDER)
-
-	UPROPERTY(EditAnywhere, Category = "Drone")
-		float m_HeightMax;															//ドローンが飛ぶことのできる地面からの高さの範囲
-	UPROPERTY(EditAnywhere, Category = "Drone")
-		float m_HeightFromGround;												//地面からの高さ
-	UPROPERTY(EditAnywhere, Category = "Drone")
-		float m_DistanceToSlope;													//斜面までの距離
-
-	FVector4 m_AxisValuePerFrame;													//毎フレーム更新される入力の値
-
-	float m_CameraRotationYaw;													
+		FVector4 m_AxisValue;												//各軸の入力値(0:AILERON、1:ELEVATOR、2:THROTTLE、3:LADDER)
 };

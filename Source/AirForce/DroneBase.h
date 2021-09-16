@@ -18,6 +18,8 @@
 //前方宣言
 class UStaticMeshComponent;
 class USphereComponent;
+class UNiagaraSystem;
+class UNiagaraComponent;
 class USoundBase;
 
 //移動用ビットフィールド
@@ -110,11 +112,36 @@ public:
 		float AccelState;																		//加速度の段階(-1:最小の加速度、0:加速度なし、1:加速度あり、2:最大の加速度)
 };
 
+//	視点切り替え
+UENUM(BlueprintType)
+namespace EGAMEMODE
+{
+	enum Type
+	{
+		GAMEMODE_FPS	UMETA(DisplayName = "FPS"),		//1人称
+		GAMEMODE_TPS	UMETA(DisplayName = "TPS"),		//3人称
+	};
+}
+
+//ドローンの操作状態列挙
+UENUM(BlueprintType)
+namespace EDRONEMODE
+{
+	enum Type
+	{
+		DRONEMODE_AUTOMATICK	UMETA(DisplayName = "AUTO"),	//オートマチック
+		DRONEMODE_MANUAL			UMETA(DisplayName = "MANUAL")	//マニュアル
+	};
+}
+
 //defineマクロ
 //現在のFPSを計測
 #define FPS (1.f / DeltaTime)
 //フレームレートが低下しても移動量に影響が無いよう補正する値
 #define MOVE_CORRECTION (60.f / FPS)
+#define SLOPE_MIN 0.f
+#define SPEED_MIN -10.5f
+#define SPEED_MAX 10.5f
 //--------------------------------------------------------------------
 //#define DEGUG_ACCEL					//加速度のデバッグ
 //#define DEBUG_GRAVITY				//重力のデバッグ
@@ -154,17 +181,14 @@ protected:
 	//ドローンの当たり判定にオブジェクトがヒットした時呼ばれるイベント関数を登録
 	UFUNCTION()
 		void OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
 public:
 	//重力加速度の取得
 	float GetGravitationalAcceleration()const { return m_GravityScale * m_DescentTime * m_DescentTime / 2.f; }
 
 	//	ドローンの時速(kilometers per hour)取得
 	UFUNCTION(BlueprintCallable, Category = "Drone|Speed")
-		float GetSpeed()const { return m_Speed; }
-
-	//	ドローンの時速(kilometers per hour)取得
-	UFUNCTION(BlueprintCallable, Category = "Drone|Speed")
-		float GetKPH(const float _deltaTime)const { return m_Speed / 100000.f / _deltaTime * 3600.f * 10.f; }
+		float GetKPH(const float DeltaTime)const { return m_Velocity.Size() * (60.f / (1.f / DeltaTime)) / 100000.f / DeltaTime * 3600.f * 10.f; }
 	
 	//	ドローンのリング獲得数取得
 	UFUNCTION(BlueprintCallable, Category = "Drone|Ring")
@@ -172,7 +196,7 @@ public:
 
 protected:
 	//羽の加速度更新処理
-	virtual void UpdateWingAccle();
+	virtual void UpdateWingAccle(const float& DeltaTime);
 	//ステート更新処理
 	virtual void UpdateState();
 	//回転処理
@@ -186,7 +210,19 @@ protected:
 	//風のエフェクト更新処理
 	virtual void UpdateWindEffect(const float& DeltaTime);
 
+	//進行軸と入力軸が逆向きか確認
+	bool IsReverseInput(const float& _movingAxis, const float& _axisValue)const { return (_movingAxis < 0.f && 0.f < _axisValue) || (_movingAxis > 0.f && 0.f > _axisValue); }
+
+	//高度の上限をを超えているか確認
+	bool IsOverHeightMax();
+
 protected:
+	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "GameMode")
+		TEnumAsByte<EGAMEMODE::Type> m_GameMode;	//	視点切り替え
+
+	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "GameMode")
+		TEnumAsByte<EDRONEMODE::Type> m_DroneMode;	//	ドローン操作切り替え
+	//-------------------------------------------------------------------------------------------------------
 	//BODY
 	UPROPERTY(EditAnywhere, Category = "Mesh|Body")
 		UStaticMeshComponent* m_pBodyMesh;
@@ -208,7 +244,6 @@ protected:
 	//最大の加速度の倍率
 	UPROPERTY(EditAnywhere, Category = "Wing")
 		float m_WingAccelMax;
-
 	//移動フラグ管理
 	MoveDirection m_MoveDirectionFlag;
 	//ステートフラグ管理
@@ -229,7 +264,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
 		TArray<FString>m_SaveQuatW;									//プレイヤーの毎フレームクオータニオンW回転量
 
-	UPROPERTY(VisibleAnywhere, Category = "Physical")
+	UPROPERTY(EditAnywhere, Category = "Physical")
+		float m_TiltLimit;									//傾きの上限
+	UPROPERTY(EditAnywhere, Category = "Physical")
 		float  m_Speed;									//ドローンの秒速(m)
 
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
@@ -258,18 +295,31 @@ protected:
 		float m_DescentTime;							//落下している時間
 	UPROPERTY(EditAnywhere, Category = "Sound")
 		USoundBase* m_pWingRotationSE;			//羽の回転SE
-	UPROPERTY(EditAnywhere, Category = "Flag")
-		bool m_isControl;								//操作可能フラグ
-	UPROPERTY(EditAnywhere, Category = "Flag")
-		bool m_isFloating;								//操作可能フラグ
 	UPROPERTY(VisibleAnywhere, Category = "Ring")
 		int m_RingAcquisition;							//リング獲得数
 
 	UPROPERTY(EditAnywhere, Category = "Drone")
-		bool isPlayer;
-	bool flag;
-	int flame;
+		float m_HeightMax;															//ドローンが飛ぶことのできる地面からの高さの範囲
+	UPROPERTY(EditAnywhere, Category = "Drone")
+		float m_HeightFromGround;												//地面からの高さ
+	UPROPERTY(EditAnywhere, Category = "Drone")
+		float m_DistanceToSlope;													//斜面までの距離
 
-	FVector m_SaveVelocity;															//
-	FQuat m_SaveQuat;
+	UPROPERTY(EditAnywhere, Category = "Drone")
+		bool m_isControl;								//操作可能フラグ
+	UPROPERTY(EditAnywhere, Category = "Drone")
+		bool m_isFloating;								//滑空フラグ
+	UPROPERTY(EditAnywhere, Category = "Drone")
+		FVector4 m_AxisValuePerFrame;													//毎フレーム更新される入力の値
+
+	UPROPERTY(EditAnywhere, Category = "Drone")
+		FVector m_SaveVelocity;															//
+	UPROPERTY(EditAnywhere, Category = "Drone")
+		FQuat m_SaveQuat;
+
+	UPROPERTY(EditAnywhere, Category = "Effect")
+		UNiagaraComponent* m_pWindEffect;									//風のエフェクト
+
+	UPROPERTY(EditAnywhere, Category = "Effect")
+		float m_WindRotationSpeed;											//風のエフェクトの回転速度
 };

@@ -13,11 +13,15 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/StaticMeshActor.h"
 #include "DrawDebugHelpers.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "GameUtility.h"
 
 //コンストラクタ
 ADroneBase::ADroneBase()
-	: m_pBodyMesh(NULL)
+	: m_GameMode(EGAMEMODE::GAMEMODE_TPS)
+	, m_DroneMode(EDRONEMODE::DRONEMODE_AUTOMATICK)
+	, m_pBodyMesh(NULL)
 	, m_pDroneCollision(NULL)
 	, m_Wings{}
 	, m_RPSMax(10.f)
@@ -26,12 +30,13 @@ ADroneBase::ADroneBase()
 	, m_WingAccelMax(1.5f)
 	, m_MoveDirectionFlag()
 	, m_StateFlag()
-	, m_Speed(0.f)
+	, m_TiltLimit(45.f)
+	, m_Speed(7.f)
 	, m_SpeedPerSecondMax(50.f)
 	, m_AxisAccel(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_Acceleration(0.f)
 	, m_Deceleration(0.96f)
-	, m_Turning(0.8f)
+	, m_Turning(0.6f)
 	, m_DroneWeight(0.3f)
 	, m_Velocity(FVector::ZeroVector)
 	, m_CentrifugalForce(FVector::ZeroVector)
@@ -40,13 +45,17 @@ ADroneBase::ADroneBase()
 	, m_Gravity(FVector::ZeroVector)
 	, m_DescentTime(0.f)
 	, m_pWingRotationSE(NULL)
+	, m_RingAcquisition(0)
+	, m_HeightMax(400.f)
+	, m_HeightFromGround(0.f)
+	, m_DistanceToSlope(0.f)
 	, m_isControl(false)
 	, m_isFloating(true)
-	, m_RingAcquisition(0)
-	,isPlayer(false)
-	,flag(false)
+	, m_AxisValuePerFrame(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_SaveVelocity(FVector::ZeroVector)
 	, m_SaveQuat(FQuat::Identity)
+	, m_pWindEffect(NULL)
+	, m_WindRotationSpeed(5.f)
 
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
@@ -133,10 +142,16 @@ void ADroneBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	//ステート更新処理
-	UpdateState();
+	//UpdateState();
+	// 
+	//羽の加速度更新処理
+	UpdateWingAccle(DeltaTime);
+
+	//羽の回転更新処理
+	UpdateWingRotation(DeltaTime);
 
 	//回転処理
-	//UpdateRotation(DeltaTime);
+	UpdateRotation(DeltaTime);
 
 	//速度更新処理
 	UpdateSpeed(DeltaTime);
@@ -149,20 +164,145 @@ void ADroneBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-//羽の加速度更新処理
-void ADroneBase::UpdateWingAccle()
-{
-}
-
 //ステート更新処理
 void ADroneBase::UpdateState()
 {
 
 }
 
+//羽の加速度更新処理
+void ADroneBase::UpdateWingAccle(const float& DeltaTime)
+{
+}
+
+//羽の回転更新処理
+void ADroneBase::UpdateWingRotation(const float& DeltaTime)
+{
+	//2軸の入力量を合成する
+	const float InputValueSize = FMath::Clamp((
+		FVector2D(m_AxisValuePerFrame.W, m_AxisValuePerFrame.Z).Size() +
+		FVector2D(m_AxisValuePerFrame.X, m_AxisValuePerFrame.Y).Size()) / 2,
+		0.f, 1.f);
+
+	//毎秒m_rpsMax * WingAccel回分回転するために毎フレーム羽を回す角度を求める
+	for (FWing& wing : m_Wings)
+	{
+		if (wing.GetWingMesh())
+		{
+			//羽の加速度を0から1の範囲に修正し、正規化する
+			const float NormalizeAccelSize = FMath::Clamp((wing.AccelState + 1.f) / 3.f, 0.f, 1.f);
+			//正規化した加速度を使って羽の加速の割合を補間する
+			const float WingAccel = FMath::Lerp(m_WingAccelMin
+				, m_WingAccelMax, NormalizeAccelSize);
+			//右回りの羽か判別する(左前と右後ろの羽が右回りに回転する)
+			const bool isTurnRight = (wing.GetWingNumber() == EWING::LEFT_FORWARD || wing.GetWingNumber() == EWING::RIGHT_BACKWARD ? true : false);
+			//1フレームに回転する角度を求める
+			const float angularVelocity = m_RPSMax * 360.f * DeltaTime * WingAccel * (isTurnRight ? 1.f : -1.f) * MOVE_CORRECTION;
+
+			//羽を回転させる
+			wing.GetWingMesh()->AddLocalRotation(FRotator(0.f, angularVelocity, 0.f));
+
+#ifdef DEBUG_WING
+			//*デバッグ用*速度に応じて羽の色変更				
+			const FVector WingColor = FVector(FLinearColor::LerpUsingHSV(FColor::Blue, FColor::Yellow, NormalizeAccelSize));
+			wing.GetWingMesh()->SetVectorParameterValueOnMaterials(TEXT("WingColor"), WingColor);
+#endif // DEBUG_WING
+		}
+	}
+}
+
 //回転処理
 void ADroneBase::UpdateRotation(const float& DeltaTime)
 {
+	//NULLチェック
+	if (!m_pBodyMesh) { return; }
+
+	//羽の回転量からドローンの角速度の最大値を設定
+	m_AngularVelocity = FVector(
+		(m_Wings[EWING::LEFT_FORWARD].AccelState + m_Wings[EWING::LEFT_BACKWARD].AccelState) - (m_Wings[EWING::RIGHT_FORWARD].AccelState + m_Wings[EWING::RIGHT_BACKWARD].AccelState),
+		(m_Wings[EWING::LEFT_BACKWARD].AccelState + m_Wings[EWING::RIGHT_BACKWARD].AccelState) - (m_Wings[EWING::LEFT_FORWARD].AccelState + m_Wings[EWING::RIGHT_FORWARD].AccelState),
+		(m_Wings[EWING::RIGHT_FORWARD].AccelState + m_Wings[EWING::LEFT_BACKWARD].AccelState) - (m_Wings[EWING::LEFT_FORWARD].AccelState + m_Wings[EWING::RIGHT_BACKWARD].AccelState));
+	m_AngularVelocity.Z = FMath::Abs(m_AngularVelocity.Z) * m_AxisAccel.W;
+
+	FRotator BodyRotation = m_pBodyMesh->GetRelativeRotation();
+
+	BodyRotation.Pitch += m_AngularVelocity.Y;
+	BodyRotation.Roll += m_AngularVelocity.X;
+
+	//	オートマチックで操作するとき
+	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
+	{
+		float deg = 25.f;
+
+		if (m_AngularVelocity.Y != 0.f)
+		{
+			//前後にドローンが傾きすぎないように補正
+			if (BodyRotation.Pitch > deg)
+			{
+				BodyRotation.Pitch = deg;
+			}
+			else if (BodyRotation.Pitch < -deg)
+			{
+				BodyRotation.Pitch = -deg;
+			}
+		}
+		else
+		{
+			if (FMath::Abs(CGameUtility::SetDecimalTruncation(BodyRotation.Pitch, 3)) != 0.f)
+			{
+				BodyRotation.Pitch *= m_Deceleration;
+			}
+		}
+
+		if (m_AngularVelocity.X != 0.f)
+		{
+
+			if (BodyRotation.Roll > deg)
+			{
+				BodyRotation.Roll = deg;
+			}
+			else if (BodyRotation.Roll < -deg)
+			{
+				BodyRotation.Roll = -deg;
+			}
+		}
+		else
+		{
+			if (FMath::Abs(CGameUtility::SetDecimalTruncation(BodyRotation.Roll, 3)) != 0.f)
+			{
+				BodyRotation.Roll *= m_Deceleration;
+			}
+		}
+	}
+
+	//アマチュアで操作するとき
+	else
+	{
+		//角速度の取得(yaw軸は含めない)
+		float angularVelocity = FVector(m_AngularVelocity.X, m_AngularVelocity.Y, 0.f).Size();
+		//角速度をradに変換
+		float radAngularVelocity = FMath::DegreesToRadians(angularVelocity);
+		//重力 / 角速度 ^ 2でドローンが円運動するときの半径を求める
+		float radius = m_Gravity.Size() / (radAngularVelocity * radAngularVelocity);
+		//半径 * 角速度 ^ 2で遠心力を取得
+		if (m_AngularVelocity != FVector::ZeroVector)
+		{
+			m_CentrifugalForce = FVector(0.f, 0.f, radius * (radAngularVelocity * radAngularVelocity));
+		}
+		else
+		{
+			m_CentrifugalForce = FVector::ZeroVector;
+		}
+	}
+
+	//オイラー角をクォータニオンに変換
+	//FQuat qAngularVelocity = FQuat::MakeFromEuler(m_AngularVelocity);
+	//m_pBodyMesh->AddLocalRotation(qAngularVelocity * MOVE_CORRECTION, true);
+
+	FRotator NewRotation = BodyRotation;
+	NewRotation.Yaw += m_AngularVelocity.Z;
+	m_pBodyMesh->SetRelativeRotation(NewRotation.Quaternion() * MOVE_CORRECTION, true);
+	m_SaveQuat = m_pBodyMesh->GetRelativeRotation().Quaternion();
 }
 
 //速度更新処理
@@ -170,74 +310,93 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 {
 	if (!m_pBodyMesh) { return; }
 
-	const FVector Direction = m_pBodyMesh->GetUpVector();
-	//浮力の大きさを測る
-	float Buoyancy = 0.f;
-	for (const FWing& wing : m_Wings)
+	//オートマチックで操作するとき
+	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
 	{
-		Buoyancy += wing.AccelState;
-	}
-	Buoyancy /= (float)EWING::NUM;
+		float RotYaw = m_pBodyMesh->GetComponentRotation().Yaw;
+		FQuat BodyQuat = FRotator(0.f, RotYaw, 0.f).Quaternion();
 
-#ifdef DEGUG_ACCEL
-	UE_LOG(LogTemp, Warning, TEXT("Buoyancy:%f"), Buoyancy);
-#endif
+		m_Velocity = FVector::ZeroVector;
 
-	//浮力がホバリング状態より大きいとき
-	if (Buoyancy > 0.f)
-	{
-		if (m_Acceleration < 5.f)
+		m_Velocity += BodyQuat.GetRightVector() * m_Speed * m_AxisAccel.X * (IsReverseInput(m_AxisAccel.X, m_AxisValuePerFrame.X) ? m_Turning : 1.f);
+		m_Velocity += BodyQuat.GetForwardVector() * m_Speed * -m_AxisAccel.Y * (IsReverseInput(m_AxisAccel.Y, m_AxisValuePerFrame.Y) ? m_Turning : 1.f);
+		m_Velocity += BodyQuat.GetUpVector() * m_Speed * m_AxisAccel.Z * (IsReverseInput(m_AxisAccel.Z, m_AxisValuePerFrame.Z) ? m_Turning : 1.f);
+
+		//上限でクランプ
+		m_Velocity = m_Velocity.GetClampedToSize(SPEED_MIN, SPEED_MAX);
+		//高度上限を超えていたら自動的に高度を下げる
+		if (IsOverHeightMax())
 		{
-			m_Acceleration += Buoyancy * DeltaTime;
+			m_Velocity.Z = -3.f;
 		}
+
 	}
-	//浮力がホバリング状態より小さい時
-	else if (Buoyancy < 0.f)
+
+	//マニュアルで操作するとき
+	else
 	{
-		if (m_Acceleration > -2.f)
+		const FVector Direction = m_pBodyMesh->GetUpVector();
+		//浮力の大きさを測る
+		float Buoyancy = 0.f;
+		for (const FWing& wing : m_Wings)
 		{
-			m_Acceleration += Buoyancy * DeltaTime;
+			Buoyancy += wing.AccelState;
 		}
-	}
-	//浮力が重力と釣り合う時(ホバリング状態)
-	else if (Buoyancy == 0.f)
-	{
-		m_Acceleration *= 59.f * DeltaTime;
-	}
-
-	//推進力の設定
-	FVector Propulsion = Direction * (m_Acceleration + m_Gravity.Z);
-
-	//傾きがある時
-	if (Direction.Z < 1.f)
-	{
-		float Centrifugal = 1.f - Direction.Z;
-		Propulsion.X += Direction.X * Centrifugal;
-		Propulsion.Y += Direction.Y * Centrifugal;
-	}
+		Buoyancy /= (float)EWING::NUM;
 
 #ifdef DEGUG_ACCEL
-	UE_LOG(LogTemp, Warning, TEXT("Propulsion:%s"), *Propulsion.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("Buoyancy:%f"), Buoyancy);
 #endif
-	//重力を抜いた移動量を保持する
-	m_Velocity = Propulsion;
-	//重力を加算
-	Propulsion.Z += UpdateGravity(DeltaTime);
 
-	m_Speed = Propulsion.Size();
+		//浮力がホバリング状態より大きいとき
+		if (Buoyancy > 0.f)
+		{
+			if (m_Acceleration < 5.f)
+			{
+				m_Acceleration += Buoyancy * DeltaTime;
+			}
+		}
+		//浮力がホバリング状態より小さい時
+		else if (Buoyancy < 0.f)
+		{
+			if (m_Acceleration > -2.f)
+			{
+				m_Acceleration += Buoyancy * DeltaTime;
+			}
+		}
+		//浮力が重力と釣り合う時(ホバリング状態)
+		else if (Buoyancy == 0.f)
+		{
+			m_Acceleration *= 59.f * DeltaTime;
+		}
 
-	//移動処理
-	AddActorWorldOffset(Propulsion * MOVE_CORRECTION, true);
+		//推進力の設定
+		FVector Propulsion = Direction * (m_Acceleration + m_Gravity.Z);
+
+		//傾きがある時
+		if (Direction.Z < 1.f)
+		{
+			float Centrifugal = 1.f - Direction.Z;
+			Propulsion.X += Direction.X * Centrifugal;
+			Propulsion.Y += Direction.Y * Centrifugal;
+		}
 
 #ifdef DEGUG_ACCEL
-	UE_LOG(LogTemp, Warning, TEXT("Move:%s"), *Propulsion.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("Propulsion:%s"), *Propulsion.ToString());
 #endif
+		////重力を抜いた移動量を保持する
+		//m_Velocity = Propulsion;
+		////重力を加算
+		//Propulsion.Z += UpdateGravity(DeltaTime);
 
-}
+		////移動処理
+		//AddActorWorldOffset(Propulsion * MOVE_CORRECTION, true);
 
-//羽の回転更新処理
-void ADroneBase::UpdateWingRotation(const float& DeltaTime)
-{
+#ifdef DEGUG_ACCEL
+		UE_LOG(LogTemp, Warning, TEXT("Move:%s"), *Propulsion.ToString());
+#endif
+	}
+
 }
 
 //重力更新処理
@@ -274,8 +433,79 @@ float ADroneBase::UpdateGravity(const float& DeltaTime)
 //風のエフェクト更新処理
 void ADroneBase::UpdateWindEffect(const float& DeltaTime)
 {
+
+	if (m_pWindEffect)
+	{
+		//エフェクトとドローンの座標を取得
+		FVector EffectLocation = m_pWindEffect->GetComponentLocation();
+		FVector  DroneLocation = m_pBodyMesh->GetComponentLocation();
+		//エフェクトが進行方向へ向くようにする
+		FRotator LookAtRotation = FRotationMatrix::MakeFromX(DroneLocation - EffectLocation).Rotator();
+		//移動量の大きさからエフェクトの不透明度を設定
+		float AccelValue = FMath::Clamp(FVector2D(m_Velocity.X, m_Velocity.Y).Size() / SPEED_MAX, 0.f, 1.f);
+		float WindOpacity = (m_AxisAccel.Y < 0.f) ? AccelValue * 0.7f : 0.f;
+		float WindMask = FMath::Lerp(50.f, 40.f, AccelValue);
+		float effectScale = FMath::Lerp(2.f, 1.f, AccelValue);
+		float effectLocationX = FMath::Lerp(-40.f, 0.f, AccelValue);
+
+		m_pWindEffect->SetRelativeScale3D(FVector(effectScale));
+		m_pWindEffect->SetWorldRotation(LookAtRotation.Quaternion());
+		m_pWindEffect->SetRelativeLocation(FVector(effectLocationX, 0.f, 0.f));
+		//エフェクトの不透明度を変更
+		m_pWindEffect->SetVariableFloat(TEXT("User.Mask"), WindOpacity);
+		m_pWindEffect->SetVariableFloat(TEXT("User.WindOpacity"), WindOpacity);
+	}
+#ifdef DEBUG_WindEffect
+	else
+	{
+		//NULLだった場合ログ表示
+		UE_LOG(LogTemp, Error, TEXT("NULL:m_pWindEffect"));
+	}
+#endif // DEBUG_WindEffect
 }
 
+//高度の上限をを超えているか確認
+bool ADroneBase::IsOverHeightMax()
+{
+	//レイの開始点と終点を設定(ドローンの座標から高度の上限の長さ)
+	FVector Start = GetActorLocation();
+	FVector End = Start;
+	End.Z -= m_HeightMax;
+	//ヒット結果を格納する配列
+	TArray<FHitResult> OutHits;
+	//トレースする対象(自身は対象から外す)
+	FCollisionQueryParams CollisionParam;
+	CollisionParam.AddIgnoredActor(this);
+
+	//レイを飛ばし、WorldStaticのコリジョンチャンネルを持つオブジェクトのヒット判定を取得する
+	bool isHit = GetWorld()->LineTraceMultiByObjectType(OutHits, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+	bool OverHeightMax = true;
+
+	//レイがヒットしたらアクターのタグを確認し、Groundのタグを持つアクターがあれば高度上限を越えていないのでフラグを降ろす
+	if (isHit)
+	{
+		for (const FHitResult& HitResult : OutHits)
+		{
+			if (HitResult.GetActor())
+			{
+				if (HitResult.GetActor()->ActorHasTag(TEXT("Ground")))
+				{
+					OverHeightMax = false;
+					//地面からの高さを計測
+					m_HeightFromGround = FVector::Dist(GetActorLocation(), HitResult.Location);
+					break;
+				}
+			}
+		}
+	}
+#ifdef DEBUG_IsOverHeightMax
+	//上限を越えたら黄色、越えていないなら青
+	FColor LineColor = OverHeightMax ? FColor::Yellow : FColor::Blue;
+	DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.f);
+#endif // DEBUG_IsOverHeightMax
+
+	return OverHeightMax;
+}
 
 //オーバーラップ開始時に呼ばれる処理
 void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -304,11 +534,6 @@ void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* 
 {
 	if (OtherActor && OtherActor != this)
 	{
-		//タグがPlayerだった場合
-		if (OtherActor->ActorHasTag(TEXT("Player")))
-		{
-			return;
-		}
 		m_isFloating = false;
 
 		if (FVector(m_AxisAccel).GetAbsMax() > 0.1f)

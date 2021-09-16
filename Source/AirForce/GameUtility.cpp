@@ -17,10 +17,21 @@
 //#define DEBUG_LOG
 
 //¬”‘ænˆÊ–¢–Ø‚èÌ‚Ä
-float CGameUtility::SetDecimalTruncation(float value, const int& n)
+float CGameUtility::SetDecimalTruncation(float value, int n)
 {
     value = value * FMath::Pow(10, n);
     value = FMath::FloorToInt(value);
+    value /= FMath::Pow(10, n);
+    return value;
+}
+
+//¬”‘ænˆÊ–¢–Ø‚èÌ‚Ä
+FVector CGameUtility::SetDecimalTruncation(FVector value, int n)
+{
+    value = value * FMath::Pow(10, n);
+    value.X = FMath::FloorToInt(value.X);
+    value.Y = FMath::FloorToInt(value.Y);
+    value.Z = FMath::FloorToInt(value.Z);
     value /= FMath::Pow(10, n);
     return value;
 }

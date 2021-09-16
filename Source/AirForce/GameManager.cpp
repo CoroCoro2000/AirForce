@@ -8,6 +8,7 @@
 
 //インクルード
 #include "GameManager.h"
+#include "PlayerDrone.h"
 #include "GameUtility.h"
 #include "Sound/SoundBase.h"
 #include "Misc/FileHelper.h"
@@ -23,14 +24,15 @@ AGameManager::AGameManager()
 	, m_isGoal(false)
 	, m_isSceneTransition(false)
 	, m_CountDownTime(4.f)
-	, m_CountDownText("")
-	, m_RapDefaultText("")
+	, m_CountDownText(TEXT(""))
 	, m_RapTime(0.f)
+	, m_RapDefaultText(TEXT(""))
 	, m_PlayerRank(0)
 	, m_RankingDisplayNum(5)
 	, m_isScoreWrite(false)
 	, m_isNewRecord(false)
-	, m_Drone(NULL)
+	, m_PlayerDrone(NULL)
+	, m_GhostDrone(NULL)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -40,11 +42,8 @@ AGameManager::AGameManager()
 void AGameManager::BeginPlay()
 {
 	Super::BeginPlay();
-	FFileHelper::LoadFileToStringArray(m_RapTimeText, *(FPaths::GameDir() + m_RapTimeTextPath));
-	for (int i = 0; i < m_RapTimeText.Num(); i++)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *(m_RapTimeText[i]));
-	}
+	//ファイル読み込み
+	FFileHelper::LoadFileToStringArray(m_RapTimeText, *(FPaths::ProjectDir() + m_RapTimeTextPath));
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (PlayerController)
@@ -53,15 +52,28 @@ void AGameManager::BeginPlay()
 		//入力マッピング
 		InputComponent->BindAction(TEXT("InputUp"), EInputEvent::IE_Pressed, this, &AGameManager::NextSceneUp);
 		InputComponent->BindAction(TEXT("InputDown"), EInputEvent::IE_Pressed, this, &AGameManager::NextSceneDown);
-
-		UE_LOG(LogTemp, Warning, TEXT("InputBind"));
 	}
 
 	//	ドローンの検索
 	AActor* pDrone = CGameUtility::GetActorFromTag(this, TEXT("Drone"));
 	if (pDrone)
 	{
-		m_Drone = Cast<ADroneBase>(pDrone);
+		m_PlayerDrone = Cast<ADroneBase>(pDrone);
+	}
+
+	//既にプレイした人がいたならゴーストドローンを生成
+	if (m_RapTimeText.Num() > 0)
+	{
+		FString ghostPath = TEXT("/Game/BP/GhostDroneBP.GhostDroneBP_C");
+		TSubclassOf<AActor> ghostSoftClass = TSoftClassPtr<AActor>(FSoftObjectPath(*ghostPath)).LoadSynchronous(); // 上記で設定したパスに該当するクラスを取得
+		if (ghostSoftClass)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("GhostSpawn"));
+			AActor* ghostDrone = GetWorld()->SpawnActor<AActor>(ghostSoftClass); // スポーン処理
+			m_GhostDrone = Cast<ADroneBase>(ghostDrone);
+			m_GhostDrone->SetActorLocation(m_PlayerDrone->GetActorLocation());
+			m_GhostDrone->SetActorRotation(m_PlayerDrone->GetActorRotation());
+		}
 	}
 }
 
@@ -112,7 +124,20 @@ void AGameManager::Tick(float DeltaTime)
 					}
 				}
 
-				//不要な下位のスコアを削除
+				//今回のタイムが1位だったら
+				if (m_PlayerRank == 0)
+				{
+					m_isNewRecord = true;
+					APlayerDrone* player = Cast<APlayerDrone>(m_PlayerDrone);
+					if (player)
+					{
+						player->WritingRaceVector();
+						player->WritingRaceQuaternion();
+					}
+
+				}
+
+				//ランキング外のスコアを削除
 				if (m_RapTimeText.Num() > m_RankingDisplayNum)
 				{
 					for (int i = m_RankingDisplayNum; i < m_RapTimeText.Num(); i++)
@@ -120,17 +145,34 @@ void AGameManager::Tick(float DeltaTime)
 						m_RapTimeText.RemoveAt(i);
 					}
 				}
+
 				//テキストファイル書き込み
-				FFileHelper::SaveStringArrayToFile(m_RapTimeText, *(FPaths::GameDir() + m_RapTimeTextPath));
+				FFileHelper::SaveStringArrayToFile(m_RapTimeText, *(FPaths::ProjectDir() + m_RapTimeTextPath));
 
 				//書き込みフラグをONにする
 				m_isScoreWrite = true;
 			}
 			
 		}
-			
-		//	レースがスタートして、ゴールしていない間操作可能にする
-		m_Drone->SetisControl((m_isStart & !m_isGoal) );
+		if (m_PlayerDrone)
+		{
+			//	レースがスタートして、ゴールしていない間操作可能にする
+
+			m_PlayerDrone->SetisControl((m_isStart && !m_isGoal));
+			if (m_isGoal)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Gooooooooooooooooooooooal"));
+
+			}
+		}
+
+		if (m_GhostDrone)
+		{
+			//	レースがスタートして、ゴールしていない間操作可能にする
+			m_GhostDrone->SetisControl((m_isStart));
+			//m_GhostDrone->SetHidden(!m_isStart);
+		}
+
 		break;
 	case ECURRENTSCENE::SCENE_RESULT:
 		break;

@@ -152,7 +152,7 @@ public:
 	//ラップタイムの分取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int GetRapMinute()const { return (int)m_RapTime / 60; }
-	//ラップタイムの秒取得
+	//ラップタイムの秒取得m_isGoal
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int GetRapSecond()const { return (int)m_RapTime % 60; }
 	//ラップタイムのミリ秒取得
@@ -211,7 +211,10 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Result")
 		bool m_isNewRecord;							//最速タイム更新フラグ
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
-		ADroneBase* m_Drone;						//ドローン
+		ADroneBase* m_PlayerDrone;						//プレイヤードローン
+	UPROPERTY(VisibleAnywhere, Category = "Drone")
+		ADroneBase* m_GhostDrone;						//ゴーストドローン
+
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
 		int m_GoalRingNumber;						//ゴールのリングの通し番号
 
@@ -221,4 +224,5 @@ private:
 		USoundBase* m_StartSE;						//スタートSE
 
 	float m_LeftStickInputValue;
+
 };
