@@ -43,14 +43,7 @@ protected:
 
 public:
 	void SetActivate(const bool& _isActive);
-	void SetDroneLocation(const FVector& _droneLocation) { m_PassedDroneLocation = _droneLocation; }
-	void SetRingNumber(const int& _ringNumber) { m_RingNumber = _ringNumber; }
-	int GetRingNumber() { return m_RingNumber; }
-	void SetPassBegin(const bool& _isPassBegin) { m_bIsPassBegin = _isPassBegin; }
-	bool IsPassBegin()const { return m_bIsPassBegin; }
-
-	bool IsPassed()const { return m_bIsPassed; }
-	bool IsDestroy()const { return m_bDestroy; }
+	bool GetIsPassed()const { return m_bIsPassed; }
 
 private:
 	//リングの色の更新処理
@@ -58,29 +51,18 @@ private:
 	//リングのトランスフォーム更新
 	void UpdateTransform(const float& DeltaTime);
 
+
 protected:
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* m_pRingMesh;				//リングのメッシュ
 	UPROPERTY(EditAnywhere)
 		UNiagaraComponent* m_pNiagaraEffectComp;		//リングを通過した際に出すエフェクト
 	UPROPERTY(EditAnywhere)
-		UColorLightComponent* m_pColorLightComp;		//リングの色を管理するコンポーネント
-	UPROPERTY(EditAnywhere)
-		int m_RingNumber;											//リングの番号
-	UPROPERTY(EditAnywhere)
-		bool m_bIsPassBegin;											//このリングが通過されたか判定
-	UPROPERTY(EditAnywhere)
 		bool m_bIsPassed;												//このリングが通過されたか判定
 	UPROPERTY(EditAnywhere)
-		bool m_bDestroy;												//リングを消すかどうかのフラグ
-	UPROPERTY(EditAnywhere)
-		float m_MakeInvisibleCnt;									//リングを消す際のカウンター
+		float m_MakeInvisibleCnt;									//リングが消えるまでのカウンター
 	UPROPERTY(EditAnywhere)
 		float m_MakeInvisibleTime;									//リングが消えるまでの時間
 	UPROPERTY(EditAnywhere)
-		float m_InvisibleCntRate;									//リングを消すカウンターの進行度
-	UPROPERTY(EditAnywhere)
-		UCurveFloat* m_pScaleCurve;								//リングの大きさを決めるカーブ
-	UPROPERTY(EditAnywhere)
-		FVector m_PassedDroneLocation;						//リングをくぐったドローンの座標
+		UCurveFloat* m_pScaleCurve;								//リングの大きさを変化させるカーブ
 };

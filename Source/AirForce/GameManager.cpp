@@ -161,18 +161,12 @@ void AGameManager::Tick(float DeltaTime)
 			//	レースがスタートして、ゴールしていない間操作可能にする
 
 			m_PlayerDrone->SetisControl((m_isStart && !m_isGoal));
-			if (m_isGoal)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Gooooooooooooooooooooooal"));
-
-			}
 		}
 
 		if (m_GhostDrone)
 		{
 			//	レースがスタートして、ゴールしていない間操作可能にする
 			m_GhostDrone->SetisControl((m_isStart));
-			//m_GhostDrone->SetHidden(!m_isStart);
 		}
 
 		break;

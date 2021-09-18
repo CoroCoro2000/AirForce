@@ -327,7 +327,7 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 		m_Velocity += BodyQuat.GetUpVector() * m_Speed * m_AxisAccel.Z * (IsReverseInput(m_AxisAccel.Z, m_AxisValuePerFrame.Z) ? m_Turning : 1.f);
 
 		//上限でクランプ
-		m_Velocity = m_Velocity.GetClampedToSize(SPEED_MIN, SPEED_MAX);
+		m_Velocity = CGameUtility::SetDecimalTruncation(m_Velocity, 3);
 		//高度上限を超えていたら自動的に高度を下げる
 		if (IsOverHeightMax())
 		{
