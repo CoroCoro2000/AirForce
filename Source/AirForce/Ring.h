@@ -14,10 +14,7 @@
 
 //前方宣言
 class UStaticMeshComponent;
-class UColorLightComponent;
 class UNiagaraComponent;
-class APlayerDrone;
-class UCurveFloat;
 
 UCLASS()
 class AIRFORCE_API ARing : public AActor
@@ -42,27 +39,38 @@ protected:
 		virtual void OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 public:
-	void SetActivate(const bool& _isActive);
-	bool GetIsPassed()const { return m_bIsPassed; }
+	//通過されているかのフラグ取得
+	FORCEINLINE bool GetIsPassed()const { return m_bIsPassed; }
+	//メッシュ取得
+	FORCEINLINE UStaticMeshComponent* GetMesh()const { return m_pRingMesh; }
+	//ナイアガラコンポーネント取得
+	FORCEINLINE UNiagaraComponent* GetEffectComponent()const { return m_pNiagaraEffectComp; }
 
 private:
-	//リングの色の更新処理
-	void UpdateColor(const float& DeltaTime);
-	//リングのトランスフォーム更新
-	void UpdateTransform(const float& DeltaTime);
-
+	//リングのサイズ更新
+	void UpdateScale(const float& DeltaTime);
 
 protected:
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* m_pRingMesh;				//リングのメッシュ
 	UPROPERTY(EditAnywhere)
 		UNiagaraComponent* m_pNiagaraEffectComp;		//リングを通過した際に出すエフェクト
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
+		float m_RingScale;
+	UPROPERTY(VisibleAnywhere)
 		bool m_bIsPassed;												//このリングが通過されたか判定
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 		float m_MakeInvisibleCnt;									//リングが消えるまでのカウンター
 	UPROPERTY(EditAnywhere)
 		float m_MakeInvisibleTime;									//リングが消えるまでの時間
 	UPROPERTY(EditAnywhere)
-		UCurveFloat* m_pScaleCurve;								//リングの大きさを変化させるカーブ
+		float m_SineWidth;												//サイン波の間隔
+	UPROPERTY(EditAnywhere)
+		float m_SineScaleMin;											//サイン波の最小値
+	UPROPERTY(EditAnywhere)
+		float m_SineScaleMax;										//サイン波の最大値
+	UPROPERTY(EditAnywhere)
+		float m_PassedSceleMax;									//リング通過後の大きさ
+	UPROPERTY(EditAnywhere)
+		float m_EaseExp;												//EaseOutのExpの値
 };

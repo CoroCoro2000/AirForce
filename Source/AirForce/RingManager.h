@@ -20,8 +20,29 @@ class ARing;
 class ADroneBase;
 class AGameManager;
 
+//カラーステート情報
+UENUM(BlueprintType)
+namespace ECOLOR_STATE
+{
+	enum Type
+	{
+		RED							UMETA(DisplayName = "RED"),
+		ORANGE					UMETA(DisplayName = "ORANGE"),
+		YELLOW					UMETA(DisplayName = "YELLOW"),
+		GREEN						UMETA(DisplayName = "GREEN"),
+		BLUE							UMETA(DisplayName = "BLUE"),
+		INDIGO						UMETA(DisplayName = "INDIGO"),
+		PURPLE						UMETA(DisplayName = "PURPLE"),
+		NUM							UMETA(Hidden),
+	};
+}
+
 //デバッグdefine
 #define DEBUG_RING_COUNT
+//カラー情報
+#define LINEARCOLOR_ORANGE FLinearColor(0.94921875f, 0.609375f, 0.0703125f)		//オレンジ
+#define LINEARCOLOR_PURPLE FLinearColor(0.66015625f, 0.02734375f, 0.890625f)		//紫
+#define LINEARCOLOR_INDIGO FLinearColor(0, 0.296875f, 0.44140625f)						//藍色
 
 UCLASS()
 class AIRFORCE_API ARingManager : public AActor
@@ -42,8 +63,13 @@ public:
 	
 private:
 	//リングの色更新
-	void UpdateRingColor();
-
+	void InitializeRingColor();
+	//リングの色ステート更新
+	FLinearColor UpdateTargetColor();
+	//リングの色更新
+	void UpdateColor(const float& DeltaTime);
+	//カラーステートとグラデーションの割合で補間
+	FORCEINLINE FLinearColor LerpGradient(const TEnumAsByte<ECOLOR_STATE::Type>& _colorState, const float& _progress);
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TArray<ARing*> m_pChildRings;			//リングを格納する配列
@@ -51,4 +77,8 @@ protected:
 		ADroneBase* m_pDrone;					//ドローンの情報
 	UPROPERTY(EditAnywhere)
 		AGameManager* m_pGameManager;	//ゲームマネージャーの情報
+	UPROPERTY(EditAnywhere)
+		TEnumAsByte<ECOLOR_STATE::Type> m_ColorState;
+	UPROPERTY(EditAnywhere)
+		FLinearColor m_Color;
 };

@@ -10,21 +10,25 @@
 #include "Ring.h"
 #include "GameUtility.h"
 #include "Components/StaticMeshComponent.h"
-#include "ColorLightComponent.h"
 #include "NiagaraComponent.h"
-#include "NiagaraFunctionLibrary.h"
-#include "DroneBase.h"
-#include "Curves/CurveFloat.h"
 #include "UObject/ConstructorHelpers.h"
 
 //コンストラクタ
 ARing::ARing()
 	: m_pRingMesh(NULL)
 	, m_pNiagaraEffectComp(NULL)
+	, m_RingScale(1.f)
 	, m_MakeInvisibleCnt(0.f)
 	, m_MakeInvisibleTime(1.5f)
-	, m_pScaleCurve(NULL)
+	, m_SineWidth(10.f)
+	, m_SineScaleMin(0.8f)
+	, m_SineScaleMax(1.05f)
+	, m_PassedSceleMax(3.f)
+	, m_EaseExp(2.f)
 {
+	//毎フレームTickを呼び出すかどうかのフラグ
+	PrimaryActorTick.bCanEverTick = true;
+
 	//メッシュ生成
 	m_pRingMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("m_pRingMesh"));
 	if (m_pRingMesh)
@@ -34,20 +38,10 @@ ARing::ARing()
 
 	//ナイアガラのエフェクトコンポーネント生成
 	m_pNiagaraEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("m_pNiagaraEffectComp"));
-	if (m_pNiagaraEffectComp)
+	if (m_pNiagaraEffectComp && m_pRingMesh)
 	{
 		m_pNiagaraEffectComp->SetupAttachment(m_pRingMesh);
 	}
-
-	//スケールの大きさの値を取り出すカーブオブジェクト生成
-	ConstructorHelpers::FObjectFinder<UCurveFloat> pRingScaleCurve(TEXT("CurveFloat'/Game/Effect/Ring/Curve/RingScale_Curve.RingScale_Curve'"));
-	if (pRingScaleCurve.Succeeded())
-	{
-		m_pScaleCurve = pRingScaleCurve.Object;
-	}
-
-	//毎フレームTickを呼び出すかどうかのフラグ
-	PrimaryActorTick.bCanEverTick = true;
 }
 
 //ゲーム開始時またはこのクラスのオブジェクトがスポーンされた時１度だけ呼び出される関数
@@ -55,15 +49,15 @@ void ARing::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!m_pRingMesh  || !m_pNiagaraEffectComp) { return; }
+	if (m_pRingMesh)
+	{
+		//オーバーラップ開始時に呼ばれるイベント関数を登録
+		m_pRingMesh->OnComponentBeginOverlap.AddDynamic(this, &ARing::OnComponentOverlapBegin);
+	}
 
-	//オーバーラップ開始時に呼ばれるイベント関数を登録
-	m_pRingMesh->OnComponentBeginOverlap.AddDynamic(this, &ARing::OnComponentOverlapBegin);
-
-	//エフェクトコンポーネント初期化
-	m_pNiagaraEffectComp->SetRelativeLocation(FVector::ZeroVector);
-	m_pNiagaraEffectComp->SetRelativeRotation(FRotator::ZeroRotator);
-	m_pNiagaraEffectComp->SetRelativeScale3D(FVector::OneVector);
+	//リングの大きさを保持
+	m_RingScale = GetActorScale().GetAbsMax();
+	SetActorScale3D(FVector(m_RingScale));
 }
 
 //毎フレーム呼び出される関数
@@ -71,93 +65,41 @@ void ARing::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//カラー更新
-	UpdateColor(DeltaTime);
-
-	//トランスフォーム更新
-	UpdateTransform(DeltaTime);
+	//リングのサイズ更新
+	UpdateScale(DeltaTime);
 }
 
-//リングの色の更新処理
-void ARing::UpdateColor(const float& DeltaTime)
-{
-	if (!m_pRingMesh || !m_pNiagaraEffectComp) { return; }
-	
-	//リングの色を更新
-	//m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("EmissiveColor"), m_pColorLightComp->GetVectorColor());
-	
-	//リングをプレイヤーがくぐっていたら
-	if (m_bIsPassed)
-	{
-		////エフェクトの色をメッシュと同じ色にする
-		//m_pNiagaraEffectComp->SetNiagaraVariableLinearColor(TEXT("User.Color"), m_pColorLightComp->GetVectorColor());
-
-		//完全に見えなくなるまで時間をカウント
-		//if (m_MakeInvisibleTime > m_MakeInvisibleCnt)
-		//{
-		//	m_MakeInvisibleCnt += DeltaTime;
-		//	const float MeshOpacity = FMath::Lerp(1.f, 0.f, m_InvisibleCntRate);
-
-		//	//メッシュの不透明度を下げる
-		//	m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), MeshOpacity);
-		//}
-	}
-}
-
-//リングのトランスフォーム更新
-void ARing::UpdateTransform(const float& DeltaTime)
-{
-	//if (!m_pRingMesh || !m_pScaleCurve) { return; }
-
-	////リングが通過されたら
-	//if (m_bIsPassed)
-	//{
-	//	//カウントの進行度で座標と大きさを決める
-	//	const FVector RingLocation = FMath::Lerp(GetActorLocation(), m_PassedDroneLocation, m_InvisibleCntRate);
-	//	const float Scale = m_pScaleCurve->GetFloatValue(m_MakeInvisibleCnt);
-
-	//	//リングを縮めながらプレイヤーを追うように移動する
-	//	if (Scale > 0.f)
-	//	{
-	//		SetActorScale3D(FVector(Scale));
-	//		SetActorLocation(RingLocation);
-	//	}
-	//	else
-	//	{
-	//		m_bDestroy = true;
-	//	}
-
-	//	if (m_bDestroy)
-	//	{
-	//		//リングが見えなくなったらリングを消す
-	//		this->Destroy();
-	//	}
-	//}
-	////リングが通過されていない間
-	//else
-	//{
-	//	////サイン波の幅を設定
-	//	//const float WaveWidth = 10.f * GetWorld()->GetTimeSeconds();
-	//	////サイン波の大きさを0から1に正規化する
-	//	//const float SinWave = FMath::Sin(WaveWidth) * 0.5f + 0.5f;
-
-	//	////サイン波の値でリングの大きさを変える
-	//	//const float Scale = FMath::Lerp(1.05f, 0.8f, SinWave);
-	//	//m_pRingMesh->SetRelativeScale3D(FVector(Scale));
-	//}
-}
-
-//リングをアクティブ化する
-void ARing::SetActivate(const bool& _isActive)
+//リングのサイズ更新
+void ARing::UpdateScale(const float& DeltaTime)
 {
 	if (!m_pRingMesh) { return; }
 
-	//メッシュのオーバーラップイベントと可視性のON/OFFを切り替える
-	m_pRingMesh->SetGenerateOverlapEvents(true);
-	m_pRingMesh->SetHiddenInGame(true);
-
-	//見えていない間は更新の必要がないのでTickを切る
-	PrimaryActorTick.bCanEverTick = _isActive;
+	float ScaleMultiplier = 0.f;
+	//リングが通過されていない間は一定の周期で大きさを変える
+	if (!m_bIsPassed)
+	{
+		//サイン波の幅を設定
+		const float WaveWidth = m_SineWidth * GetWorld()->GetTimeSeconds();
+		//サイン波の大きさを0から1に正規化する
+		const float SinWave = FMath::Sin(WaveWidth) * 0.5f + 0.5f;
+		//サイン波の値でリングの大きさを変える
+		ScaleMultiplier = FMath::Lerp(m_SineScaleMin, m_SineScaleMax, SinWave);
+	}
+	//リングが通過されたら大きくする
+	else
+	{
+		//指定の時間を越えるまで時間を計測
+		if (m_MakeInvisibleCnt < m_MakeInvisibleTime)
+		{
+			m_MakeInvisibleCnt += DeltaTime;
+		}
+		//経過率で大きさを変える
+		const float elapsedRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
+		m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), elapsedRate);
+		ScaleMultiplier = FMath::InterpEaseOut(m_RingScale, m_PassedSceleMax, elapsedRate, 2.f);
+	}
+	//新しいスケールを適用
+	SetActorScale3D(FVector(m_RingScale * ScaleMultiplier));
 }
 
 //オーバーラップ開始時に呼ばれる処理
@@ -174,7 +116,7 @@ void ARing::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 				//通過された状態に変更
 				m_bIsPassed = true;
 				//エフェクトの再生
-				//m_pNiagaraEffectComp->Activate();
+				m_pNiagaraEffectComp->Activate();
 				//リングの当たり判定を切る
 				m_pRingMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			}

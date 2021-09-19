@@ -38,6 +38,7 @@ APlayerDrone::APlayerDrone()
 	, m_pLightlineEffect(NULL)
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_CameraRotationYaw(0.f)
+	, m_bIsOutCourse(false)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -90,7 +91,6 @@ void APlayerDrone::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PrimaryActorTick.TickInterval = 0.f;
 }
 
 //毎フレーム処理
@@ -99,7 +99,6 @@ void APlayerDrone::Tick(float DeltaTime)
 	//入力量をフレームに同期
 	m_AxisValuePerFrame = m_AxisValue;
 	
-
 	//羽の更新処理
 	UpdateWingAccle(DeltaTime);
 
@@ -393,12 +392,15 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	FRotator CameraRotation = m_pCamera->GetRelativeRotation();
 	FRotator BodyRotation = m_pBodyMesh->GetRelativeRotation();
 
+	CameraRotation.Roll = FMath::Lerp(CameraRotation.Roll, BodyRotation.Roll * 0.7f, DeltaTime * 2.f);
+
 	if (FMath::Abs(m_AxisValuePerFrame.X) > 0.f)
 	{
-		if (FMath::Abs(CameraRotation.Roll) < FMath::Abs(BodyRotation.Roll))
-		{
-			CameraRotation.Roll += BodyRotation.Roll * DeltaTime;
-		}
+		//CameraRotation.Roll = FMath::InterpSinInOut(CameraRotation.Roll, BodyRotation.Roll * 0.7f, FMath::Abs(BodyRotation.Roll / 15.f));;
+		//if (FMath::Abs(CameraRotation.Roll) < FMath::Abs(BodyRotation.Roll * 0.7f))
+		//{
+		//	CameraRotation.Roll += BodyRotation.Roll * 0.7f * DeltaTime;
+		//}
 
 		if (FMath::Abs(m_CameraRotationYaw) < 5.f)
 		{
@@ -407,14 +409,24 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	}
 	else
 	{
-		if (FMath::Abs(CGameUtility::SetDecimalTruncation(CameraRotation.Roll, 3)) != 0.f)
+		//if (FMath::Abs(CGameUtility::SetDecimalTruncation(CameraRotation.Roll, 3)) != 0.f)
+		//{
+		//	CameraRotation.Roll *= m_Deceleration;
+		//}
+		//else
+		//{
+		//	CameraRotation.Roll = 0.f;
+		//}
+
+		if ((FMath::Abs(CGameUtility::SetDecimalTruncation(m_CameraRotationYaw, 3)) != 0.f))
 		{
-			CameraRotation.Roll *= m_Deceleration;
+			m_CameraRotationYaw *= m_Deceleration;
 		}
 		else
 		{
-			CameraRotation.Roll = 0.f;
+			m_CameraRotationYaw = 0.f;
 		}
+
 	}
 
 	//レイが傾斜に当たっていたら、現在の高さと傾斜との距離から勾配を求める

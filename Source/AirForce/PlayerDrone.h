@@ -71,6 +71,10 @@ public:
 
 	//レースのクオータニオンファイル書き込み
 	void WritingRaceQuaternion();
+	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
+		void SetIsOutCourse(const bool _isOutCourse) { m_bIsOutCourse = _isOutCourse; }
+	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
+		bool GetIsOutCourse()const { return m_bIsOutCourse; }
 private:
 	//【入力バインド】各スティックの入力
 	void Input_Throttle(float _axisValue);
@@ -147,4 +151,6 @@ private:
 		FVector4 m_AxisValue;												//各軸の入力値(0:AILERON、1:ELEVATOR、2:THROTTLE、3:LADDER)
 
 	float m_CameraRotationYaw;
+
+	bool m_bIsOutCourse;
 };
