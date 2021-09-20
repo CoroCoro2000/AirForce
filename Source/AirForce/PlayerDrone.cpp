@@ -35,6 +35,7 @@ APlayerDrone::APlayerDrone()
 	, m_CameraSocketOffset(FVector::ZeroVector)
 	, m_CameraSocketOffsetMax(FVector(30.f, 45.f, 30.f))
 	, m_CameraMoveLimit(FVector(10.f, 40.f, 20.f))
+	, m_CameraRotationAttenRate(FRotator(3.f, 3.f, 2.f))
 	, m_pLightlineEffect(NULL)
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_CameraRotationYaw(0.f)
@@ -389,121 +390,58 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.f);
 
 #endif // DEBUG_UpdateCamera
+
+	//カメラと機体の角度を取得
 	FRotator CameraRotation = m_pCamera->GetRelativeRotation();
 	FRotator BodyRotation = m_pBodyMesh->GetRelativeRotation();
 
-	CameraRotation.Roll = FMath::Lerp(CameraRotation.Roll, BodyRotation.Roll * 0.7f, DeltaTime * 2.f);
+	//減衰比率を設定(フレーム落ちした際にLerpの上限を越えないように上限を1でクランプする)
+	FRotator AttenRate = FRotator(
+		FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Pitch, 0.f, 1.f),
+		FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Yaw, 0.f, 1.f),
+		FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Roll, 0.f, 1.f));
 
-	if (FMath::Abs(m_AxisValuePerFrame.X) > 0.f)
-	{
-		//CameraRotation.Roll = FMath::InterpSinInOut(CameraRotation.Roll, BodyRotation.Roll * 0.7f, FMath::Abs(BodyRotation.Roll / 15.f));;
-		//if (FMath::Abs(CameraRotation.Roll) < FMath::Abs(BodyRotation.Roll * 0.7f))
-		//{
-		//	CameraRotation.Roll += BodyRotation.Roll * 0.7f * DeltaTime;
-		//}
+	//移動量に応じてカメラのブレを大きくする
+	bool isMove = m_AxisValuePerFrame.IsNearlyZero3();
+	//float NoiseSpeed = isMove ? 1.5f : 0.5f;
+	//float NoiseCoeff = isMove ? 2.2f : 1.3f;
+	//float t = DeltaTime * NoiseSpeed;
+	//FVector Noise = FVector(
+	//	FMath::PerlinNoise2D(FVector2D(t, t + 5.f)),
+	//	FMath::PerlinNoise2D(FVector2D(t + 10.f, t + 15.f)) * NoiseCoeff,
+	//	FMath::PerlinNoise2D(FVector2D(t + 25.f, t + 20.f)) * NoiseCoeff * 0.5f);
 
-		if (FMath::Abs(m_CameraRotationYaw) < 5.f)
-		{
-			m_CameraRotationYaw += 5.f * DeltaTime;
-		}
-	}
-	else
-	{
-		//if (FMath::Abs(CGameUtility::SetDecimalTruncation(CameraRotation.Roll, 3)) != 0.f)
-		//{
-		//	CameraRotation.Roll *= m_Deceleration;
-		//}
-		//else
-		//{
-		//	CameraRotation.Roll = 0.f;
-		//}
+	//FQuat NoiseRot = FQuat::MakeFromEuler(Noise);
+	//FQuat NoiseQuat = FQuat::Slerp(CameraRotation.Quaternion(), NoiseRot, DeltaTime * 5.f);
 
-		if ((FMath::Abs(CGameUtility::SetDecimalTruncation(m_CameraRotationYaw, 3)) != 0.f))
-		{
-			m_CameraRotationYaw *= m_Deceleration;
-		}
-		else
-		{
-			m_CameraRotationYaw = 0.f;
-		}
-
-	}
-
-	//レイが傾斜に当たっていたら、現在の高さと傾斜との距離から勾配を求める
+	//指定の角度まで補間しながら回転させる
+	//斜面を登っているときは見上げるような角度にする
 	if (isClimbingSlope)
 	{
 		float radSlope = FMath::Atan2(m_HeightFromGround, m_DistanceToSlope);
 		float degSlope = FMath::ClampAngle(FMath::RadiansToDegrees(radSlope), SLOPE_MIN, m_TiltLimit);
-		FRotator NewPRotation = FMath::RInterpTo(
-			FRotator(CameraRotation.Pitch, 0.f, 0.f),
-			FRotator(degSlope, 0.f, 0.f),
-			DeltaTime,
-			4.f);
-		CameraRotation.Pitch = NewPRotation.Pitch;
-
-		m_pSpringArm->SocketOffset.Z = FMath::Lerp(0.f, -m_TiltLimit, FMath::Clamp(NewPRotation.Pitch / m_TiltLimit, 0.f, 1.f));
-	}
-	//ドローンが前後に傾いていて、傾斜を上っていない時
-	else if (m_AxisValuePerFrame.Y != 0.f && !isClimbingSlope)
-	{
-		if (FMath::Abs(CameraRotation.Pitch) < 5.f)
-		{
-			CameraRotation.Pitch += BodyRotation.Pitch * DeltaTime;
-			CameraRotation.Pitch = FMath::Clamp(CameraRotation.Pitch, -5.f, 5.f);
-		}
-		else if(FMath::Abs(CameraRotation.Pitch) > 5.f)
-		{
-			if (FMath::Abs(CGameUtility::SetDecimalTruncation(CameraRotation.Pitch, 3)) != 0.f)
-			{
-				CameraRotation.Pitch *= m_Deceleration;
-			}
-			else
-			{
-				CameraRotation.Pitch = 0.f;
-			}
-
-			if (FMath::Abs(CGameUtility::SetDecimalTruncation(m_pSpringArm->SocketOffset.Z, 3)) != 0.f)
-			{
-				m_pSpringArm->SocketOffset.Z *= m_Deceleration;
-			}
-			else
-			{
-				m_pSpringArm->SocketOffset.Z = 0.f;
-			}
-		}
+		CameraRotation.Pitch = FMath::Lerp(CameraRotation.Pitch, degSlope, AttenRate.Pitch);
 	}
 	else
 	{
-		if (FMath::Abs(CGameUtility::SetDecimalTruncation(CameraRotation.Pitch, 3)) != 0.f)
-		{
-			CameraRotation.Pitch *= m_Deceleration;
-		}
-		else
-		{
-			CameraRotation.Pitch = 0.f;
-		}
-		
-		if (FMath::Abs(CGameUtility::SetDecimalTruncation(m_pSpringArm->SocketOffset.Z, 3)) != 0.f)
-		{
-			m_pSpringArm->SocketOffset.Z *= m_Deceleration;
-		}
-		else
-		{
-			m_pSpringArm->SocketOffset.Z = 0.f;
-		}
+		CameraRotation.Pitch = FMath::Lerp(CameraRotation.Pitch, FMath::Clamp(BodyRotation.Pitch, -5.f, 5.f), AttenRate.Pitch);
 	}
-
-	//カメラの回転を更新
-	m_pCamera->SetRelativeRotation(CameraRotation * MOVE_CORRECTION);
-	m_pSpringArm->SetRelativeRotation(FRotator(0.f, BodyRotation.Yaw + m_CameraRotationYaw, 0.f) * MOVE_CORRECTION);
+	m_CameraRotationYaw = FMath::Lerp(0.f, m_AxisValuePerFrame.W * 5.f, AttenRate.Yaw);
+	CameraRotation.Roll = FMath::Lerp(CameraRotation.Roll, BodyRotation.Roll * 0.7f, AttenRate.Roll);
 
 	//ソケットの位置を更新
-	FVector NewSocketOffset = FVector(m_AxisAccel.Y, m_AxisAccel.X, 0.f) * m_CameraSocketOffsetMax / m_WingAccelMax;
-	m_pSpringArm->SocketOffset.X = NewSocketOffset.X;
-	m_pSpringArm->SocketOffset.Y = NewSocketOffset.Y;
+	m_pSpringArm->SocketOffset.X = FMath::Lerp(m_pSpringArm->SocketOffset.X, m_AxisValuePerFrame.Y * m_CameraSocketOffsetMax.X, DeltaTime * 1.5f);
+	m_pSpringArm->SocketOffset.Y = FMath::Lerp(m_pSpringArm->SocketOffset.Y, m_AxisValuePerFrame.X * m_CameraSocketOffsetMax.Y, DeltaTime * 1.5f);
+	m_pSpringArm->SocketOffset.Z = FMath::Lerp(m_pSpringArm->SocketOffset.Z, -CameraRotation.Pitch, DeltaTime * 1.5f);
 
-	//移動量に応じて視野角を変更
-	m_pCamera->SetFieldOfView(90.f - m_AxisAccel.Y * 10.f);
+	//カメラの回転を更新
+	m_pCamera->SetRelativeRotation(CameraRotation.Quaternion() * MOVE_CORRECTION);
+	m_pSpringArm->SetRelativeRotation(FRotator(0.f, BodyRotation.Yaw + m_CameraRotationYaw, 0.f) * MOVE_CORRECTION);
+
+	//移動に応じて視野角を変更
+	float FOV = isMove ? 90.f : 105.f;
+	float NewFOV = FMath::Lerp(m_pCamera->FieldOfView, FOV, DeltaTime * 3.f);
+	m_pCamera->SetFieldOfView(NewFOV);
 }
 
 //カメラとの遮蔽物のコリジョン判定
