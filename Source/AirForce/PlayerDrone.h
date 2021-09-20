@@ -140,6 +140,9 @@ protected:
 		FVector m_CameraSocketOffsetMax;									//ƒJƒƒ‰‚ª’Ç]‚·‚é”ÍˆÍ‚ÌãŒÀ
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
 		FVector m_CameraMoveLimit;											//ƒJƒƒ‰‚ÌˆÚ“®‚Å‚«‚éãŒÀ
+
+	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
+		FRotator m_CameraRotationAttenRate;							//ƒJƒƒ‰‚ªŒX‚­‘¬‚³
 	//-------------------------------------------------------------------------------------------------------
 private:
 	UPROPERTY(EditAnywhere, Category = "Effect")
