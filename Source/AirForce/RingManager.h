@@ -62,23 +62,30 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 private:
-	//リングの色更新
-	void InitializeRingColor();
-	//リングの色ステート更新
-	FLinearColor UpdateTargetColor();
+	//ターゲットカラーを取得
+	void UpdateColorState();
 	//リングの色更新
 	void UpdateColor(const float& DeltaTime);
-	//カラーステートとグラデーションの割合で補間
-	FORCEINLINE FLinearColor LerpGradient(const TEnumAsByte<ECOLOR_STATE::Type>& _colorState, const float& _progress);
+	//ステートからカラーターゲットを取得
+	FLinearColor GetTargetColor(const int32& _colorIndex);
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TArray<ARing*> m_pChildRings;			//リングを格納する配列
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 		ADroneBase* m_pDrone;					//ドローンの情報
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 		AGameManager* m_pGameManager;	//ゲームマネージャーの情報
+	UPROPERTY(VisibleAnywhere)
+		TEnumAsByte<ECOLOR_STATE::Type> m_ColorState;	//カラーステート
 	UPROPERTY(EditAnywhere)
-		TEnumAsByte<ECOLOR_STATE::Type> m_ColorState;
+		FLinearColor m_RingColor;													//現在の色情報
 	UPROPERTY(EditAnywhere)
-		FLinearColor m_Color;
+		FLinearColor m_FresnelColor;
+	UPROPERTY(VisibleAnywhere)
+		FLinearColor m_TargetColor;												//現在の色情報
+	UPROPERTY(EditAnywhere)
+		float m_ColorTransitionSpeed;												//色の遷移する速度
+	UPROPERTY(EditAnywhere)
+		int32 m_DelayTempo;															//色を何テンポ遅らせるか
 };

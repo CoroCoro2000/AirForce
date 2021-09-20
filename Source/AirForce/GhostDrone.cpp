@@ -66,10 +66,22 @@ void AGhostDrone::Tick(float DeltaTime)
 //ƒhƒ[ƒ“‚Ì‰ñ“]ˆ—
 void AGhostDrone::UpdateRotation(const float& DeltaTime)
 {
-	m_SaveQuat.X = FCString::Atof(*(m_SaveQuatX[PlaybackFlame]));
-	m_SaveQuat.Y = FCString::Atof(*(m_SaveQuatY[PlaybackFlame]));
-	m_SaveQuat.Z = FCString::Atof(*(m_SaveQuatZ[PlaybackFlame]));
-	m_SaveQuat.W = FCString::Atof(*(m_SaveQuatW[PlaybackFlame]));
+	if(m_SaveQuatX.IsValidIndex(PlaybackFlame))
+	{
+		m_SaveQuat.X = FCString::Atof(*(m_SaveQuatX[PlaybackFlame]));
+	}
+	if (m_SaveQuatY.IsValidIndex(PlaybackFlame))
+	{
+		m_SaveQuat.Y = FCString::Atof(*(m_SaveQuatY[PlaybackFlame]));
+	}
+	if (m_SaveQuatZ.IsValidIndex(PlaybackFlame))
+	{
+		m_SaveQuat.Z = FCString::Atof(*(m_SaveQuatZ[PlaybackFlame]));
+	}
+	if (m_SaveQuatW.IsValidIndex(PlaybackFlame))
+	{
+		m_SaveQuat.W = FCString::Atof(*(m_SaveQuatW[PlaybackFlame]));
+	}
 
 	m_pBodyMesh->SetRelativeRotation(m_SaveQuat * MOVE_CORRECTION);
 }

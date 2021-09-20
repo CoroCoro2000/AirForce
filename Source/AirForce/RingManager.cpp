@@ -14,6 +14,7 @@
 #include "DroneBase.h"
 #include "GameUtility.h"
 #include "Components/StaticMeshComponent.h"
+#include "NiagaraComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 //コンストラクタ
@@ -21,7 +22,11 @@ ARingManager::ARingManager()
 	: m_pDrone(NULL)
 	, m_pGameManager(NULL)
 	, m_ColorState(ECOLOR_STATE::RED)
-	, m_Color(FLinearColor::Red)
+	, m_RingColor(FLinearColor::Transparent)
+	, m_FresnelColor(FLinearColor::Transparent)
+	, m_TargetColor(FLinearColor::Transparent)
+	, m_ColorTransitionSpeed(3.f)
+	, m_DelayTempo(2)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -31,9 +36,6 @@ void ARingManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	//リングの色の初期設定
-	//InitializeRingColor();
-
 	//ドローンとゲームマネージャーを検索、保持する
 	TSubclassOf<AActor> findClass = AActor::StaticClass();
 	TArray<AActor*> actors;
@@ -60,147 +62,139 @@ void ARingManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//カラーステート更新
+	UpdateColorState();
+
+	//カラー更新
 	UpdateColor(DeltaTime);
+
 	if (m_pGameManager && m_pChildRings[0])
 	{
 		m_pGameManager->SetIsGoal(m_pChildRings[0]->GetIsPassed());
 	}
-	
 }
 
-//リングの色の初期設定
-void ARingManager::InitializeRingColor()
+//カラーステート更新
+void ARingManager::UpdateColorState()
 {
-	//リングの数を数えて順番にグラデーションをかける
-	TArray<TEnumAsByte<ECOLOR_STATE::Type>> RingsColorState;
-	int RingCount = (int)m_pChildRings.Num();
-	for (int index = 0; index < RingCount; ++index)
-	{
-		//若い要素のリングから順に、全体の何％の位置にあるか調べる
-		float rate = FMath::Clamp((float)index / (float)RingCount, 0.f, 1.f);
-		//全体の割合からどの色でグラデーションをかけるか設定する
-		RingsColorState.Add(TEnumAsByte<ECOLOR_STATE::Type>(int32(ECOLOR_STATE::NUM * rate)));
-	}
-
-	//7色のステートのうちどれに属しているか調べる
-	TArray<FLinearColor> RingsColor;
-	RingsColor.Reserve(m_pChildRings.Num());
-	for (int ColorNum = 0; ColorNum < ECOLOR_STATE::NUM; ++ColorNum)
-	{
-		//見つかったステートの数でグラデーションさせる
-		TArray<TEnumAsByte<ECOLOR_STATE::Type>> FoundStates = RingsColorState.FilterByPredicate([&](const TEnumAsByte<ECOLOR_STATE::Type>& _colorState)
-			{
-				return TEnumAsByte<ECOLOR_STATE::Type>(int32(ColorNum)) == _colorState;
-			});
-
-		int ColorStateNum = (int)FoundStates.Num();
-		for (int index = 0; index < ColorStateNum; ++index)
-		{
-			float rate = FMath::Clamp((float)((float)index / (float)ColorStateNum), 0.f, 1.f);
-			RingsColor.Insert(LerpGradient(RingsColorState[ColorNum + index], rate), ColorNum + index);
-		}
-	}
-
-	//リングに設定したカラーを適用
-	for (int index = 0; index < RingCount; ++index)
-	{
-		if (m_pChildRings[index])
-		{
-			if (m_pChildRings[index]->GetMesh())
-			{
-				m_pChildRings[index]->GetMesh()->SetVectorParameterValueOnMaterials(TEXT("BaseColor"), FVector(RingsColor[index]));
-			}
-		}
-	}
-}
-
-//リングの色ステート更新
-FLinearColor ARingManager::UpdateTargetColor()
-{
-	FLinearColor TargetColor = m_Color;
 	switch (m_ColorState)
 	{
 	case ECOLOR_STATE::RED:
-		m_ColorState = (m_Color == LINEARCOLOR_ORANGE ? ECOLOR_STATE::ORANGE: ECOLOR_STATE::RED);
-		TargetColor = FLinearColor::Red;
+	{
+		float proximityRate = CGameUtility::SetDecimalTruncation(FVector(FLinearColor::Red - m_RingColor).Size(), 3);
+		m_ColorState = (proximityRate == 0.f ? ECOLOR_STATE::ORANGE : ECOLOR_STATE::RED);
+		m_TargetColor = FLinearColor::Red;
 		break;
+	}
 	case ECOLOR_STATE::ORANGE:
-		m_ColorState = (m_Color == FLinearColor::Yellow ? ECOLOR_STATE::YELLOW : ECOLOR_STATE::ORANGE);
-		TargetColor = LINEARCOLOR_ORANGE;
+	{
+		float proximityRate = CGameUtility::SetDecimalTruncation(FVector(LINEARCOLOR_ORANGE - m_RingColor).Size(), 3);
+		m_ColorState = (proximityRate == 0.f ? ECOLOR_STATE::YELLOW : ECOLOR_STATE::ORANGE);
+		m_TargetColor = LINEARCOLOR_ORANGE;
 		break;
+	}
 	case ECOLOR_STATE::YELLOW:
-		m_ColorState = (m_Color == FLinearColor::Green ? ECOLOR_STATE::GREEN : ECOLOR_STATE::YELLOW);
-		TargetColor = FLinearColor::Yellow;
+	{
+		float proximityRate = CGameUtility::SetDecimalTruncation(FVector(FLinearColor::Yellow - m_RingColor).Size(), 3);
+		m_ColorState = (proximityRate == 0.f ? ECOLOR_STATE::GREEN : ECOLOR_STATE::YELLOW);
+		m_TargetColor = FLinearColor::Yellow;
 		break;
+	}
 	case ECOLOR_STATE::GREEN:
-		m_ColorState = (m_Color == FLinearColor::Blue ? ECOLOR_STATE::BLUE : ECOLOR_STATE::GREEN);
-		TargetColor = FLinearColor::Green;
+	{
+		float proximityRate = CGameUtility::SetDecimalTruncation(FVector(FLinearColor::Green - m_RingColor).Size(), 3);
+		m_ColorState = (proximityRate == 0.f ? ECOLOR_STATE::BLUE : ECOLOR_STATE::GREEN);
+		m_TargetColor = FLinearColor::Green;
 		break;
+	}
 	case ECOLOR_STATE::BLUE:
-		m_ColorState = (m_Color == LINEARCOLOR_INDIGO ? ECOLOR_STATE::INDIGO : ECOLOR_STATE::BLUE);
-		TargetColor = FLinearColor::Blue;
+	{
+		float proximityRate = CGameUtility::SetDecimalTruncation(FVector(FLinearColor::Blue - m_RingColor).Size(), 3);
+		m_ColorState = (proximityRate == 0.f ? ECOLOR_STATE::INDIGO : ECOLOR_STATE::BLUE);
+		m_TargetColor = FLinearColor::Blue;
 		break;
+	}
 	case ECOLOR_STATE::INDIGO:
-		m_ColorState = (m_Color ==LINEARCOLOR_PURPLE ? ECOLOR_STATE::PURPLE : ECOLOR_STATE::INDIGO);
-		TargetColor = LINEARCOLOR_INDIGO;
+	{
+		float proximityRate = CGameUtility::SetDecimalTruncation(FVector(LINEARCOLOR_INDIGO - m_RingColor).Size(), 3);
+		m_ColorState = (proximityRate == 0.f ? ECOLOR_STATE::PURPLE : ECOLOR_STATE::INDIGO);
+		m_TargetColor = LINEARCOLOR_INDIGO;
 		break;
+	}
 	case ECOLOR_STATE::PURPLE:
-		m_ColorState = (m_Color == FLinearColor::Red ? ECOLOR_STATE::RED : ECOLOR_STATE::PURPLE);
-		TargetColor = LINEARCOLOR_PURPLE;
+	{
+		float proximityRate = CGameUtility::SetDecimalTruncation(FVector(LINEARCOLOR_PURPLE - m_RingColor).Size(), 3);
+		m_ColorState = (proximityRate == 0.f ? ECOLOR_STATE::RED : ECOLOR_STATE::PURPLE);
+		m_TargetColor = LINEARCOLOR_PURPLE;
 		break;
+	}
 	default:
 		break;
 	}
-	return TargetColor;
 }
 
 //リングの色更新
 void ARingManager::UpdateColor(const float& DeltaTime)
 {
-	FLinearColor TargetColor = UpdateTargetColor();
-	m_Color = FLinearColor::LerpUsingHSV(m_Color, TargetColor, DeltaTime * 3.f);
+	if ((int)m_pChildRings.Num() <= 0) { return; }
 
+	//現在の色からターゲットに向けて色を変えていく
+	m_RingColor = FLinearColor::LerpUsingHSV(m_RingColor, m_TargetColor, DeltaTime * m_ColorTransitionSpeed);
+	//フレネルの色は3テンポ先の色にする
+	int32 FresnelState = (m_ColorState + m_DelayTempo) % ECOLOR_STATE::NUM;
+	m_FresnelColor = FLinearColor::LerpUsingHSV(m_FresnelColor, GetTargetColor(FresnelState), DeltaTime * m_ColorTransitionSpeed);
+	//マネージャーが管理しているすべてのリングのマテリアルに現在の色を適用する
 	for (ARing* pRing : m_pChildRings)
 	{
 		if (pRing)
 		{
 			if (pRing->GetMesh())
 			{
-				pRing->GetMesh()->SetVectorParameterValueOnMaterials(TEXT("RingColor"), FVector(m_Color));
+				pRing->GetMesh()->SetVectorParameterValueOnMaterials(TEXT("RingColor"), FVector(m_RingColor));
+				pRing->GetMesh()->SetVectorParameterValueOnMaterials(TEXT("FresnelColor"), FVector(m_FresnelColor));
+			}
+
+			//リングが通過されていたらエフェクトの色も変化させる
+			if (pRing->GetIsPassed())
+			{
+				if (pRing->GetEffectComponent())
+				{
+					pRing->GetEffectComponent()->SetVariableLinearColor(TEXT("User.Color"), m_RingColor);
+				}
 			}
 		}
 	}
 }
 
-//カラーステートとグラデーションの割合で補間
-FLinearColor ARingManager::LerpGradient(const TEnumAsByte<ECOLOR_STATE::Type>& _colorState, const float& _progress)
+//ステートからカラーターゲットを取得
+FLinearColor ARingManager::GetTargetColor(const int32& _colorIndex)
 {
-	FLinearColor color;
-	switch (_colorState)
+	FLinearColor TargetColor;
+	switch (_colorIndex)
 	{
 	case ECOLOR_STATE::RED:
-		color = FLinearColor::LerpUsingHSV(FLinearColor::Red, LINEARCOLOR_ORANGE, _progress);
+		TargetColor = FLinearColor::Red;
 		break;
 	case ECOLOR_STATE::ORANGE:
-		color = FLinearColor::LerpUsingHSV(LINEARCOLOR_ORANGE, FLinearColor::Yellow, _progress);
+		TargetColor = LINEARCOLOR_ORANGE;
 		break;
 	case ECOLOR_STATE::YELLOW:
-		color = FLinearColor::LerpUsingHSV(FLinearColor::Yellow, FLinearColor::Green, _progress);
+		TargetColor = FLinearColor::Yellow;
 		break;
 	case ECOLOR_STATE::GREEN:
-		color = FLinearColor::LerpUsingHSV(FLinearColor::Green, FLinearColor::Blue, _progress);
+		TargetColor = FLinearColor::Green;
 		break;
 	case ECOLOR_STATE::BLUE:
-		color = FLinearColor::LerpUsingHSV(FLinearColor::Blue, LINEARCOLOR_INDIGO, _progress);
+		m_TargetColor = FLinearColor::Blue;
 		break;
 	case ECOLOR_STATE::INDIGO:
-		color = FLinearColor::LerpUsingHSV(LINEARCOLOR_INDIGO, LINEARCOLOR_PURPLE, _progress);
+		TargetColor = LINEARCOLOR_INDIGO;
 		break;
 	case ECOLOR_STATE::PURPLE:
-		color = FLinearColor::LerpUsingHSV(LINEARCOLOR_PURPLE, FLinearColor::Red, _progress);
+		TargetColor = LINEARCOLOR_PURPLE;
 		break;
 	default:
 		break;
 	}
-	return color;
+	return TargetColor;
 }
