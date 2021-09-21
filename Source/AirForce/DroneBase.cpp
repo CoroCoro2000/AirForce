@@ -274,9 +274,11 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 		FQuat BodyQuat = FRotator(0.f, RotYaw, 0.f).Quaternion();
 
 		m_Velocity = FVector::ZeroVector;
+		FVector2D LeftStickValue = FVector2D(FMath::Abs(m_AxisAccel.X), FMath::Abs(m_AxisAccel.Y));
+		LeftStickValue.Normalize();
 
-		m_Velocity += BodyQuat.GetRightVector() * m_Speed * m_AxisAccel.X;
-		m_Velocity += BodyQuat.GetForwardVector() * m_Speed * -m_AxisAccel.Y;
+		m_Velocity += BodyQuat.GetRightVector() * m_Speed * m_AxisAccel.X * (IsReverseInput(m_AxisAccel.X, m_AxisValuePerFrame.X) ? m_Turning : 1.f) * LeftStickValue.X;
+		m_Velocity += BodyQuat.GetForwardVector() * m_Speed * -m_AxisAccel.Y * (IsReverseInput(m_AxisAccel.Y, m_AxisValuePerFrame.Y) ? m_Turning : 1.f) * LeftStickValue.Y;
 		m_Velocity += BodyQuat.GetUpVector() * m_Speed * m_AxisAccel.Z;
 
 		//è„å¿Ç≈ÉNÉâÉìÉv

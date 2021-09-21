@@ -183,6 +183,14 @@ protected:
 		void OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 public:
+	//操作可能フラグ取得
+	UFUNCTION(BlueprintCallable, Category = "Drone")
+		bool GetisControl() { return  m_isControl; }
+
+	//ボディメッシュの回転量取得
+	UFUNCTION(BlueprintCallable, Category = "Drone")
+		FRotator GetBodyMeshRotation() { return m_pBodyMesh->GetComponentRotation(); }
+
 	//重力加速度の取得
 	float GetGravitationalAcceleration()const { return m_GravityScale * m_DescentTime * m_DescentTime / 2.f; }
 
