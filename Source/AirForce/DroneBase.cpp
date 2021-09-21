@@ -34,8 +34,8 @@ ADroneBase::ADroneBase()
 	, m_Speed(7.f)
 	, m_SpeedPerSecondMax(50.f)
 	, m_AxisAccel(FVector4(0.f, 0.f, 0.f, 0.f))
-	, m_Acceleration(0.f)
-	, m_Deceleration(0.96f)
+	, m_Acceleration(0.8f)
+	, m_Deceleration(1.2f)
 	, m_Turning(0.6f)
 	, m_DroneWeight(0.3f)
 	, m_Velocity(FVector::ZeroVector)
@@ -274,13 +274,12 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 		FQuat BodyQuat = FRotator(0.f, RotYaw, 0.f).Quaternion();
 
 		m_Velocity = FVector::ZeroVector;
-		FVector2D LeftStickValue = FVector2D(FMath::Abs(m_AxisAccel.X), FMath::Abs(m_AxisAccel.Y));
-		LeftStickValue.Normalize();
-
-		m_Velocity += BodyQuat.GetRightVector() * m_Speed * m_AxisAccel.X * (IsReverseInput(m_AxisAccel.X, m_AxisValuePerFrame.X) ? m_Turning : 1.f) * LeftStickValue.X;
-		m_Velocity += BodyQuat.GetForwardVector() * m_Speed * -m_AxisAccel.Y * (IsReverseInput(m_AxisAccel.Y, m_AxisValuePerFrame.Y) ? m_Turning : 1.f) * LeftStickValue.Y;
+		FVector NormalizeValue = FVector(m_AxisAccel).GetAbs().GetSafeNormal();
+		m_Velocity += BodyQuat.GetRightVector() * m_Speed * m_AxisAccel.X;
+		m_Velocity += BodyQuat.GetForwardVector() * m_Speed * -m_AxisAccel.Y;
 		m_Velocity += BodyQuat.GetUpVector() * m_Speed * m_AxisAccel.Z;
 
+		m_AxisAccel.Rotation();
 		//上限でクランプ
 		m_Velocity = CGameUtility::SetDecimalTruncation(m_Velocity, 3);
 		//高度上限を超えていたら自動的に高度を下げる

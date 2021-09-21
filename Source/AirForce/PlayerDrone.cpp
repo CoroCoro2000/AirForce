@@ -262,42 +262,20 @@ void APlayerDrone::UpdateWingAccle(const float& DeltaTime)
 //入力の加速度更新処理
 void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 {
-	for (int i = 0; i < EINPUT_AXIS::NUM; i++)
+	//移動軸を正規化する(ベクトルの大きさが上限を越えないように)
+	FVector AxisAccel = m_AxisValuePerFrame;
+	FVector NormalizeValue = m_AxisValuePerFrame.GetSafeNormal();
+	//入力があるとき加速する
+	//XYZ軸
+	for (int i = 0; i < VECTOR3_COMPONENT_NUM; i++)
 	{
-		//入力があるとき加速する
-		const float MaxAccel = FMath::Abs(m_AxisValuePerFrame[i] * (i != 3 ? m_WingAccelMax : m_WingAccelMax * 0.5f));
-		const float AbsAccel = FMath::Abs(m_AxisAccel[i]);
-		if (FMath::Abs(m_AxisValuePerFrame[i]) != 0.f)
-		{
-			if (AbsAccel < MaxAccel)
-			{
-				if (IsReverseInput(m_AxisAccel[i], m_AxisValuePerFrame[i]))
-				{
-					m_AxisAccel[i] *= (i != 3) ? m_Deceleration : m_Turning;
-				}
-				m_AxisAccel[i] += m_AxisValuePerFrame[i] * DeltaTime;
-			}
-		}
-		//現在の加速度が上限を超えていたら上限の値まで戻していく
-		else if (AbsAccel > MaxAccel)
-		{
-			m_AxisAccel[i] *= m_Deceleration;
-		}
-		//入力がなければ加算しない
-		else
-		{
-			if (FMath::Abs(CGameUtility::SetDecimalTruncation(m_AxisAccel[i], 3)) != 0.f)
-			{
-				m_AxisAccel[i] *= m_Deceleration;
-			}
-			else
-			{
-				m_AxisAccel[i] = 0.f;
-			}
-		}
-
-		m_AxisAccel[i] = FMath::Clamp(m_AxisAccel[i], -m_WingAccelMax, m_WingAccelMax);
+		const float AttenRate = DeltaTime * (m_AxisValuePerFrame[i] != 0.f ? m_Acceleration : m_Deceleration);
+		m_AxisAccel[i] = FMath::Lerp(m_AxisAccel[i], NormalizeValue[i] * m_WingAccelMax, AttenRate);
 	}
+
+	//旋回(W軸)
+	const float AttenRate = DeltaTime * m_Acceleration;
+	m_AxisAccel.W = FMath::Lerp(m_AxisAccel.W, m_AxisValuePerFrame.W * m_WingAccelMax, m_AxisValuePerFrame.W != 0.f ? AttenRate : 1.f);
 }
 
 //ドローンの回転処理
@@ -345,7 +323,7 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 	{
 		if (CGameUtility::SetDecimalTruncation(m_Velocity, 3).GetAbsMax() != 0.f)
 		{
-			m_Velocity *= m_Deceleration;
+			m_Velocity = FMath::Lerp(m_Velocity, FVector::ZeroVector, DeltaTime * m_Deceleration);
 		}
 	}
 

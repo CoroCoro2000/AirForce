@@ -142,6 +142,8 @@ namespace EDRONEMODE
 #define SLOPE_MIN 0.f
 #define SPEED_MIN -10.5f
 #define SPEED_MAX 10.5f
+#define VECTOR3_COMPONENT_NUM 3
+#define VECTOR4_COMPONENT_NUM 4
 //--------------------------------------------------------------------
 //#define DEGUG_ACCEL					//加速度のデバッグ
 //#define DEBUG_GRAVITY				//重力のデバッグ
