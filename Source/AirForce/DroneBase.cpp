@@ -52,8 +52,6 @@ ADroneBase::ADroneBase()
 	, m_isControl(false)
 	, m_isFloating(true)
 	, m_AxisValuePerFrame(FVector4(0.f, 0.f, 0.f, 0.f))
-	, m_SaveVelocity(FVector::ZeroVector)
-	, m_SaveQuat(FQuat::Identity)
 	, m_pWindEffect(NULL)
 	, m_WindRotationSpeed(5.f)
 
@@ -66,7 +64,7 @@ ADroneBase::ADroneBase()
 	if (m_pDroneCollision)
 	{
 		RootComponent = m_pDroneCollision;
-		m_pDroneCollision->SetSphereRadius(13.f);
+		m_pDroneCollision->SetSphereRadius(9.f);
 	}
 
 	//ボディのメッシュアセットを探索
@@ -226,57 +224,13 @@ void ADroneBase::UpdateRotation(const float& DeltaTime)
 
 	FRotator BodyRotation = m_pBodyMesh->GetRelativeRotation();
 
-	BodyRotation.Pitch += m_AngularVelocity.Y;
-	BodyRotation.Roll += m_AngularVelocity.X;
-
 	//	オートマチックで操作するとき
 	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
 	{
 		float deg = 25.f;
-
-		if (m_AngularVelocity.Y != 0.f)
-		{
-			//前後にドローンが傾きすぎないように補正
-			if (BodyRotation.Pitch > deg)
-			{
-				BodyRotation.Pitch = deg;
-			}
-			else if (BodyRotation.Pitch < -deg)
-			{
-				BodyRotation.Pitch = -deg;
-			}
-		}
-		else
-		{
-			if (FMath::Abs(CGameUtility::SetDecimalTruncation(BodyRotation.Pitch, 3)) != 0.f)
-			{
-				BodyRotation.Pitch *= m_Deceleration;
-			}
-		}
-
-		if (m_AngularVelocity.X != 0.f)
-		{
-
-			if (BodyRotation.Roll > deg)
-			{
-				BodyRotation.Roll = deg;
-			}
-			else if (BodyRotation.Roll < -deg)
-			{
-				BodyRotation.Roll = -deg;
-			}
-		}
-		else
-		{
-			if (FMath::Abs(CGameUtility::SetDecimalTruncation(BodyRotation.Roll, 3)) != 0.f)
-			{
-				BodyRotation.Roll *= m_Deceleration;
-			}
-			else
-			{
-				BodyRotation.Roll = 0.f;
-			}
-		}
+		float RotationSpeed = FMath::Clamp(DeltaTime * 5.f, 0.f, 1.f);
+		BodyRotation.Pitch = FMath::Lerp(BodyRotation.Pitch, m_AxisValuePerFrame.Y * deg, RotationSpeed);
+		BodyRotation.Roll = FMath::Lerp(BodyRotation.Roll, m_AxisValuePerFrame.X * deg, RotationSpeed);
 	}
 
 	//アマチュアで操作するとき
@@ -306,7 +260,6 @@ void ADroneBase::UpdateRotation(const float& DeltaTime)
 	FRotator NewRotation = BodyRotation;
 	NewRotation.Yaw += m_AngularVelocity.Z;
 	m_pBodyMesh->SetRelativeRotation(NewRotation.Quaternion() * MOVE_CORRECTION, true);
-	m_SaveQuat = m_pBodyMesh->GetRelativeRotation().Quaternion();
 }
 
 //速度更新処理
@@ -322,9 +275,9 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 
 		m_Velocity = FVector::ZeroVector;
 
-		m_Velocity += BodyQuat.GetRightVector() * m_Speed * m_AxisAccel.X * (IsReverseInput(m_AxisAccel.X, m_AxisValuePerFrame.X) ? m_Turning : 1.f);
-		m_Velocity += BodyQuat.GetForwardVector() * m_Speed * -m_AxisAccel.Y * (IsReverseInput(m_AxisAccel.Y, m_AxisValuePerFrame.Y) ? m_Turning : 1.f);
-		m_Velocity += BodyQuat.GetUpVector() * m_Speed * m_AxisAccel.Z * (IsReverseInput(m_AxisAccel.Z, m_AxisValuePerFrame.Z) ? m_Turning : 1.f);
+		m_Velocity += BodyQuat.GetRightVector() * m_Speed * m_AxisAccel.X;
+		m_Velocity += BodyQuat.GetForwardVector() * m_Speed * -m_AxisAccel.Y;
+		m_Velocity += BodyQuat.GetUpVector() * m_Speed * m_AxisAccel.Z;
 
 		//上限でクランプ
 		m_Velocity = CGameUtility::SetDecimalTruncation(m_Velocity, 3);

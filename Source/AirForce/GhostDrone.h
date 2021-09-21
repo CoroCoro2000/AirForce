@@ -45,8 +45,15 @@ private:
 		int PlaybackFlame;
 
 	UPROPERTY(EditAnywhere, Category = "Drone")
+		int m_PlayableFramesNum;
+	UPROPERTY(EditAnywhere, Category = "Drone")
 		float Time;
 
 	UPROPERTY(EditAnywhere, Category = "Drone")
 		int FlameCnt;
+
+	UPROPERTY(EditAnywhere, Category = "Ghost")
+		FVector m_LoadVelocity;														
+	UPROPERTY(EditAnywhere, Category = "Ghost")
+		FVector4 m_LoadQuat;
 };

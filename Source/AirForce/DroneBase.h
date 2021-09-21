@@ -249,21 +249,6 @@ protected:
 	//ステートフラグ管理
 	State m_StateFlag;
 
-	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-		TArray<FString>m_SaveVelocityX;								//プレイヤーの毎フレームX座標移動量
-	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-		TArray<FString>m_SaveVelocityY;								//プレイヤーの毎フレームX座標移動量
-	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-		TArray<FString>m_SaveVelocityZ;								//プレイヤーの毎フレームZ座標移動量
-	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-		TArray<FString>m_SaveQuatX;									//プレイヤーの毎フレームクオータニオンX回転量
-	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-		TArray<FString>m_SaveQuatY;									//プレイヤーの毎フレームクオータニオンY回転量
-	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-		TArray<FString>m_SaveQuatZ;									//プレイヤーの毎フレームクオータニオンZ回転量
-	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-		TArray<FString>m_SaveQuatW;									//プレイヤーの毎フレームクオータニオンW回転量
-
 	UPROPERTY(EditAnywhere, Category = "Physical")
 		float m_TiltLimit;									//傾きの上限
 	UPROPERTY(EditAnywhere, Category = "Physical")
@@ -312,14 +297,17 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Drone")
 		FVector4 m_AxisValuePerFrame;													//毎フレーム更新される入力の値
 
-	UPROPERTY(EditAnywhere, Category = "Drone")
-		FVector m_SaveVelocity;															//
-	UPROPERTY(EditAnywhere, Category = "Drone")
-		FQuat m_SaveQuat;
-
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		UNiagaraComponent* m_pWindEffect;									//風のエフェクト
 
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		float m_WindRotationSpeed;											//風のエフェクトの回転速度
+
+
+	TArray<TArray<FString>> m_SaveVelocityText;			//読み込んだ毎フレームの移動量を格納する配列
+	TArray<TArray<FString>> m_SaveQuatText;				//読み込んだ毎フレームの回転量を格納する配列
+	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
+		TArray<FString> m_SaveVelocityLoadPath;							//移動量が書きこまれたファイルをたどるパスを設定
+	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
+		TArray<FString> m_SaveQuatLoadPath;								//回転量が書きこまれたファイルをたどるパスを設定
 };

@@ -92,6 +92,11 @@ void APlayerDrone::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//軸の数だけ配列を用意する
+	m_SaveQuatText.Empty();
+	m_SaveVelocityText.Empty();
+	m_SaveQuatText.SetNum(4);
+	m_SaveVelocityText.SetNum(3);
 }
 
 //毎フレーム処理
@@ -259,32 +264,29 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 {
 	for (int i = 0; i < EINPUT_AXIS::NUM; i++)
 	{
-		//浮力がホバリング状態より大きいとき
-		if (m_AxisValuePerFrame[i] > 0.f)
+		//入力があるとき加速する
+		const float MaxAccel = FMath::Abs(m_AxisValuePerFrame[i] * (i != 3 ? m_WingAccelMax : m_WingAccelMax * 0.5f));
+		const float AbsAccel = FMath::Abs(m_AxisAccel[i]);
+		if (FMath::Abs(m_AxisValuePerFrame[i]) != 0.f)
 		{
-			if (m_AxisAccel[i] < m_WingAccelMax)
+			if (AbsAccel < MaxAccel)
 			{
+				if (IsReverseInput(m_AxisAccel[i], m_AxisValuePerFrame[i]))
+				{
+					m_AxisAccel[i] *= (i != 3) ? m_Deceleration : m_Turning;
+				}
 				m_AxisAccel[i] += m_AxisValuePerFrame[i] * DeltaTime;
 			}
 		}
-		//浮力がホバリング状態より小さい時
-		else if (m_AxisValuePerFrame[i] < 0.f)
+		//現在の加速度が上限を超えていたら上限の値まで戻していく
+		else if (AbsAccel > MaxAccel)
 		{
-			if (m_AxisAccel[i] > -m_WingAccelMax)
-			{
-				m_AxisAccel[i] += m_AxisValuePerFrame[i] * DeltaTime;
-			}
+			m_AxisAccel[i] *= m_Deceleration;
 		}
-		//浮力が重力と釣り合う時(ホバリング状態)
+		//入力がなければ加算しない
 		else
 		{
-			if (m_AxisAccel[i] == m_AxisAccel.W)
-			{
-				m_AxisAccel[i] = 0.f;
-			}
-			
-			//0に近くなったら一定量で0にする
-			if (FMath::Abs(m_AxisAccel[i]) > 0.005f)
+			if (FMath::Abs(CGameUtility::SetDecimalTruncation(m_AxisAccel[i], 3)) != 0.f)
 			{
 				m_AxisAccel[i] *= m_Deceleration;
 			}
@@ -305,12 +307,22 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 
 	Super::UpdateRotation(DeltaTime);
 
+	//コントロール可能なら回転量を保存する
 	if (m_isControl)
 	{
-		m_SaveQuatX.Add(FString::SanitizeFloat(m_SaveQuat.X));
-		m_SaveQuatY.Add(FString::SanitizeFloat(m_SaveQuat.Y));
-		m_SaveQuatZ.Add(FString::SanitizeFloat(m_SaveQuat.Z));
-		m_SaveQuatW.Add(FString::SanitizeFloat(m_SaveQuat.W));
+		FQuat BodyQuat = m_pBodyMesh->GetComponentQuat();
+		FVector4 SaveQuat = FVector4(
+			BodyQuat.X,
+			BodyQuat.Y,
+			BodyQuat.Z,
+			BodyQuat.W);
+
+		int index = 0;
+		for (TArray<FString>& SaveQuatText : m_SaveQuatText)
+		{
+			SaveQuatText.Add(FString::SanitizeFloat(SaveQuat[index]));
+			++index;
+		}
 	}
 }
 
@@ -319,12 +331,15 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 {
 	Super::UpdateSpeed(DeltaTime);
 
+	//コントロール可能なら移動量を保存する
 	if (m_isControl)
 	{
-		m_SaveVelocityX.Add(FString::SanitizeFloat(m_Velocity.X));
-		m_SaveVelocityY.Add(FString::SanitizeFloat(m_Velocity.Y));
-		m_SaveVelocityZ.Add(FString::SanitizeFloat(m_Velocity.Z));
-
+		int index = 0;
+		for (TArray<FString>& SaveVelocityText : m_SaveVelocityText)
+		{
+			SaveVelocityText.Add(FString::SanitizeFloat(m_Velocity[index]));
+			++index;
+		}
 	}
 	else
 	{
@@ -459,20 +474,31 @@ void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 //レースの座標保存
 void APlayerDrone::WritingRaceVector()
 {
+	if (m_SaveVelocityText.Num() != m_SaveVelocityLoadPath.Num()) { return; }
+
 	//テキストファイル書き込み
-	FFileHelper::SaveStringArrayToFile(m_SaveVelocityX, *(FPaths::ProjectDir() + FString("Record/VX.txt")));
-	FFileHelper::SaveStringArrayToFile(m_SaveVelocityY, *(FPaths::ProjectDir() + FString("Record/VY.txt")));
-	FFileHelper::SaveStringArrayToFile(m_SaveVelocityZ, *(FPaths::ProjectDir() + FString("Record/VZ.txt")));
+	int index = 0;
+	for (const TArray<FString>& SaveVelocityText : m_SaveVelocityText)
+	{
+		FString FliePath = FPaths::ProjectDir() + m_SaveVelocityLoadPath[index];
+		FFileHelper::SaveStringArrayToFile(SaveVelocityText, *FliePath);
+		++index;
+	}
 }
 
 //レースのクオータニオン
 void APlayerDrone::WritingRaceQuaternion()
 {
+	if (m_SaveQuatText.Num() != m_SaveQuatLoadPath.Num()) { return; }
+
 	//テキストファイル書き込み
-	FFileHelper::SaveStringArrayToFile(m_SaveQuatX, *(FPaths::ProjectDir() + FString("Record/QX.txt")));
-	FFileHelper::SaveStringArrayToFile(m_SaveQuatY, *(FPaths::ProjectDir() + FString("Record/QY.txt")));
-	FFileHelper::SaveStringArrayToFile(m_SaveQuatZ, *(FPaths::ProjectDir() + FString("Record/QZ.txt")));
-	FFileHelper::SaveStringArrayToFile(m_SaveQuatW, *(FPaths::ProjectDir() + FString("Record/QW.txt")));
+	int index = 0;
+	for (const TArray<FString>& SaveQuatText : m_SaveQuatText)
+	{
+		FString FliePath = FPaths::ProjectDir() + m_SaveQuatLoadPath[index];
+		FFileHelper::SaveStringArrayToFile(SaveQuatText, *FliePath);
+		++index;
+	}
 }
 
 //【入力バインド】コントローラー入力設定
