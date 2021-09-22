@@ -72,8 +72,11 @@ void AGameManager::BeginPlay()
 			{
 				AActor* ghostDrone = GetWorld()->SpawnActor<AActor>(ghostSoftClass); // ƒXƒ|[ƒ“ˆ—
 				m_GhostDrone = Cast<ADroneBase>(ghostDrone);
-				m_GhostDrone->SetActorLocation(m_PlayerDrone->GetActorLocation());
-				m_GhostDrone->SetActorRotation(m_PlayerDrone->GetActorRotation());
+				if (m_GhostDrone)
+				{
+					m_GhostDrone->SetActorLocation(m_PlayerDrone->GetActorLocation());
+					m_GhostDrone->SetActorRotation(m_PlayerDrone->GetActorRotation());
+				}
 			}
 		}
 	}

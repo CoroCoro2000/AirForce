@@ -12,7 +12,7 @@ AGhostDrone::AGhostDrone()
 	, Time(0.f)
 	, FlameCnt(0)
 	, m_LoadVelocity(FVector::ZeroVector)
-	, m_LoadQuat(FVector::ZeroVector)
+	, m_LoadQuat(FQuat::Identity)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -62,18 +62,27 @@ void AGhostDrone::Tick(float DeltaTime)
 void AGhostDrone::UpdateRotation(const float& DeltaTime)
 {
 	//読み込んだ移動量のテキストファイルをfloatに変換する
-	int index = 0;
-	for (const TArray<FString>& SaveQuatText : m_SaveQuatText)
+	bool IsValidTextArray = true;
+	bool IsValidAxisTextArray = true;
+
+	for (int index = 0; index < VECTOR4_COMPONENT_NUM; ++index)
 	{
-		if (SaveQuatText.IsValidIndex(PlaybackFlame))
+		IsValidTextArray = m_SaveQuatText.IsValidIndex(index);
+		IsValidAxisTextArray = m_SaveQuatText[index].IsValidIndex(PlaybackFlame);
+		if (!IsValidTextArray || IsValidAxisTextArray)
 		{
-			m_LoadQuat[index] = FCString::Atof(*(SaveQuatText[PlaybackFlame]));
+			break;
 		}
-		++index;
 	}
 
-	FQuat NewQuat = FQuat(m_LoadQuat, m_LoadQuat.W);
-	m_pBodyMesh->SetRelativeRotation(NewQuat * MOVE_CORRECTION);
+	if (IsValidTextArray && IsValidAxisTextArray)
+	{
+		m_LoadQuat.X = FCString::Atof(*(m_SaveQuatText[0][PlaybackFlame]));
+		m_LoadQuat.Y = FCString::Atof(*(m_SaveQuatText[1][PlaybackFlame]));
+		m_LoadQuat.Z = FCString::Atof(*(m_SaveQuatText[2][PlaybackFlame]));
+		m_LoadQuat.W = FCString::Atof(*(m_SaveQuatText[3][PlaybackFlame]));
+	}
+	m_pBodyMesh->SetWorldRotation(m_LoadQuat * MOVE_CORRECTION);
 }
 
 //移動処理
@@ -83,7 +92,7 @@ void AGhostDrone::UpdateSpeed(const float& DeltaTime)
 
 	//読み込んだ移動量のテキストファイルをfloatに変換する
 	int index = 0;
-	for (const TArray<FString>& SaveVelocityText : m_SaveVelocityText)
+	for (const TArray<FString> SaveVelocityText : m_SaveVelocityText)
 	{
 		if (SaveVelocityText.IsValidIndex(PlaybackFlame))
 		{
@@ -99,7 +108,7 @@ void AGhostDrone::LoadingRaceVectorFile()
 {
 	//移動軸の数だけ配列を用意する
 	m_SaveVelocityText.Empty();
-	m_SaveVelocityText.SetNum(3);
+	m_SaveVelocityText.SetNum(VECTOR3_COMPONENT_NUM);
 
 	//設定したパスが軸と同じ数設定されていればロードする
 	if (m_SaveVelocityText.Num() == m_SaveVelocityLoadPath.Num())
@@ -132,13 +141,13 @@ void AGhostDrone::LoadingRaceQuaternionFile()
 {
 	//クォータニオンの軸の数だけ配列を用意する
 	m_SaveQuatText.Empty();
-	m_SaveQuatText.SetNum(4);
+	m_SaveQuatText.SetNum(VECTOR4_COMPONENT_NUM);
 
 	//設定したパスが軸と同じ数設定されていればロードする
 	if (m_SaveQuatText.Num() == m_SaveQuatLoadPath.Num())
 	{
 		//ファイルを開いて保存されている値を読み込む
-		for (int index = 0; index < (int)m_SaveVelocityText.Num(); ++index)
+		for (int index = 0; index < (int)m_SaveQuatText.Num(); ++index)
 		{
 			FString LoadFilePath = FPaths::ProjectDir() + m_SaveQuatLoadPath[index];
 			FFileHelper::LoadFileToStringArray(m_SaveQuatText[index], *LoadFilePath);

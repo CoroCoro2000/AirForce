@@ -289,17 +289,22 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 	if (m_isControl)
 	{
 		FQuat BodyQuat = m_pBodyMesh->GetComponentQuat();
-		FVector4 SaveQuat = FVector4(
-			BodyQuat.X,
-			BodyQuat.Y,
-			BodyQuat.Z,
-			BodyQuat.W);
-
-		int index = 0;
-		for (TArray<FString>& SaveQuatText : m_SaveQuatText)
+		bool IsValidTextArray = true;
+		for (int index = 0; index < VECTOR4_COMPONENT_NUM; ++index)
 		{
-			SaveQuatText.Add(FString::SanitizeFloat(SaveQuat[index]));
-			++index;
+			IsValidTextArray = m_SaveQuatText.IsValidIndex(index);
+			if (!IsValidTextArray)
+			{
+				break;
+			}
+		}
+
+		if (IsValidTextArray)
+		{
+			m_SaveQuatText[0].Add(FString::SanitizeFloat(BodyQuat.X));
+			m_SaveQuatText[1].Add(FString::SanitizeFloat(BodyQuat.Y));
+			m_SaveQuatText[2].Add(FString::SanitizeFloat(BodyQuat.Z));
+			m_SaveQuatText[3].Add(FString::SanitizeFloat(BodyQuat.W));
 		}
 	}
 }
@@ -471,7 +476,7 @@ void APlayerDrone::WritingRaceQuaternion()
 
 	//テキストファイル書き込み
 	int index = 0;
-	for (const TArray<FString>& SaveQuatText : m_SaveQuatText)
+	for (const TArray<FString> SaveQuatText : m_SaveQuatText)
 	{
 		FString FliePath = FPaths::ProjectDir() + m_SaveQuatLoadPath[index];
 		FFileHelper::SaveStringArrayToFile(SaveQuatText, *FliePath);

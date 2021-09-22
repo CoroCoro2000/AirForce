@@ -55,5 +55,5 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Ghost")
 		FVector m_LoadVelocity;														
 	UPROPERTY(EditAnywhere, Category = "Ghost")
-		FVector4 m_LoadQuat;
+		FQuat m_LoadQuat;
 };

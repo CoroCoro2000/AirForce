@@ -268,7 +268,7 @@ protected:
 		float m_SpeedPerSecondMax;						//ドローンの最大秒速(m)
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
 		FVector4 m_AxisAccel;
-	UPROPERTY(VisibleAnywhere, Category = "Physical")
+	UPROPERTY(EditAnywhere, Category = "Physical")
 		float m_Acceleration;							//加速度
 	UPROPERTY(EditAnywhere, Category = "Physical")
 		float m_Deceleration;							//減速度
