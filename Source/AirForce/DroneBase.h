@@ -290,8 +290,6 @@ protected:
 		float m_DescentTime;							//落下している時間
 	UPROPERTY(EditAnywhere, Category = "Sound")
 		USoundBase* m_pWingRotationSE;			//羽の回転SE
-	UPROPERTY(VisibleAnywhere, Category = "Ring")
-		int m_RingAcquisition;							//リング獲得数
 
 	UPROPERTY(EditAnywhere, Category = "Drone")
 		float m_HeightMax;															//ドローンが飛ぶことのできる地面からの高さの範囲
@@ -313,11 +311,17 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		float m_WindRotationSpeed;											//風のエフェクトの回転速度
 
-
 	TArray<TArray<FString>> m_SaveVelocityText;			//読み込んだ毎フレームの移動量を格納する配列
 	TArray<TArray<FString>> m_SaveQuatText;				//読み込んだ毎フレームの回転量を格納する配列
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
 		TArray<FString> m_SaveVelocityLoadPath;							//移動量が書きこまれたファイルをたどるパスを設定
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
 		TArray<FString> m_SaveQuatLoadPath;								//回転量が書きこまれたファイルをたどるパスを設定
+
+	UPROPERTY(VisibleAnywhere)
+		bool m_bAccelerateOver;															//上限を超えて加速できるかどうか
+	UPROPERTY(VisibleAnywhere)
+		float m_AccelerateOverCount;
+	UPROPERTY(EditAnywhere)
+		float m_AccelerateOverTime;											
 };

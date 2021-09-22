@@ -11,10 +11,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "UObject/ConstructorHelpers.h"
-#include "Engine/StaticMeshActor.h"
 #include "DrawDebugHelpers.h"
 #include "NiagaraComponent.h"
-#include "NiagaraFunctionLibrary.h"
 #include "GameUtility.h"
 
 //コンストラクタ
@@ -45,7 +43,6 @@ ADroneBase::ADroneBase()
 	, m_Gravity(FVector::ZeroVector)
 	, m_DescentTime(0.f)
 	, m_pWingRotationSE(NULL)
-	, m_RingAcquisition(0)
 	, m_HeightMax(400.f)
 	, m_HeightFromGround(0.f)
 	, m_DistanceToSlope(0.f)
@@ -54,7 +51,9 @@ ADroneBase::ADroneBase()
 	, m_AxisValuePerFrame(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_pWindEffect(NULL)
 	, m_WindRotationSpeed(5.f)
-
+	, m_bAccelerateOver(false)
+	, m_AccelerateOverCount(0.f)
+	, m_AccelerateOverTime(2.f)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -479,7 +478,7 @@ void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedCom
 		//タグがRingだった場合
 		if (OtherActor->ActorHasTag(TEXT("Ring")))
 		{
-			m_RingAcquisition++;
+			m_bAccelerateOver = true;
 		}
 	}
 #ifdef DEBUG_CollisionOverlap_Begin
@@ -511,8 +510,6 @@ void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* 
 			//反射ベクトルを進行方向に設定
 			m_AxisAccel = reflectVector * 0.5f;
 		}
-
-
 
 		m_isFloating = true;
 	}

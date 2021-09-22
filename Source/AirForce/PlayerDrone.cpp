@@ -262,15 +262,31 @@ void APlayerDrone::UpdateWingAccle(const float& DeltaTime)
 //入力の加速度更新処理
 void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 {
+	//上限を超えて加速できる時
+	if (m_bAccelerateOver)
+	{
+		//時間を計測
+		if (m_AccelerateOverCount < m_AccelerateOverTime)
+		{
+			m_AccelerateOverCount += DeltaTime;
+		}
+		else
+		{
+			m_bAccelerateOver = false;
+			m_AccelerateOverCount = 0.f;
+		}
+	}
+
 	//移動軸を正規化する(ベクトルの大きさが上限を越えないように)
 	FVector AxisAccel = m_AxisValuePerFrame;
 	FVector NormalizeValue = m_AxisValuePerFrame.GetSafeNormal();
+
 	//入力があるとき加速する
 	//XYZ軸
 	for (int i = 0; i < VECTOR3_COMPONENT_NUM; i++)
 	{
-		const float AttenRate = DeltaTime * (m_AxisValuePerFrame[i] != 0.f ? m_Acceleration : m_Deceleration);
-		m_AxisAccel[i] = FMath::Lerp(m_AxisAccel[i], NormalizeValue[i] * m_WingAccelMax, AttenRate);
+		const float AttenRate = DeltaTime * (m_AxisValuePerFrame[i] != 0.f ? (m_bAccelerateOver ? m_Acceleration * 1.5f : m_Acceleration) : m_Deceleration);
+		m_AxisAccel[i] = FMath::Lerp(m_AxisAccel[i], NormalizeValue[i] * (m_bAccelerateOver ? m_WingAccelMax * 1.5f : m_WingAccelMax), AttenRate);
 	}
 
 	//旋回(W軸)
