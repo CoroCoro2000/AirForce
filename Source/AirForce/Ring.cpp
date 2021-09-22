@@ -42,6 +42,9 @@ ARing::ARing()
 	{
 		m_pNiagaraEffectComp->SetupAttachment(m_pRingMesh);
 	}
+
+	//タグの追加
+	Tags.Add(TEXT("Ring"));
 }
 
 //ゲーム開始時またはこのクラスのオブジェクトがスポーンされた時１度だけ呼び出される関数
@@ -111,15 +114,19 @@ void ARing::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 		//このリングがまだ通過されていない場合
 		if (!m_bIsPassed)
 		{
-			if (m_pNiagaraEffectComp && m_pRingMesh)
-			{
-				//通過された状態に変更
-				m_bIsPassed = true;
-				//エフェクトの再生
-				m_pNiagaraEffectComp->Activate();
-				//リングの当たり判定を切る
-				m_pRingMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			}
+			//通過された状態に変更
+			m_bIsPassed = true;
+		}
+	}
+
+	if (OtherComp->ComponentHasTag(TEXT("Drone")))
+	{
+		if (m_pNiagaraEffectComp && m_pRingMesh)
+		{
+			//エフェクトの再生
+			m_pNiagaraEffectComp->Activate();
+			//リングの当たり判定を切る
+			m_pRingMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
 	}
 }

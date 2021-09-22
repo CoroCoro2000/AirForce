@@ -51,9 +51,10 @@ ADroneBase::ADroneBase()
 	, m_AxisValuePerFrame(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_pWindEffect(NULL)
 	, m_WindRotationSpeed(5.f)
-	, m_bAccelerateOver(false)
-	, m_AccelerateOverCount(0.f)
-	, m_AccelerateOverTime(2.f)
+	, m_bIsPassedRing(false)
+	, m_SincePassageCount(0.f)
+	, m_CountLimitTime(1.f)
+	, m_OverAccelerator(1.5f)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -64,6 +65,8 @@ ADroneBase::ADroneBase()
 	{
 		RootComponent = m_pDroneCollision;
 		m_pDroneCollision->SetSphereRadius(9.f);
+		//タグを追加
+		m_pDroneCollision->ComponentTags.Add(TEXT("Drone"));
 	}
 
 	//ボディのメッシュアセットを探索
@@ -478,7 +481,13 @@ void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedCom
 		//タグがRingだった場合
 		if (OtherActor->ActorHasTag(TEXT("Ring")))
 		{
-			m_bAccelerateOver = true;
+			//すでにリングを取って加速中だった場合、加速カウンターをリセットする
+			if (m_bIsPassedRing)
+			{
+				m_SincePassageCount = 0.f;
+			}
+			//上限を越えて加速できるようにする
+			m_bIsPassedRing = true;
 		}
 	}
 #ifdef DEBUG_CollisionOverlap_Begin
@@ -493,7 +502,7 @@ void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* 
 	{
 		m_isFloating = false;
 
-		if (FVector(m_AxisAccel).GetAbsMax() > 0.1f)
+		if (FVector(m_AxisAccel).GetAbsMax() > 0.2f)
 		{
 
 			FVector progressVector = m_AxisAccel;

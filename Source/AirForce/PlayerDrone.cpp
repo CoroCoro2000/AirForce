@@ -262,36 +262,48 @@ void APlayerDrone::UpdateWingAccle(const float& DeltaTime)
 //入力の加速度更新処理
 void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 {
-	//上限を超えて加速できる時
-	if (m_bAccelerateOver)
+	//リングをくぐっていたら
+	if (m_bIsPassedRing)
 	{
-		//時間を計測
-		if (m_AccelerateOverCount < m_AccelerateOverTime)
+		//上限になるまで時間を計測
+		if (m_SincePassageCount < m_CountLimitTime)
 		{
-			m_AccelerateOverCount += DeltaTime;
+			m_SincePassageCount += DeltaTime;
 		}
+		//上限を越えたら、フラグとカウンターをリセットする
 		else
 		{
-			m_bAccelerateOver = false;
-			m_AccelerateOverCount = 0.f;
+			m_bIsPassedRing = false;
+			m_SincePassageCount = 0.f;
 		}
 	}
 
-	//移動軸を正規化する(ベクトルの大きさが上限を越えないように)
-	FVector AxisAccel = m_AxisValuePerFrame;
+	//入力軸を正規化する(ベクトルの大きさが上限を越えないように)
 	FVector NormalizeValue = m_AxisValuePerFrame.GetSafeNormal();
 
 	//入力があるとき加速する
 	//XYZ軸
 	for (int i = 0; i < VECTOR3_COMPONENT_NUM; i++)
 	{
-		const float AttenRate = DeltaTime * (m_AxisValuePerFrame[i] != 0.f ? (m_bAccelerateOver ? m_Acceleration * 1.5f : m_Acceleration) : m_Deceleration);
-		m_AxisAccel[i] = FMath::Lerp(m_AxisAccel[i], NormalizeValue[i] * (m_bAccelerateOver ? m_WingAccelMax * 1.5f : m_WingAccelMax), AttenRate);
+		float Acceleration = m_Acceleration;
+		float MaxAcceleration = m_WingAccelMax;
+		float AttenRate = DeltaTime * (m_AxisValuePerFrame[i] != 0.f ? Acceleration : m_Deceleration);
+		//リングをくぐっていたら加速する
+		if (m_bIsPassedRing)
+		{
+			Acceleration *= m_OverAccelerator;
+			MaxAcceleration *= m_OverAccelerator;
+			AttenRate = DeltaTime * Acceleration * m_OverAccelerator;
+		}
+
+		//入力量に応じて加速度を増減させる
+		m_AxisAccel[i] = FMath::Lerp(m_AxisAccel[i], NormalizeValue[i] * MaxAcceleration, FMath::Clamp(AttenRate, 0.f, 1.f));
 	}
 
 	//旋回(W軸)
-	const float AttenRate = DeltaTime * m_Acceleration;
-	m_AxisAccel.W = FMath::Lerp(m_AxisAccel.W, m_AxisValuePerFrame.W * m_WingAccelMax, m_AxisValuePerFrame.W != 0.f ? AttenRate : 1.f);
+	const float AttenRate = FMath::Clamp((m_AxisValuePerFrame.W != 0.f ? DeltaTime * m_Acceleration : 1.f), 0.f, 1.f);
+	//入力がある時は徐々に旋回し、ないときは回さない
+	m_AxisAccel.W = FMath::Lerp(m_AxisAccel.W, m_AxisValuePerFrame.W * m_WingAccelMax, AttenRate);
 }
 
 //ドローンの回転処理
@@ -444,9 +456,10 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	CameraRotation.Roll = FMath::Lerp(CameraRotation.Roll, BodyRotation.Roll * 0.7f, AttenRate.Roll);
 
 	//ソケットの位置を更新
-	m_pSpringArm->SocketOffset.X = FMath::Lerp(m_pSpringArm->SocketOffset.X, m_AxisValuePerFrame.Y * m_CameraSocketOffsetMax.X, DeltaTime * 1.5f);
-	m_pSpringArm->SocketOffset.Y = FMath::Lerp(m_pSpringArm->SocketOffset.Y, m_AxisValuePerFrame.X * m_CameraSocketOffsetMax.Y, DeltaTime * 1.5f);
-	m_pSpringArm->SocketOffset.Z = FMath::Lerp(m_pSpringArm->SocketOffset.Z, -CameraRotation.Pitch, DeltaTime * 1.5f);
+	float SocketAttenRate = FMath::Clamp(DeltaTime * 1.5f, 0.f, 1.f);
+	m_pSpringArm->SocketOffset.X = FMath::Lerp(m_pSpringArm->SocketOffset.X, m_AxisValuePerFrame.Y * m_CameraSocketOffsetMax.X, SocketAttenRate);
+	m_pSpringArm->SocketOffset.Y = FMath::Lerp(m_pSpringArm->SocketOffset.Y, m_AxisValuePerFrame.X * m_CameraSocketOffsetMax.Y, SocketAttenRate);
+	m_pSpringArm->SocketOffset.Z = FMath::Lerp(m_pSpringArm->SocketOffset.Z, -CameraRotation.Pitch, SocketAttenRate);
 
 	//カメラの回転を更新
 	m_pCamera->SetRelativeRotation(CameraRotation.Quaternion() * MOVE_CORRECTION);
@@ -454,7 +467,8 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 
 	//移動に応じて視野角を変更
 	float FOV = isMove ? 90.f : 105.f;
-	float NewFOV = FMath::Lerp(m_pCamera->FieldOfView, FOV, DeltaTime * 3.f);
+	float FOVAttenRate = FMath::Clamp(DeltaTime * 3.f, 0.f, 1.f);
+	float NewFOV = FMath::Lerp(m_pCamera->FieldOfView, FOV, FOVAttenRate);
 	m_pCamera->SetFieldOfView(NewFOV);
 }
 

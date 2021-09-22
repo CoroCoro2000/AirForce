@@ -314,10 +314,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
 		TArray<FString> m_SaveQuatLoadPath;								//回転量が書きこまれたファイルをたどるパスを設定
 
-	UPROPERTY(VisibleAnywhere)
-		bool m_bAccelerateOver;															//上限を超えて加速できるかどうか
-	UPROPERTY(VisibleAnywhere)
-		float m_AccelerateOverCount;
-	UPROPERTY(EditAnywhere)
-		float m_AccelerateOverTime;											
+	UPROPERTY(VisibleAnywhere, Category = "Ring")
+		bool m_bIsPassedRing;															//リングをくぐったかどうか
+	UPROPERTY(VisibleAnywhere, Category = "Ring")
+		float m_SincePassageCount;													//リングをくぐってからの経過時間
+	UPROPERTY(EditAnywhere, Category = "Ring")
+		float m_CountLimitTime;													//リングをくぐってから数える時間の上限	
+	UPROPERTY(EditAnywhere, Category = "Ring")
+		float m_OverAccelerator;												//リングをくぐったときの加速倍率
 };
