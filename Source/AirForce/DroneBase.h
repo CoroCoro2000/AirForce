@@ -308,7 +308,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		float m_WindOpacity;
 	UPROPERTY(EditAnywhere, Category = "Effect")
-		float m_WindScale;
+		float m_WindNoise;
+
 	TArray<TArray<FString>> m_SaveVelocityText;			//読み込んだ毎フレームの移動量を格納する配列
 	TArray<TArray<FString>> m_SaveQuatText;				//読み込んだ毎フレームの回転量を格納する配列
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
