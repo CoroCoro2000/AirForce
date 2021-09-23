@@ -200,6 +200,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Drone|Speed")
 		float GetKPH(const float DeltaTime)const { return m_Velocity.Size() * (60.f / (1.f / DeltaTime)) / 100000.f / DeltaTime * 3600.f * 5.f; }
 	
+	//	ドローンの加速フラグ取得
+	UFUNCTION(BlueprintCallable, Category = "Drone|Speed")
+		bool GetIsOverAccle()const { return m_bIsPassedRing; }
 protected:
 	//羽の加速度更新処理
 	virtual void UpdateWingAccle(const float& DeltaTime);
