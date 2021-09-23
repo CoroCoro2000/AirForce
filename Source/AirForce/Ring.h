@@ -15,6 +15,8 @@
 //前方宣言
 class UStaticMeshComponent;
 class UNiagaraComponent;
+class ADroneBase;
+class UCurveFloat;
 
 UCLASS()
 class AIRFORCE_API ARing : public AActor
@@ -50,13 +52,20 @@ private:
 	//リングのサイズ更新
 	void UpdateScale(const float& DeltaTime);
 
+	//リングのマテリアル更新
+	void UpdateMaterial(const float& DeltaTime);
+
+	//リングのエフェクト更新
+	void UpdateEffect(const float& DeltaTime);
+
+
 protected:
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* m_pRingMesh;				//リングのメッシュ
 	UPROPERTY(EditAnywhere)
 		UNiagaraComponent* m_pNiagaraEffectComp;		//リングを通過した際に出すエフェクト
 	UPROPERTY(VisibleAnywhere)
-		float m_RingScale;
+		float m_RingScale;												//リングの大きさ
 	UPROPERTY(VisibleAnywhere)
 		bool m_bIsPassed;												//このリングが通過されたか判定
 	UPROPERTY(VisibleAnywhere)
@@ -71,6 +80,10 @@ protected:
 		float m_SineScaleMax;										//サイン波の最大値
 	UPROPERTY(EditAnywhere)
 		float m_PassedSceleMax;									//リング通過後の大きさ
+	UPROPERTY(VisibleAnywhere)
+		ADroneBase* m_pPassedDrone;							//このリングを通過したドローン
 	UPROPERTY(EditAnywhere)
-		float m_EaseExp;												//EaseOutのExpの値
+		UCurveFloat* m_pCurve;
+
+	FLinearColor m_HSV;
 };
