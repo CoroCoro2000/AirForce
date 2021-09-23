@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{0BBC3B17-4766-89C6-DEB5-A1B3BDBF8129}",
+	"EngineAssociation": "4.24",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -10,8 +10,7 @@
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"Engine",
-				"ApexDestruction",
-				"UMG"
+				"ApexDestruction"
 			]
 		}
 	],
