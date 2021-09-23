@@ -303,10 +303,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		UNiagaraComponent* m_pWindEffect;									//風のエフェクト
-
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		float m_WindRotationSpeed;											//風のエフェクトの回転速度
-
+	UPROPERTY(EditAnywhere, Category = "Effect")
+		float m_WindOpacity;
+	UPROPERTY(EditAnywhere, Category = "Effect")
+		float m_WindScale;
 	TArray<TArray<FString>> m_SaveVelocityText;			//読み込んだ毎フレームの移動量を格納する配列
 	TArray<TArray<FString>> m_SaveQuatText;				//読み込んだ毎フレームの回転量を格納する配列
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")

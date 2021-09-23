@@ -466,7 +466,7 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	m_pSpringArm->SetRelativeRotation(FRotator(0.f, BodyRotation.Yaw + m_CameraRotationYaw, 0.f) * MOVE_CORRECTION);
 
 	//ˆÚ“®‚É‰ž‚¶‚ÄŽ‹–ìŠp‚ð•ÏX
-	float FOV = isMove ? 90.f : 105.f;
+	float FOV = isMove ? 90.f : (m_bIsPassedRing ? 115.f : 105.f);
 	float FOVAttenRate = FMath::Clamp(DeltaTime * 3.f, 0.f, 1.f);
 	float NewFOV = FMath::Lerp(m_pCamera->FieldOfView, FOV, FOVAttenRate);
 	m_pCamera->SetFieldOfView(NewFOV);

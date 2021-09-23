@@ -119,7 +119,7 @@ void ARing::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 		}
 	}
 
-	if (OtherComp->ComponentHasTag(TEXT("Drone")))
+	if (OverlappedComponent->ComponentHasTag(TEXT("Drone")))
 	{
 		if (m_pNiagaraEffectComp && m_pRingMesh)
 		{

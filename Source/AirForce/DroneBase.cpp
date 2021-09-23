@@ -402,9 +402,8 @@ void ADroneBase::UpdateWindEffect(const float& DeltaTime)
 		//エフェクトが進行方向へ向くようにする
 		FRotator LookAtRotation = FRotationMatrix::MakeFromX(DroneLocation - EffectLocation).Rotator();
 		//移動量の大きさからエフェクトの不透明度を設定
-		float AccelValue = FMath::Clamp(FVector2D(m_Velocity.X, m_Velocity.Y).Size() / SPEED_MAX, 0.f, 1.f);
-		float WindOpacity = (m_AxisAccel.Y < 0.f) ? AccelValue * 0.7f : 0.f;
-		float WindMask = FMath::Lerp(50.f, 40.f, AccelValue);
+		float AccelValue = FVector2D(m_Velocity.X, m_Velocity.Y).GetSafeNormal().Size();
+		float WindOpacity = (m_AxisAccel.Y < 0.f) ? AccelValue * (m_bIsPassedRing ? 1.f : 0.6f) : 0.f;
 		float effectScale = FMath::Lerp(2.f, 1.f, AccelValue);
 		float effectLocationX = FMath::Lerp(-40.f, 0.f, AccelValue);
 
