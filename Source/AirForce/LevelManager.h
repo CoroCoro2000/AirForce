@@ -32,6 +32,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	//【入力バインド】コントローラー入力設定
+	void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent);
+
 	UFUNCTION(BlueprintCallable, Category = "Input")
 		void InputUp();
 	UFUNCTION(BlueprintCallable, Category = "Input")

@@ -3,6 +3,7 @@
 
 #include "LevelManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/InputComponent.h"
 #include "Engine/World.h"
 
 // Sets default values
@@ -18,17 +19,6 @@ void ALevelManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if (PlayerController)
-	{
-		EnableInput(PlayerController);
-		//入力マッピング
-		InputComponent->BindAction(TEXT("InputUP"), EInputEvent::IE_Pressed, this, &ALevelManager::InputUp);
-		InputComponent->BindAction(TEXT("InputDown"), EInputEvent::IE_Pressed, this, &ALevelManager::InputDown);
-		InputComponent->BindAction(TEXT("InputLeft"), EInputEvent::IE_Pressed, this, &ALevelManager::InputLeft);
-		InputComponent->BindAction(TEXT("InputRight"), EInputEvent::IE_Pressed, this, &ALevelManager::InputRight);
-		InputComponent->BindAction(TEXT("InputA"), EInputEvent::IE_Pressed, this, &ALevelManager::InputA);
-	}
 }
 
 // Called every frame
@@ -36,6 +26,16 @@ void ALevelManager::Tick(float DeltaTime)
 {
 	SetTickableWhenPaused(true);
 	Super::Tick(DeltaTime);
+}
+
+void ALevelManager::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
+{
+	//入力マッピング
+	InputComponent->BindAction(TEXT("InputUP"), EInputEvent::IE_Pressed, this, &ALevelManager::InputUp);
+	InputComponent->BindAction(TEXT("InputDown"), EInputEvent::IE_Pressed, this, &ALevelManager::InputDown);
+	InputComponent->BindAction(TEXT("InputLeft"), EInputEvent::IE_Pressed, this, &ALevelManager::InputLeft);
+	InputComponent->BindAction(TEXT("InputRight"), EInputEvent::IE_Pressed, this, &ALevelManager::InputRight);
+	InputComponent->BindAction(TEXT("InputA"), EInputEvent::IE_Pressed, this, &ALevelManager::InputA);
 }
 
 void ALevelManager::InputUp()
