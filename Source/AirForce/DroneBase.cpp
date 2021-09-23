@@ -51,6 +51,8 @@ ADroneBase::ADroneBase()
 	, m_AxisValuePerFrame(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_pWindEffect(NULL)
 	, m_WindRotationSpeed(5.f)
+	, m_WindOpacity(0.f)
+	, m_WindNoise(15.f)
 	, m_bIsPassedRing(false)
 	, m_SincePassageCount(0.f)
 	, m_CountLimitTime(1.f)
@@ -230,9 +232,10 @@ void ADroneBase::UpdateRotation(const float& DeltaTime)
 	if (m_DroneMode == EDRONEMODE::DRONEMODE_AUTOMATICK)
 	{
 		float deg = 25.f;
-		float RotationSpeed = FMath::Clamp(DeltaTime * 5.f, 0.f, 1.f);
+		float RotationSpeed = FMath::Clamp(DeltaTime * 3.f, 0.f, 1.f);
 		BodyRotation.Pitch = FMath::Lerp(BodyRotation.Pitch, m_AxisValuePerFrame.Y * deg, RotationSpeed);
-		BodyRotation.Roll = FMath::Lerp(BodyRotation.Roll, m_AxisValuePerFrame.X * deg, RotationSpeed);
+		float HorizontalAxis = (FMath::Abs(m_AxisValuePerFrame.X) > FMath::Abs(m_AxisValuePerFrame.W) ? m_AxisValuePerFrame.X : m_AxisValuePerFrame.W);
+		BodyRotation.Roll = FMath::Lerp(BodyRotation.Roll, HorizontalAxis * deg, RotationSpeed);
 	}
 
 	//アマチュアで操作するとき
@@ -260,7 +263,7 @@ void ADroneBase::UpdateRotation(const float& DeltaTime)
 	//m_pBodyMesh->AddLocalRotation(qAngularVelocity * MOVE_CORRECTION, true);
 
 	FRotator NewRotation = BodyRotation;
-	NewRotation.Yaw += m_AngularVelocity.Z;
+	NewRotation.Yaw += m_AngularVelocity.Z * 0.7f;
 	m_pBodyMesh->SetRelativeRotation(NewRotation.Quaternion() * MOVE_CORRECTION, true);
 }
 
@@ -289,7 +292,6 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 		{
 			m_Velocity.Z = -3.f;
 		}
-
 	}
 
 	//マニュアルで操作するとき
@@ -393,35 +395,30 @@ float ADroneBase::UpdateGravity(const float& DeltaTime)
 //風のエフェクト更新処理
 void ADroneBase::UpdateWindEffect(const float& DeltaTime)
 {
+	if (!m_pWindEffect || !m_pBodyMesh) { return; }
 
-	if (m_pWindEffect)
-	{
-		//エフェクトとドローンの座標を取得
-		FVector EffectLocation = m_pWindEffect->GetComponentLocation();
-		FVector  DroneLocation = m_pBodyMesh->GetComponentLocation();
-		//エフェクトが進行方向へ向くようにする
-		FRotator LookAtRotation = FRotationMatrix::MakeFromX(DroneLocation - EffectLocation).Rotator();
-		//移動量の大きさからエフェクトの不透明度を設定
-		float AccelValue = FMath::Clamp(FVector2D(m_Velocity.X, m_Velocity.Y).Size() / SPEED_MAX, 0.f, 1.f);
-		float WindOpacity = (m_AxisAccel.Y < 0.f) ? AccelValue * 0.7f : 0.f;
-		float WindMask = FMath::Lerp(50.f, 40.f, AccelValue);
-		float effectScale = FMath::Lerp(2.f, 1.f, AccelValue);
-		float effectLocationX = FMath::Lerp(-40.f, 0.f, AccelValue);
+	//エフェクトとドローンの座標を取得
+	FVector EffectLocation = m_pWindEffect->GetComponentLocation();
+	FVector  DroneLocation = m_pBodyMesh->GetComponentLocation();
+	//エフェクトが進行方向へ向くようにする
+	FRotator LookAtRotation = FRotationMatrix::MakeFromX(DroneLocation - EffectLocation).Rotator();
+	//移動量の大きさからエフェクトの不透明度を設定
+	float AxisValue = FVector2D(m_AxisValuePerFrame.X, m_AxisValuePerFrame.Y).GetSafeNormal().Size();
+	//加速率を計算
+	float AccelRate = FMath::Clamp(m_AxisAccel.Size3() / m_WingAccelMax, 0.f, 1.f);
+	float Opacity = (m_AxisValuePerFrame.Y < 0.f) ? AxisValue * (m_bIsPassedRing ? 1.f : 0.6f) : 0.f;
+	m_WindOpacity = FMath::Lerp(m_WindOpacity, Opacity, DeltaTime * 5.f);
+	float WindNoise = (AxisValue != 0.f ? (m_bIsPassedRing ? 0.5f : 1.5f): 40.f);
+	m_WindNoise = FMath::Lerp(m_WindNoise, WindNoise, DeltaTime * 5.f);
+	float effectScale = FMath::Lerp(2.f, 1.f, AxisValue);
+	float effectLocationX = FMath::Lerp(-40.f, 0.f, AxisValue);
 
-		m_pWindEffect->SetRelativeScale3D(FVector(effectScale));
-		m_pWindEffect->SetWorldRotation(LookAtRotation.Quaternion());
-		m_pWindEffect->SetRelativeLocation(FVector(effectLocationX, 0.f, 0.f));
-		//エフェクトの不透明度を変更
-		m_pWindEffect->SetVariableFloat(TEXT("User.Mask"), WindOpacity);
-		m_pWindEffect->SetVariableFloat(TEXT("User.WindOpacity"), WindOpacity);
-	}
-#ifdef DEBUG_WindEffect
-	else
-	{
-		//NULLだった場合ログ表示
-		UE_LOG(LogTemp, Error, TEXT("NULL:m_pWindEffect"));
-	}
-#endif // DEBUG_WindEffect
+	m_pWindEffect->SetRelativeScale3D(FVector(effectScale));
+	m_pWindEffect->SetWorldRotation(LookAtRotation.Quaternion());
+	m_pWindEffect->SetRelativeLocation(FVector(effectLocationX, 0.f, 0.f));
+	//エフェクトの不透明度を変更
+	m_pWindEffect->SetVariableFloat(TEXT("User.Mask"), m_WindNoise);
+	m_pWindEffect->SetVariableFloat(TEXT("User.WindOpacity"), m_WindOpacity);
 }
 
 //高度の上限をを超えているか確認
@@ -517,7 +514,7 @@ void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* 
 			FVector reflectVector = progressVector - dot * 2.f * HitActorNormal;
 
 			//反射ベクトルを進行方向に設定
-			m_AxisAccel = reflectVector * 0.5f;
+			m_AxisAccel = FVector4(reflectVector * 0.5f, m_AxisAccel.W);
 		}
 
 		m_isFloating = true;

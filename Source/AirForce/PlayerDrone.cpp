@@ -33,7 +33,7 @@ APlayerDrone::APlayerDrone()
 	, m_CameraTargetLength(90.f)
 	, m_FieldOfView(90.f)
 	, m_CameraSocketOffset(FVector::ZeroVector)
-	, m_CameraSocketOffsetMax(FVector(30.f, 45.f, 30.f))
+	, m_CameraSocketOffsetMax(FVector(30.f, 45.f, 45.f))
 	, m_CameraMoveLimit(FVector(10.f, 40.f, 20.f))
 	, m_CameraRotationAttenRate(FRotator(3.f, 3.f, 2.f))
 	, m_pLightlineEffect(NULL)
@@ -428,18 +428,7 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 		FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Roll, 0.f, 1.f));
 
 	//移動量に応じてカメラのブレを大きくする
-	bool isMove = m_AxisValuePerFrame.IsNearlyZero3();
-	//float NoiseSpeed = isMove ? 1.5f : 0.5f;
-	//float NoiseCoeff = isMove ? 2.2f : 1.3f;
-	//float t = DeltaTime * NoiseSpeed;
-	//FVector Noise = FVector(
-	//	FMath::PerlinNoise2D(FVector2D(t, t + 5.f)),
-	//	FMath::PerlinNoise2D(FVector2D(t + 10.f, t + 15.f)) * NoiseCoeff,
-	//	FMath::PerlinNoise2D(FVector2D(t + 25.f, t + 20.f)) * NoiseCoeff * 0.5f);
-
-	//FQuat NoiseRot = FQuat::MakeFromEuler(Noise);
-	//FQuat NoiseQuat = FQuat::Slerp(CameraRotation.Quaternion(), NoiseRot, DeltaTime * 5.f);
-
+	bool isMove = !m_AxisValuePerFrame.IsNearlyZero3();
 	//指定の角度まで補間しながら回転させる
 	//斜面を登っているときは見上げるような角度にする
 	if (isClimbingSlope)
@@ -456,17 +445,23 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	CameraRotation.Roll = FMath::Lerp(CameraRotation.Roll, BodyRotation.Roll * 0.7f, AttenRate.Roll);
 
 	//ソケットの位置を更新
-	float SocketAttenRate = FMath::Clamp(DeltaTime * 1.5f, 0.f, 1.f);
-	m_pSpringArm->SocketOffset.X = FMath::Lerp(m_pSpringArm->SocketOffset.X, m_AxisValuePerFrame.Y * m_CameraSocketOffsetMax.X, SocketAttenRate);
-	m_pSpringArm->SocketOffset.Y = FMath::Lerp(m_pSpringArm->SocketOffset.Y, m_AxisValuePerFrame.X * m_CameraSocketOffsetMax.Y, SocketAttenRate);
-	m_pSpringArm->SocketOffset.Z = FMath::Lerp(m_pSpringArm->SocketOffset.Z, -CameraRotation.Pitch, SocketAttenRate);
+	FVector SocketAttenRate = FVector(
+		FMath::Clamp(DeltaTime * 1.5f, 0.f, 1.f),
+		FMath::Clamp(DeltaTime * 0.8f, 0.f, 1.f),
+		FMath::Clamp(DeltaTime * 1.5f, 0.f, 1.f));
+
+	float HorizontalAxis = (FMath::Abs(m_AxisValuePerFrame.X) > FMath::Abs(m_AxisValuePerFrame.W) ? m_AxisValuePerFrame.X : m_AxisValuePerFrame.W);
+
+	m_pSpringArm->SocketOffset.X = FMath::Lerp(m_pSpringArm->SocketOffset.X, m_AxisValuePerFrame.Y * m_CameraSocketOffsetMax.X, SocketAttenRate.X);
+	m_pSpringArm->SocketOffset.Y = FMath::Lerp(m_pSpringArm->SocketOffset.Y, HorizontalAxis * m_CameraSocketOffsetMax.Y, SocketAttenRate.Y);
+	m_pSpringArm->SocketOffset.Z = FMath::Lerp(m_pSpringArm->SocketOffset.Z, -CameraRotation.Pitch, SocketAttenRate.Z);
 
 	//カメラの回転を更新
 	m_pCamera->SetRelativeRotation(CameraRotation.Quaternion() * MOVE_CORRECTION);
 	m_pSpringArm->SetRelativeRotation(FRotator(0.f, BodyRotation.Yaw + m_CameraRotationYaw, 0.f) * MOVE_CORRECTION);
 
 	//移動に応じて視野角を変更
-	float FOV = isMove ? 90.f : 105.f;
+	float FOV = isMove ? (m_bIsPassedRing ? 115.f : 105.f) : 90.f;
 	float FOVAttenRate = FMath::Clamp(DeltaTime * 3.f, 0.f, 1.f);
 	float NewFOV = FMath::Lerp(m_pCamera->FieldOfView, FOV, FOVAttenRate);
 	m_pCamera->SetFieldOfView(NewFOV);
