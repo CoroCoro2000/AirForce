@@ -28,7 +28,7 @@ ARing::ARing()
 	, m_PassedSceleMax(3.f)
 	, m_pPassedDrone(NULL)
 	, m_pCurve(NULL)
-	, m_HSV(30.f, 50.f, 30.f)
+	, m_HSV(30.f, 40.f, 30.f)
 {
 	//毎フレームTickを呼び出すかどうかのフラグ
 	PrimaryActorTick.bCanEverTick = true;
@@ -133,7 +133,7 @@ void ARing::UpdateMaterial(const float& DeltaTime)
 	{
 		//くぐられてからの経過率を求める
 		const float elapsedRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
-		m_HSV = FLinearColor::LerpUsingHSV(m_HSV, FLinearColor(m_HSV.R, 360.f, 50.f), elapsedRate);
+		m_HSV = FLinearColor::LerpUsingHSV(m_HSV, FLinearColor(m_HSV.R, m_HSV.G, 50.f), elapsedRate);
 
 		m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("BlendColor"), FVector(m_HSV.HSVToLinearRGB()));
 		m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), 1.f - elapsedRate);
