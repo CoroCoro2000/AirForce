@@ -36,6 +36,9 @@ APlayerDrone::APlayerDrone()
 	, m_CameraSocketOffsetMax(FVector(30.f, 45.f, 45.f))
 	, m_CameraMoveLimit(FVector(10.f, 40.f, 20.f))
 	, m_CameraRotationAttenRate(FRotator(3.f, 3.f, 2.f))
+	, m_MotionBlurAmount(1.f)
+	, m_MotionBlurMax(10.f)
+	, m_MotionBlurTargetFPS(10)
 	, m_pLightlineEffect(NULL)
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_CameraRotationYaw(0.f)
@@ -465,6 +468,14 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	float FOVAttenRate = FMath::Clamp(DeltaTime * 3.f, 0.f, 1.f);
 	float NewFOV = FMath::Lerp(m_pCamera->FieldOfView, FOV, FOVAttenRate);
 	m_pCamera->SetFieldOfView(NewFOV);
+
+	//移動に応じてモーションブラーをかける
+	float MotionBlurAmount = isMove ? (m_bIsPassedRing ? m_MotionBlurAmount : m_MotionBlurAmount * 0.8f) : 0.5f;
+	float MotionBlurMax = isMove ? (m_bIsPassedRing ? m_MotionBlurMax : m_MotionBlurMax * 0.8f) : 5.f;
+	int32 MotionBlurTargetFPS = isMove ? (m_bIsPassedRing ? m_MotionBlurTargetFPS : m_MotionBlurTargetFPS * 0.8f) : 30;
+	m_pCamera->PostProcessSettings.MotionBlurAmount = FMath::Lerp(m_pCamera->PostProcessSettings.MotionBlurAmount, MotionBlurAmount, FOVAttenRate);
+	m_pCamera->PostProcessSettings.MotionBlurMax = FMath::Lerp(m_pCamera->PostProcessSettings.MotionBlurMax, MotionBlurMax, FOVAttenRate);
+	m_pCamera->PostProcessSettings.MotionBlurTargetFPS = MotionBlurTargetFPS;
 }
 
 //カメラとの遮蔽物のコリジョン判定
