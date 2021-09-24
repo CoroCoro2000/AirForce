@@ -143,12 +143,17 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
 		FRotator m_CameraRotationAttenRate;							//カメラが傾く速さ
+
+	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
+		float m_MotionBlurAmount;											//モーションブラーの強度
+	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
+		float m_MotionBlurMax;													//モーションブラーの最大歪み
+	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
+		int32 m_MotionBlurTargetFPS;											//モーションブラーのターゲットFPS
 	//-------------------------------------------------------------------------------------------------------
 private:
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		UNiagaraSystem* m_pLightlineEffect;									//ラインエフェクト
-
-	TArray<AActor*> m_pHitActors;											//スプリングアームの直線に衝突しているActor
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
 		FVector4 m_AxisValue;												//各軸の入力値(0:AILERON、1:ELEVATOR、2:THROTTLE、3:LADDER)
