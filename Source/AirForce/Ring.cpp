@@ -27,7 +27,6 @@ ARing::ARing()
 	, m_SineScaleMax(1.05f)
 	, m_PassedSceleMax(3.f)
 	, m_pPassedDrone(NULL)
-	, m_pCurve(NULL)
 	, m_HSV(30.f, 40.f, 30.f)
 {
 	//毎フレームTickを呼び出すかどうかのフラグ
@@ -96,7 +95,7 @@ void ARing::Tick(float DeltaTime)
 //リングのサイズ更新
 void ARing::UpdateScale(const float& DeltaTime)
 {
-	if (!m_pRingMesh || !m_pCurve) { return; }
+	if (!m_pRingMesh) { return; }
 
 	//リングが通過されていない間は一定の周期で大きさを変える
 	if (!m_bIsPassed)
@@ -114,44 +113,66 @@ void ARing::UpdateScale(const float& DeltaTime)
 	//リングが通過されたら大きくする
 	else
 	{
-		//経過率で大きさを変える
 		const float elapsedRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
-		float RingScale = m_pCurve->GetFloatValue(m_MakeInvisibleCnt);
+		FVector DroneLocation = m_pPassedDrone->GetActorLocation();
+		FVector RingLocation = GetActorLocation();
+		FRotator TargetRotation = FRotationMatrix::MakeFromX(DroneLocation - RingLocation).Rotator();
 
-		SetActorScale3D(FVector(RingScale));
+		//経過率で大きさを変える
+		float Scale = FMath::Lerp(m_RingScale, m_RingScale * 0.2f, elapsedRate);
+		SetActorScale3D(FVector(Scale));
+
 		//徐々に座標と回転をプレイヤーに合わせる
 		SetActorLocationAndRotation(
-			FMath::Lerp(GetActorLocation(), m_pPassedDrone->GetActorLocation(), RingScale),
-			FMath::Lerp(GetActorQuat(), m_pPassedDrone->GetBodyMeshRotation().Quaternion(), RingScale));
+			FMath::Lerp(RingLocation, DroneLocation, elapsedRate),
+			FMath::Lerp(GetActorQuat(), TargetRotation.Quaternion(), elapsedRate));
 	}
 }
 
 //リングのマテリアル更新
 void ARing::UpdateMaterial(const float& DeltaTime)
 {
-	if (m_pRingMesh && m_bIsPassed)
+	if (!m_pRingMesh) { return; }
+
+	if (m_bIsPassed)
 	{
 		//くぐられてからの経過率を求める
 		const float elapsedRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
-		m_HSV = FLinearColor::LerpUsingHSV(m_HSV, FLinearColor(m_HSV.R, m_HSV.G, 50.f), elapsedRate);
+		m_HSV = FLinearColor::LerpUsingHSV(m_HSV, FLinearColor(5.f, m_HSV.G, 70.f), elapsedRate);
 
+		m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), 1.f);
 		m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("BlendColor"), FVector(m_HSV.HSVToLinearRGB()));
 		m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), 1.f - elapsedRate);
+	}
+	else
+	{
+		//サイン波の幅を設定
+		const float WaveWidth = m_SineWidth * GetWorld()->GetTimeSeconds();
+		//サイン波の大きさを0から1に正規化する
+		const float SinWave = FMath::Sin(WaveWidth) * 0.5f + 0.5f;
+		//サイン波の値でリングの色相を変える
+		m_HSV.R = FMath::Lerp(50.f, 30.f, SinWave);
+		m_HSV.B = FMath::Lerp(30.f, 50.f, SinWave);
+		
+		m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("BlendColor"), FVector(m_HSV.HSVToLinearRGB()));
 	}
 }
 
 //リングのエフェクト更新
 void ARing::UpdateEffect(const float& DeltaTime)
 {
-	if (!m_bIsPassed || !m_pNiagaraEffectComp || !m_pPassedDrone) { return; }
+	if (!m_pNiagaraEffectComp || !m_pPassedDrone) { return; }
 
-	//ドローンに近づく速度
-	const float elapsedRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
-	FLinearColor EffectColor = FLinearColor::LerpUsingHSV(FLinearColor::Red, FLinearColor::Blue, elapsedRate);
+	if (m_bIsPassed)
+	{
+		//ドローンに近づく速度
+		const float elapsedRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
+		FLinearColor EffectColor = FLinearColor::LerpUsingHSV(FLinearColor::Red, FLinearColor::Blue, elapsedRate);
 
-	//経過時間に合わせて消していく
-	m_pNiagaraEffectComp->SetVariableLinearColor(TEXT("User.Color"), EffectColor);
-	m_pNiagaraEffectComp->SetVariableFloat(TEXT("User.Opacity"), 1 - elapsedRate);
+		//経過時間に合わせて消していく
+		m_pNiagaraEffectComp->SetVariableLinearColor(TEXT("User.Color"), EffectColor);
+	}
+
 }
 
 //オーバーラップ開始時に呼ばれる処理

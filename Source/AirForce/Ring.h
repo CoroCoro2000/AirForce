@@ -83,7 +83,5 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 		ADroneBase* m_pPassedDrone;							//‚±‚ÌƒŠƒ“ƒO‚ğ’Ê‰ß‚µ‚½ƒhƒ[ƒ“
 	UPROPERTY(EditAnywhere)
-		UCurveFloat* m_pCurve;
-	UPROPERTY(EditAnywhere)
 		FLinearColor m_HSV;
 };
