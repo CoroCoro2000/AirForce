@@ -114,18 +114,15 @@ void ARing::UpdateScale(const float& DeltaTime)
 	else
 	{
 		const float elapsedRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
-		FVector DroneLocation = m_pPassedDrone->GetActorLocation();
-		FVector RingLocation = GetActorLocation();
-		FRotator TargetRotation = FRotationMatrix::MakeFromX(DroneLocation - RingLocation).Rotator();
 
 		//経過率で大きさを変える
-		float Scale = FMath::Lerp(m_RingScale, m_RingScale * 0.2f, elapsedRate);
+		float Scale = FMath::Lerp(m_RingScale, m_RingScale * 0.05f, elapsedRate);
 		SetActorScale3D(FVector(Scale));
 
 		//徐々に座標と回転をプレイヤーに合わせる
 		SetActorLocationAndRotation(
-			FMath::Lerp(RingLocation, DroneLocation, elapsedRate),
-			FMath::Lerp(GetActorQuat(), TargetRotation.Quaternion(), elapsedRate));
+			FMath::Lerp(GetActorLocation(), m_pPassedDrone->GetActorLocation(), elapsedRate),
+			FMath::Lerp(GetActorQuat(), m_pPassedDrone->GetBodyMeshRotation().Quaternion(), elapsedRate));
 	}
 }
 
