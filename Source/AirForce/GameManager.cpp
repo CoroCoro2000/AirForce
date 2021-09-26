@@ -14,7 +14,6 @@
 #include "Misc/FileHelper.h"
 #include "Kismet/GameplayStatics.h"
 
-#define ScoreTxt "Score.txt"
 //コンストラクタ
 AGameManager::AGameManager()
 	: m_CurrentScene(ECURRENTSCENE::SCENE_TITLE)
