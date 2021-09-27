@@ -36,9 +36,9 @@ APlayerDrone::APlayerDrone()
 	, m_CameraSocketOffsetMax(FVector(30.f, 45.f, 45.f))
 	, m_CameraMoveLimit(FVector(10.f, 40.f, 20.f))
 	, m_CameraRotationAttenRate(FRotator(3.f, 3.f, 2.f))
-	, m_MotionBlurAmount(1.f)
-	, m_MotionBlurMax(10.f)
-	, m_MotionBlurTargetFPS(10)
+	, m_MotionBlurAmount(1.5f)
+	, m_MotionBlurMax(15.f)
+	, m_MotionBlurTargetFPS(8)
 	, m_pLightlineEffect(NULL)
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_CameraRotationYaw(0.f)
@@ -273,11 +273,10 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 		{
 			m_SincePassageCount += DeltaTime;
 		}
-		//上限を越えたら、フラグとカウンターをリセットする
+		//上限を越えたら、フラグを降ろす
 		else
 		{
 			m_bIsPassedRing = false;
-			m_SincePassageCount = 0.f;
 		}
 	}
 
@@ -464,7 +463,7 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	m_pSpringArm->SetRelativeRotation(FRotator(0.f, BodyRotation.Yaw + m_CameraRotationYaw, 0.f) * MOVE_CORRECTION);
 
 	//移動に応じて視野角を変更
-	float FOV = isMove ? (m_bIsPassedRing ? 115.f : 105.f) : 90.f;
+	float FOV = isMove ? (m_bIsPassedRing ? 125.f : 105.f) : 90.f;
 	float FOVAttenRate = FMath::Clamp(DeltaTime * 3.f, 0.f, 1.f);
 	float NewFOV = FMath::Lerp(m_pCamera->FieldOfView, FOV, FOVAttenRate);
 	m_pCamera->SetFieldOfView(NewFOV);

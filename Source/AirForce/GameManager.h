@@ -38,7 +38,6 @@ namespace ENEXTSCENE
 	enum Type
 	{
 		SCENE_ONCEMORE = 0		UMETA(DisPlayName = "ONCEMORE"),
-		SCENE_RASECHANGE			UMETA(DisPlayName = "RASECHANGE"),
 		SCENE_EXIT						UMETA(DisPlayName = "EXIT"),
 	};
 }

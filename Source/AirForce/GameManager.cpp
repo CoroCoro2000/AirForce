@@ -102,6 +102,10 @@ void AGameManager::Tick(float DeltaTime)
 		if (m_isStart & !m_isGoal)
 		{
 			m_RapTime += DeltaTime;
+			if (m_RapTime > 599.999f)
+			{
+				m_RapTime = 599.999f;
+			}
 		}
 		
 		//ƒS[ƒ‹‚µ‚½‚È‚ç
@@ -205,9 +209,9 @@ void AGameManager::NextSceneUp()
 	if (!m_isSceneTransition) { return; }
 		
 	m_NextScene--;
-	if ((int)m_NextScene.GetNextScene() > 2)
+	if ((int)m_NextScene.GetNextScene() < 0)
 	{
-		m_NextScene = 2;
+		m_NextScene = 1;
 	}
 }
 

@@ -66,13 +66,13 @@ ADroneBase::ADroneBase()
 	if (m_pDroneCollision)
 	{
 		RootComponent = m_pDroneCollision;
-		m_pDroneCollision->SetSphereRadius(9.f);
+		m_pDroneCollision->SetSphereRadius(8.f);
 		//タグを追加
 		m_pDroneCollision->ComponentTags.Add(TEXT("Drone"));
 	}
 
 	//ボディのメッシュアセットを探索
-	ConstructorHelpers::FObjectFinder<UStaticMesh> pBodyMesh(TEXT("StaticMesh'/Game/Model/Drone/Drone_Mesh/CGAXR_2021_07_31/Body/CGAXR_BODY.CGAXR_BODY'"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> pBodyMesh(TEXT("StaticMesh'/Game/Model/Drone/NewDrone/Drone.Drone'"));
 	//ボディメッシュ生成
 	m_pBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
 
@@ -408,9 +408,9 @@ void ADroneBase::UpdateWindEffect(const float& DeltaTime)
 	float AccelRate = FMath::Clamp(m_AxisAccel.Size3() / m_WingAccelMax, 0.f, 1.f);
 	float Opacity = (m_AxisValuePerFrame.Y < 0.f) ? AxisValue * (m_bIsPassedRing ? 1.f : 0.6f) : 0.f;
 	m_WindOpacity = FMath::Lerp(m_WindOpacity, Opacity, DeltaTime * 5.f);
-	float WindNoise = (AxisValue != 0.f ? (m_bIsPassedRing ? 0.5f : 1.5f): 40.f);
+	float WindNoise = (AxisValue != 0.f ? (m_bIsPassedRing ? 15.f : 20.f): 40.f);
 	m_WindNoise = FMath::Lerp(m_WindNoise, WindNoise, DeltaTime * 5.f);
-	float effectScale = FMath::Lerp(2.f, 1.f, AxisValue);
+	float effectScale = FMath::Lerp(5.f, 3.f, AxisValue);
 	float effectLocationX = FMath::Lerp(-40.f, 0.f, AxisValue);
 
 	m_pWindEffect->SetRelativeScale3D(FVector(effectScale));
@@ -469,21 +469,11 @@ void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedCom
 {
 	if (OtherActor && OtherActor != this)
 	{
-		//タグがPlayerだった場合
-		if (OtherActor->ActorHasTag(TEXT("Player")))
-		{
-			return;
-		}
-
 		//タグがRingだった場合
 		if (OtherActor->ActorHasTag(TEXT("Ring")))
 		{
-			//すでにリングを取って加速中だった場合、加速カウンターをリセットする
-			if (m_bIsPassedRing)
-			{
-				m_SincePassageCount = 0.f;
-			}
 			//上限を越えて加速できるようにする
+			m_SincePassageCount = 0.f;
 			m_bIsPassedRing = true;
 		}
 	}
