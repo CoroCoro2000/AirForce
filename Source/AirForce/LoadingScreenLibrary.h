@@ -59,8 +59,8 @@ class AIRFORCE_API ULoadingScreenLibrary : public UBlueprintFunctionLibrary
 		static float GetLoadingProgress(const UObject* WorldContextObject);
 
 	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"))
-		static void ShowSimpleLoadingScreen(const UObject* WorldContextObject);
+		static void ShowLoadingScreen(const UObject* WorldContextObject);
 
 	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"))
-		static void HideSimpleLoadingScreen(const UObject* WorldContextObject);
+		static void HideLoadingScreen(const UObject* WorldContextObject);
 };

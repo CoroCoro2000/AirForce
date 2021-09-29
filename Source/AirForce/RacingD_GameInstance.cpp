@@ -26,7 +26,10 @@ void URacingD_GameInstance::Init()
 
 void URacingD_GameInstance::Shutdown()
 {
-	pLoadingScreenSystem.Reset();
+	if (pLoadingScreenSystem.IsValid())
+	{
+		pLoadingScreenSystem.Reset();
+	}
 	Super::Shutdown();
 }
 
