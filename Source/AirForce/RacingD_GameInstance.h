@@ -6,6 +6,8 @@
 #include "Engine/GameInstance.h"
 #include "RacingD_GameInstance.generated.h"
 
+class FLoadingScreenSystem;
+
 /**
  * 
  */
@@ -14,12 +16,18 @@ class AIRFORCE_API URacingD_GameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 
+
+
 public:
 	//コンストラクタ
 	URacingD_GameInstance();
 	
-	
-	//レベルコントローラ関数
+private:
+	virtual void Init() override;
+	virtual void Shutdown() override;
+
+public:
+//レベルコントローラ関数
 //-----------------------------------------------------------
 //レベルロード完了時に呼び出される関数
 	UFUNCTION()
@@ -35,6 +43,9 @@ public:
 	//ロード/アンロードが終了したか確認する関数
 	bool IsCompleted() const { return m_bLoadComplete; }
 	//-----------------------------------------------------------
+public:
+	TSharedPtr<FLoadingScreenSystem> pLoadingScreenSystem;
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "LevelController")
 		FLatentActionInfo m_LatentAction;

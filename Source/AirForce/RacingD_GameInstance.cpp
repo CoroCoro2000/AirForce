@@ -3,6 +3,7 @@
 
 
 #include "RacingD_GameInstance.h"
+#include "LoadingScreenLibrary.h"
 #include "Engine/LatentActionManager.h"
 #include "Engine/Engine.h"
 #include "Engine/LevelStreaming.h"
@@ -12,8 +13,21 @@
 URacingD_GameInstance::URacingD_GameInstance()
 	: m_LatentAction(0, 1, TEXT("Completed"), this)
 	, m_bLoadComplete(false)
-{
+{}
 
+void URacingD_GameInstance::Init()
+{
+	Super::Init();
+
+	pLoadingScreenSystem = MakeShareable(new FLoadingScreenSystem(this));
+	m_LatentAction = FLatentActionInfo(0, 1, TEXT("Completed"), this);
+	m_bLoadComplete = false;
+}
+
+void URacingD_GameInstance::Shutdown()
+{
+	pLoadingScreenSystem.Reset();
+	Super::Shutdown();
 }
 
 //ƒŒƒxƒ‹‚Ìƒ[ƒhˆ—
