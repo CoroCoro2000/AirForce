@@ -381,8 +381,9 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	float RotYaw = m_pBodyMesh->GetComponentRotation().Yaw;
 	FQuat BodyQuat = FRotator(0.f, RotYaw, 0.f).Quaternion();
 
+	float RayLength = 1500.f;
 	FVector Start = GetActorLocation();
-	FVector End = Start + BodyQuat.GetForwardVector() * 1500.f;
+	FVector End = Start + BodyQuat.GetForwardVector() * RayLength;
 	//ヒット結果を格納する配列
 	TArray<FHitResult> OutHits;
 	//トレースする対象(自身は対象から外す)
