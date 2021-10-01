@@ -159,11 +159,20 @@ void AGameManager::CountDown(float DeltaTime)
 	//スタートしたなら処理しない
 	if (m_isStart) { return; }
 
+	FString m_prevCountDownText = m_CountDownText;	//1フレーム前のカウントダウンテキスト
+
 	m_CountDownTime -= DeltaTime;
+	m_CountDownText = FString::FromInt(int(m_CountDownTime) + 1);
+
+	if (m_CountDownText != m_prevCountDownText)
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), m_CountDownSE);
+	}
 
 	if (m_CountDownTime <= 0.f)
 	{
 		UGameplayStatics::PlaySound2D(GetWorld(), m_StartSE);
+		m_CountDownText = "";
 		m_isStart = true;
 	}
 
