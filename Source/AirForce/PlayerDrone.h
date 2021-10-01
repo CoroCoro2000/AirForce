@@ -30,11 +30,21 @@ namespace EINPUT_AXIS
 {
 	enum Type
 	{
-		THROTTLE					UMETA(DisplayName = "THROTTLE"),	//上下
-		ELEVATOR					UMETA(DisplayName = "ELEVATOR"),	//前後
+		THROTTLE				UMETA(DisplayName = "THROTTLE"),//上下
+		ELEVATOR				UMETA(DisplayName = "ELEVATOR"),//前後
 		AILERON					UMETA(DisplayName = "AILERON"),	//左右
-		LADDER						UMETA(DisplayName = "LADDER"),		//旋回
-		NUM							UMETA(Hidden)
+		LADDER					UMETA(DisplayName = "LADDER"),	//旋回
+		NUM						UMETA(Hidden)
+	};
+}
+
+namespace EPATH_DRONE
+{
+	enum Type
+	{
+		REPLAY					UMETA(DisplayName = "REPLAY"),	//リプレイ
+		BEST					UMETA(DisplayName = "BEST"),	//ベストタイム
+		NUM						UMETA(Hidden)
 	};
 }
 
@@ -66,11 +76,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
 		bool IsMoving(const FVector _axisValue)const { return  (!_axisValue.IsZero() ? true : false); }
 
-	//レースの座標ファイル書き込み
-	void WritingRaceVector();
+	//リプレイのレースの座標ファイル書き込み
+	UFUNCTION(BlueprintCallable, Category = "SaveRecord")
+		void WritingReplayRaceVector();
+	//リプレイのレースのクオータニオンファイル書き込み
+	UFUNCTION(BlueprintCallable, Category = "SaveRecord")
+		void WritingReplayRaceQuaternion();
 
-	//レースのクオータニオンファイル書き込み
-	void WritingRaceQuaternion();
+	//1位のレースの座標ファイル書き込み
+	UFUNCTION(BlueprintCallable, Category = "SaveRecord")
+		void WritingBestRaceVector();
+	//1位のレースのクオータニオンファイル書き込み
+	UFUNCTION(BlueprintCallable, Category = "SaveRecord")
+		void WritingBestRaceQuaternion();
+
 	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
 		void SetIsOutCourse(const bool _isOutCourse) { m_bIsOutCourse = _isOutCourse; }
 	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
@@ -157,6 +176,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
 		FVector4 m_AxisValue;												//各軸の入力値(0:AILERON、1:ELEVATOR、2:THROTTLE、3:LADDER)
+
+	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
+		TArray<FString> SaveFolderPath;
 
 	float m_CameraRotationYaw;
 

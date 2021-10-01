@@ -100,6 +100,9 @@ public:
 	//カウントダウン処理
 	void CountDown(float DeltaTime);
 
+	//リザルト処理
+	void Result(float DeltaTime);
+
 	void NextSceneUp();
 	void NextSceneDown();
 
@@ -166,6 +169,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Result")
 		FText GetRapTimeRanking(int n) { return n < m_RapTimeText.Num() ? FText::FromString(m_RapTimeText[n]) : FText::FromString(m_RapDefaultText); }
 
+	//プレイヤードローン情報取得
+	UFUNCTION(BlueprintCallable, Category = "Drone")
+		ADroneBase* GetPlayerDrone() {return m_PlayerDrone;}
+
 	//今回のタイムのプレイヤーの順位取得
 	UFUNCTION(BlueprintCallable, Category = "Result")
 		int GetPlayerRank() { return m_PlayerRank; }
@@ -213,6 +220,8 @@ private:
 		ADroneBase* m_PlayerDrone;						//プレイヤードローン
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
 		ADroneBase* m_GhostDrone;						//ゴーストドローン
+	UPROPERTY(VisibleAnywhere, Category = "Drone")
+		ADroneBase* m_ReplayDrone;						//リプレイドローン
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
 		int m_GoalRingNumber;						//ゴールのリングの通し番号
