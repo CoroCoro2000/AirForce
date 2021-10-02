@@ -87,7 +87,7 @@ struct FRandomizeStatus
 
 //デバッグ用define
 //#define DEBUG_TRANSFORM			//トランスフォームのログ出力
-#define DEBUG_INSTANCECOUNT		//保持しているメッシュインスタンスの数を出力
+//#define DEBUG_INSTANCECOUNT		//保持しているメッシュインスタンスの数を出力
 
 UCLASS()
 class AIRFORCE_API AAlignedProceduralMesh : public AActor

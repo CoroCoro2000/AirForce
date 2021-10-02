@@ -7,6 +7,7 @@
 #include "Engine/Engine.h"
 #include "Engine/LevelStreaming.h"
 #include "UnrealEngine.h"
+#include "Engine/GameViewportClient.h"
 #include "UObject/UObjectGlobals.h"
 #include "Framework/Application/SlateApplication.h"
 
@@ -36,7 +37,7 @@ float FLoadingScreenSystem::GetLoadingProgress()
 {
 	float Sum = 0.f;
 	int32 PackageNum = 1;
-	UPackage* PersistentLevelPackage = FindObjectFast<UPackage>(NULL, PackageName);
+	UPackage* PersistentLevelPackage = FindObjectFast<UPackage>(NULL, PackageName, true, true);
 	if (PersistentLevelPackage && (PersistentLevelPackage->GetLoadTime() > 0))
 	{
 		Sum += 100.0f;
@@ -185,7 +186,6 @@ void ULoadingScreenLibrary::SetLoadingScreenWidget(UUserWidget* InWidget)
 	URacingD_GameInstance* GameInstance = Cast<URacingD_GameInstance>(World->GetGameInstance());
 	if (GameInstance == nullptr) { return; }
 	TSharedRef<SWidget> TakenWidget = InWidget->TakeWidget();
-	if (GameInstance->pLoadingScreenSystem.IsValid() == false) { return; }
 	GameInstance->pLoadingScreenSystem->SetWidget(TakenWidget);
 }
 
@@ -195,7 +195,6 @@ void ULoadingScreenLibrary::SetTargetPackageForLoadingProgress(const UObject* Wo
 	if (World == nullptr) { return; }
 	URacingD_GameInstance* GameInstance = Cast<URacingD_GameInstance>(World->GetGameInstance());
 	if (GameInstance == nullptr) { return; }
-	if (GameInstance->pLoadingScreenSystem.IsValid() == false) { return; }
 	return GameInstance->pLoadingScreenSystem->SetPackageNameForLoadingProgress(InPackageName);
 }
 
@@ -209,7 +208,6 @@ float ULoadingScreenLibrary::GetLoadingProgress(const UObject* WorldContextObjec
 		GameInstance = Cast<URacingD_GameInstance>(World->GetGameInstance());
 		if (GameInstance == nullptr) { return 0; }
 	}
-	if (GameInstance->pLoadingScreenSystem.IsValid() == false) { return 0; }
 	return GameInstance->pLoadingScreenSystem->GetLoadingProgress();
 }
 
@@ -219,7 +217,6 @@ void ULoadingScreenLibrary::ShowLoadingScreen(const UObject* WorldContextObject)
 	if (World == nullptr) { return; }
 	URacingD_GameInstance* GameInstance = Cast<URacingD_GameInstance>(World->GetGameInstance());
 	if (GameInstance == nullptr) { return; }
-	if (GameInstance->pLoadingScreenSystem.IsValid() == false) { return; }
 	GameInstance->pLoadingScreenSystem->ShowLoadingScreen();
 }
 
@@ -229,6 +226,5 @@ void ULoadingScreenLibrary::HideLoadingScreen(const UObject* WorldContextObject)
 	if (World == nullptr) { return; }
 	URacingD_GameInstance* GameInstance = Cast<URacingD_GameInstance>(World->GetGameInstance());
 	if (GameInstance == nullptr) { return; }
-	if (GameInstance->pLoadingScreenSystem.IsValid() == false) { return; }
 	GameInstance->pLoadingScreenSystem->HideLoadingScreen();
 }

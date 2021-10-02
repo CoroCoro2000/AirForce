@@ -21,15 +21,15 @@ class AIRFORCE_API URacingD_GameInstance : public UGameInstance
 public:
 	//コンストラクタ
 	URacingD_GameInstance();
-	
+
 private:
 	virtual void Init() override;
 	virtual void Shutdown() override;
 
 public:
-//レベルコントローラ関数
-//-----------------------------------------------------------
-//レベルロード完了時に呼び出される関数
+	//レベルコントローラ関数
+	//-----------------------------------------------------------
+	//レベルロード完了時に呼び出される関数
 	UFUNCTION()
 		void Completed() { m_bLoadComplete = true; }
 	//レベルのロード処理
@@ -47,8 +47,6 @@ public:
 	TSharedPtr<FLoadingScreenSystem> pLoadingScreenSystem;
 
 private:
-	UPROPERTY(VisibleAnywhere, Category = "LevelController")
-		FLatentActionInfo m_LatentAction;
-	UPROPERTY(VisibleAnywhere, Category = "LevelController")
-		bool m_bLoadComplete;
+	FLatentActionInfo m_LatentAction;
+	bool m_bLoadComplete;
 };

@@ -46,8 +46,8 @@ class AIRFORCE_API ULoadingScreenLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
-
 	ULoadingScreenLibrary(const FObjectInitializer& ObjectInitializer);
+public:
 	UFUNCTION(BlueprintCallable)
 	static void SetLoadingScreenWidget(UUserWidget* InWidget);
 
