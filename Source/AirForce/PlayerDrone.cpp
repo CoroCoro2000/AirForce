@@ -491,7 +491,7 @@ void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 }
 
 //レースの座標保存
-void APlayerDrone::WritingRaceVector()
+void APlayerDrone::WritingBestRaceVector()
 {
 	if (m_SaveVelocityText.Num() != m_SaveVelocityLoadPath.Num()) { return; }
 
@@ -499,14 +499,14 @@ void APlayerDrone::WritingRaceVector()
 	int index = 0;
 	for (const TArray<FString>& SaveVelocityText : m_SaveVelocityText)
 	{
-		FString FliePath = FPaths::ProjectDir() + m_SaveVelocityLoadPath[index];
+		FString FliePath = FPaths::ProjectDir() + SaveFolderPath[EPATH_DRONE::BEST] + m_SaveVelocityLoadPath[index];
 		FFileHelper::SaveStringArrayToFile(SaveVelocityText, *FliePath);
 		++index;
 	}
 }
 
-//レースのクオータニオン
-void APlayerDrone::WritingRaceQuaternion()
+//レースのクオータニオン保存
+void APlayerDrone::WritingBestRaceQuaternion()
 {
 	if (m_SaveQuatText.Num() != m_SaveQuatLoadPath.Num()) { return; }
 
@@ -514,7 +514,37 @@ void APlayerDrone::WritingRaceQuaternion()
 	int index = 0;
 	for (const TArray<FString> SaveQuatText : m_SaveQuatText)
 	{
-		FString FliePath = FPaths::ProjectDir() + m_SaveQuatLoadPath[index];
+		FString FliePath = FPaths::ProjectDir() + SaveFolderPath[EPATH_DRONE::BEST] + m_SaveQuatLoadPath[index];
+		FFileHelper::SaveStringArrayToFile(SaveQuatText, *FliePath);
+		++index;
+	}
+}
+
+//リプレイのレースの座標ファイル書き込み
+void APlayerDrone::WritingReplayRaceVector()
+{
+	if (m_SaveVelocityText.Num() != m_SaveVelocityLoadPath.Num()) { return; }
+
+	//テキストファイル書き込み
+	int index = 0;
+	for (const TArray<FString>& SaveVelocityText : m_SaveVelocityText)
+	{
+		FString FliePath = FPaths::ProjectDir() + SaveFolderPath[EPATH_DRONE::REPLAY] + m_SaveVelocityLoadPath[index];
+		FFileHelper::SaveStringArrayToFile(SaveVelocityText, *FliePath);
+		++index;
+	}
+}
+
+//リプレイのレースのクオータニオンファイル書き込み
+void APlayerDrone::WritingReplayRaceQuaternion()
+{
+	if (m_SaveQuatText.Num() != m_SaveQuatLoadPath.Num()) { return; }
+
+	//テキストファイル書き込み
+	int index = 0;
+	for (const TArray<FString> SaveQuatText : m_SaveQuatText)
+	{
+		FString FliePath = FPaths::ProjectDir() + SaveFolderPath[EPATH_DRONE::REPLAY] + m_SaveQuatLoadPath[index];
 		FFileHelper::SaveStringArrayToFile(SaveQuatText, *FliePath);
 		++index;
 	}

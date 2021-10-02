@@ -8,11 +8,11 @@
 
 //コンストラクタ
 AGhostDrone::AGhostDrone()
-	: PlaybackFlame(1)
-	, Time(0.f)
-	, FlameCnt(0)
+	: PlaybackFlame(0)
 	, m_LoadVelocity(FVector::ZeroVector)
 	, m_LoadQuat(FQuat::Identity)
+	, m_StartLocation(FVector::ZeroVector)
+	, m_StartQuaternion(FQuat::Identity)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -33,6 +33,13 @@ void AGhostDrone::BeginPlay()
 	LoadingRaceVectorFile();
 	//レースのクオータニオンファイル読み込み
 	LoadingRaceQuaternionFile();
+
+
+	//初期位置とメッシュの回転を保存
+	m_StartLocation = GetActorLocation();
+	m_StartQuaternion = m_pBodyMesh->GetComponentQuat();
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *(m_StartLocation.ToString()));
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *(m_StartQuaternion.ToString()));
 }
 
 //毎フレーム処理
@@ -53,7 +60,16 @@ void AGhostDrone::Tick(float DeltaTime)
 
 		if(PlaybackFlame >= m_PlayableFramesNum)
 		{
-			Destroy();
+			if (m_isReplay)
+			{
+				SetActorLocation(m_StartLocation);
+				m_pBodyMesh->SetWorldRotation(m_StartQuaternion);
+				PlaybackFlame = 0;
+			}
+			else
+			{
+				Destroy();
+			}
 		}
 	}
 }
@@ -116,7 +132,7 @@ void AGhostDrone::LoadingRaceVectorFile()
 		//ファイルを開いて保存されている値を読み込む
 		for (int index = 0; index < (int)m_SaveVelocityText.Num(); ++index)
 		{
-			FString LoadFilePath = FPaths::ProjectDir() + m_SaveVelocityLoadPath[index];
+			FString LoadFilePath = FPaths::ProjectDir() + SaveFolderPath + m_SaveVelocityLoadPath[index];
 			FFileHelper::LoadFileToStringArray(m_SaveVelocityText[index], *LoadFilePath);
 
 			//再生可能なフレーム数を取得
@@ -149,7 +165,7 @@ void AGhostDrone::LoadingRaceQuaternionFile()
 		//ファイルを開いて保存されている値を読み込む
 		for (int index = 0; index < (int)m_SaveQuatText.Num(); ++index)
 		{
-			FString LoadFilePath = FPaths::ProjectDir() + m_SaveQuatLoadPath[index];
+			FString LoadFilePath = FPaths::ProjectDir() + SaveFolderPath + m_SaveQuatLoadPath[index];
 			FFileHelper::LoadFileToStringArray(m_SaveQuatText[index], *LoadFilePath);
 
 			//再生可能なフレーム数を取得

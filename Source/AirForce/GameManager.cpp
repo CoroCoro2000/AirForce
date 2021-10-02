@@ -14,6 +14,8 @@
 #include "Misc/FileHelper.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "GhostDrone.h"
+
 //コンストラクタ
 AGameManager::AGameManager()
 	: m_CurrentScene(ECURRENTSCENE::SCENE_TITLE)
@@ -32,6 +34,7 @@ AGameManager::AGameManager()
 	, m_isNewRecord(false)
 	, m_PlayerDrone(NULL)
 	, m_GhostDrone(NULL)
+	, m_ReplayDrone(NULL)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -62,9 +65,10 @@ void AGameManager::BeginPlay()
 
 	if (m_CurrentScene == ECURRENTSCENE::SCENE_FIRST)
 	{
-		//既にプレイした人がいたならゴーストドローンを生成
+		//既にプレイした人がいたなら
 		if (m_RapTimeText.Num() > 0)
 		{
+			//ゴーストドローンを生成
 			FString ghostPath = TEXT("/Game/BP/GhostDroneBP.GhostDroneBP_C");
 			TSubclassOf<AActor> ghostSoftClass = TSoftClassPtr<AActor>(FSoftObjectPath(*ghostPath)).LoadSynchronous(); // 上記で設定したパスに該当するクラスを取得
 			if (ghostSoftClass)
@@ -75,6 +79,20 @@ void AGameManager::BeginPlay()
 				{
 					m_GhostDrone->SetActorLocation(m_PlayerDrone->GetActorLocation());
 					m_GhostDrone->SetActorRotation(m_PlayerDrone->GetActorRotation());
+				}
+			}
+
+			//リプレイドローン生成
+			FString replayPath = TEXT("/Game/BP/ReplayDroneBP.ReplayDroneBP_C");
+			TSubclassOf<AActor> replaySoftClass = TSoftClassPtr<AActor>(FSoftObjectPath(*replayPath)).LoadSynchronous(); // 上記で設定したパスに該当するクラスを取得
+			if (replaySoftClass)
+			{
+				AActor* replayDrone = GetWorld()->SpawnActor<AActor>(replaySoftClass); // スポーン処理
+				m_ReplayDrone = Cast<ADroneBase>(replayDrone);
+				if (m_ReplayDrone)
+				{
+					m_ReplayDrone->SetActorLocation(m_PlayerDrone->GetActorLocation());
+					m_ReplayDrone->SetActorRotation(m_PlayerDrone->GetActorRotation());
 				}
 			}
 		}
@@ -92,12 +110,10 @@ void AGameManager::Tick(float DeltaTime)
 
 		break;
 	case ECURRENTSCENE::SCENE_FIRST:
-		//レースが始まっていないならカウントダウンをする
-		if (!m_isStart)
-		{
-			CountDown(DeltaTime);
-		}
-			
+
+		//カウントダウン処理
+		CountDown(DeltaTime);
+
 		//レースが始まっているならラップタイムを計測する
 		if (m_isStart & !m_isGoal)
 		{
@@ -108,71 +124,25 @@ void AGameManager::Tick(float DeltaTime)
 			}
 		}
 		
-		//ゴールしたなら
-		if (m_isGoal)
-		{
-			//スコアを書き込みしたか確認
-			if (!m_isScoreWrite)
-			{
-				//ラップタイムをテキストファイルに記入
-				m_RapTime = CGameUtility::SetDecimalTruncation(m_RapTime, 3);
-				FString rapText = GetRapMinuteText().ToString() + ":" + GetRapSecondText().ToString() + "." + GetRapMiliSecondText().ToString();
-				m_RapTimeText.Add(rapText);
+		//リザルト処理
+		Result(DeltaTime);
 
-				//ラップタイム並び替え
-				RapTimeSort();
-
-				//今回のタイムのランキング確認
-				for (int i = m_RapTimeText.Num() - 1; i >= 0; i--)
-				{
-					if (rapText == m_RapTimeText[i])
-					{
-						m_PlayerRank = i;
-						break;
-					}
-				}
-
-				//今回のタイムが1位だったら
-				if (m_PlayerRank == 0)
-				{
-					m_isNewRecord = true;
-					APlayerDrone* player = Cast<APlayerDrone>(m_PlayerDrone);
-					if (player)
-					{
-						player->WritingRaceVector();
-						player->WritingRaceQuaternion();
-					}
-
-				}
-
-				//ランキング外のスコアを削除
-				if (m_RapTimeText.Num() > m_RankingDisplayNum)
-				{
-					for (int i = m_RankingDisplayNum; i < m_RapTimeText.Num(); i++)
-					{
-						m_RapTimeText.RemoveAt(i);
-					}
-				}
-
-				//テキストファイル書き込み
-				FFileHelper::SaveStringArrayToFile(m_RapTimeText, *(FPaths::ProjectDir() + m_RapTimeTextPath));
-
-				//書き込みフラグをONにする
-				m_isScoreWrite = true;
-			}
-			
-		}
 		if (m_PlayerDrone)
 		{
-			//	レースがスタートして、ゴールしていない間操作可能にする
-
+			//レースがスタートして、ゴールしていない間操作可能にする
 			m_PlayerDrone->SetisControl((m_isStart && !m_isGoal));
 		}
 
 		if (m_GhostDrone)
 		{
-			//	レースがスタートして、ゴールしていない間操作可能にする
+			//レースがスタートしている間操作可能にする
 			m_GhostDrone->SetisControl((m_isStart));
+		}
+
+		if (m_ReplayDrone)
+		{
+			//レースがスタートしている間操作可能にする
+			m_ReplayDrone->SetisControl((m_isStart));
 		}
 
 		break;
@@ -186,6 +156,9 @@ void AGameManager::Tick(float DeltaTime)
 //カウントダウン処理
 void AGameManager::CountDown(float DeltaTime)
 {
+	//スタートしたなら処理しない
+	if (m_isStart) { return; }
+
 	FString m_prevCountDownText = m_CountDownText;	//1フレーム前のカウントダウンテキスト
 
 	m_CountDownTime -= DeltaTime;
@@ -203,7 +176,75 @@ void AGameManager::CountDown(float DeltaTime)
 		m_isStart = true;
 	}
 
-}//
+}
+
+//リザルト処理
+void AGameManager::Result(float DeltaTime)
+{
+	//ゴールしていないなら処理しない
+	if (!m_isGoal) { return; }
+
+	//スコアを書き込みしたか確認
+	if (!m_isScoreWrite)
+	{
+		//ラップタイムをテキストファイルに記入
+		m_RapTime = CGameUtility::SetDecimalTruncation(m_RapTime, 3);
+		FString rapText = GetRapMinuteText().ToString() + ":" + GetRapSecondText().ToString() + "." + GetRapMiliSecondText().ToString();
+		m_RapTimeText.Add(rapText);
+
+		//ラップタイム並び替え
+		RapTimeSort();
+
+		//今回のタイムのランキング確認
+		for (int i = m_RapTimeText.Num() - 1; i >= 0; i--)
+		{
+			if (rapText == m_RapTimeText[i])
+			{
+				m_PlayerRank = i;
+				break;
+			}
+		}
+
+		APlayerDrone* player = Cast<APlayerDrone>(m_PlayerDrone);
+		
+		//今回のタイムが1位だったら
+		if (m_PlayerRank == 0)
+		{
+			m_isNewRecord = true;
+			if (player)
+			{
+				//現在のプレイヤーの挙動をRecord/Bestフォルダに保存する
+				/*player->WritingBestRaceVector();
+				player->WritingBestRaceQuaternion();*/
+			}
+
+		}
+
+		if (player)
+		{
+			//現在のプレイヤーの挙動をRecord/Replayフォルダに保存する
+			/*player->WritingReplayRaceVector();
+			player->WritingReplayRaceQuaternion();*/
+		}
+
+		//ランキング外のスコアを削除
+		if (m_RapTimeText.Num() > m_RankingDisplayNum)
+		{
+			for (int i = m_RankingDisplayNum; i < m_RapTimeText.Num(); i++)
+			{
+				m_RapTimeText.RemoveAt(i);
+			}
+		}
+
+		//テキストファイル書き込み
+		FFileHelper::SaveStringArrayToFile(m_RapTimeText, *(FPaths::ProjectDir() + m_RapTimeTextPath));
+
+		//書き込みフラグをONにする
+		m_isScoreWrite = true;
+	}
+}
+
+//
 void AGameManager::NextSceneUp()
 {
 	if (!m_isSceneTransition) { return; }
@@ -221,7 +262,7 @@ void AGameManager::NextSceneDown()
 	if (!m_isSceneTransition) { return; }
 
 	m_NextScene++;
-	if ((int)m_NextScene.GetNextScene() > 2)
+	if ((int)m_NextScene.GetNextScene() > 1)
 	{
 		m_NextScene = 0;
 	}
