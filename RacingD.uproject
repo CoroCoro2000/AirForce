@@ -56,7 +56,7 @@
 		},
 		{
 			"Name": "LoadingScreenSystemPlugin",
-			"Enabled": true,
+			"Enabled": false,
 			"MarketplaceURL": "https://indiebrothers.itch.io/ue4-loading-screen-system-plugin-unreal-engine-4"
 		}
 	],
