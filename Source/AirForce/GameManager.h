@@ -130,7 +130,12 @@ public:
 	//シーン遷移フラグの取得
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetisSceneTransition()const { return m_isSceneTransition; }
-
+	//レース前の準備が完了したか設定
+	UFUNCTION(BlueprintCallable, Category = "Flag")
+		void SetIsAllSetup(const bool& _isAllSetup) { m_bAllSetup = _isAllSetup; }
+	//レース前の準備が完了したか確認するフラグ
+	UFUNCTION(BlueprintCallable, Category = "Flag")
+		bool GetIsAllSetup()const { return m_bAllSetup; }
 	//レース前のカウントダウン時間の取得
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		float GetCountDownTime()const { return m_CountDownTime; }
@@ -195,6 +200,8 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
 		bool m_isSceneTransition;					//レース後のシーン遷移フラグ
 
+	UPROPERTY(EditAnywhere, Category = "Stage")
+		bool m_bAllSetup;								//レースの事前設定がすべて完了したか確認するフラグ
 	UPROPERTY(EditAnywhere, Category = "Stage")
 		float m_CountDownTime;						//レース前のカウントダウン
 	UPROPERTY(VisibleAnywhere, Category = "Stage")

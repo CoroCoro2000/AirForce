@@ -24,6 +24,7 @@ AGameManager::AGameManager()
 	, m_isStart(false)
 	, m_isGoal(false)
 	, m_isSceneTransition(false)
+	, m_bAllSetup(false)
 	, m_CountDownTime(4.f)
 	, m_CountDownText(TEXT(""))
 	, m_RapTime(0.f)
@@ -112,8 +113,11 @@ void AGameManager::Tick(float DeltaTime)
 	case ECURRENTSCENE::SCENE_FIRST:
 
 		//カウントダウン処理
-		CountDown(DeltaTime);
-
+		if (m_bAllSetup)
+		{
+			CountDown(DeltaTime);
+		}
+		
 		//レースが始まっているならラップタイムを計測する
 		if (m_isStart & !m_isGoal)
 		{

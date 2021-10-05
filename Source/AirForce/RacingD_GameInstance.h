@@ -16,8 +16,6 @@ class AIRFORCE_API URacingD_GameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 
-
-
 public:
 	//コンストラクタ
 	URacingD_GameInstance();
@@ -27,26 +25,6 @@ private:
 	virtual void Shutdown() override;
 
 public:
-	//レベルコントローラ関数
-	//-----------------------------------------------------------
-	//レベルロード完了時に呼び出される関数
-	UFUNCTION()
-		void Completed() { m_bLoadComplete = true; }
-	//レベルのロード処理
-	void LoadLevel(const FName& _level);
-	//レベルのアンロード処理
-	void UnloadLevel(const FName& _level);
-	//レベルの表示処理
-	bool ShowLevel(const FName& _level) const;
-	//レベルの非表示処理
-	bool HideLevel(const FName& _level) const;
-	//ロード/アンロードが終了したか確認する関数
-	bool IsCompleted() const { return m_bLoadComplete; }
-	//-----------------------------------------------------------
-public:
 	TSharedPtr<FLoadingScreenSystem> pLoadingScreenSystem;
 
-private:
-	FLatentActionInfo m_LatentAction;
-	bool m_bLoadComplete;
 };
