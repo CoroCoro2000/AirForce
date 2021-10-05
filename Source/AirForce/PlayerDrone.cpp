@@ -554,11 +554,11 @@ void APlayerDrone::InitializeReplay()
 void APlayerDrone::UpdateReplay(const float& DeltaTime)
 {
 	if (!m_isReplay) { return; }
-	if (IsEndPlayBackReplay()) {
-		return;
+
+	if (!IsEndPlayBackReplay())
+	{
+		PlaybackFlame++;
 	}
-	
-	PlaybackFlame++;
 }
 //ÉåÅ[ÉXÇÃç¿ïWï€ë∂
 void APlayerDrone::WritingBestRaceVector()
