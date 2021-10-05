@@ -78,7 +78,7 @@ public:
 
 	//リプレイが再生終了したか判定する
 	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
-		bool IsEndPlayBackReplay()const { return  (PlaybackFlame >= m_SaveVelocityText[0].Num() ? true : false); }
+		bool IsEndPlayBackReplay()const { return  (PlaybackFlame > m_SaveVelocityText[EPATH_DRONE::REPLAY].Num() -1 ? true : false); }
 
 	//リプレイのレースの座標ファイル書き込み
 	UFUNCTION(BlueprintCallable, Category = "SaveRecord")
