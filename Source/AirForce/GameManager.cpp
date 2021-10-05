@@ -83,18 +83,18 @@ void AGameManager::BeginPlay()
 			}
 
 			//リプレイドローン生成
-			FString replayPath = TEXT("/Game/BP/ReplayDroneBP.ReplayDroneBP_C");
-			TSubclassOf<AActor> replaySoftClass = TSoftClassPtr<AActor>(FSoftObjectPath(*replayPath)).LoadSynchronous(); // 上記で設定したパスに該当するクラスを取得
-			if (replaySoftClass)
-			{
-				AActor* replayDrone = GetWorld()->SpawnActor<AActor>(replaySoftClass); // スポーン処理
-				m_ReplayDrone = Cast<ADroneBase>(replayDrone);
-				if (m_ReplayDrone)
-				{
-					m_ReplayDrone->SetActorLocation(m_PlayerDrone->GetActorLocation());
-					m_ReplayDrone->SetActorRotation(m_PlayerDrone->GetActorRotation());
-				}
-			}
+			//FString replayPath = TEXT("/Game/BP/ReplayDroneBP.ReplayDroneBP_C");
+			//TSubclassOf<AActor> replaySoftClass = TSoftClassPtr<AActor>(FSoftObjectPath(*replayPath)).LoadSynchronous(); // 上記で設定したパスに該当するクラスを取得
+			//if (replaySoftClass)
+			//{
+			//	AActor* replayDrone = GetWorld()->SpawnActor<AActor>(replaySoftClass); // スポーン処理
+			//	m_ReplayDrone = Cast<ADroneBase>(replayDrone);
+			//	if (m_ReplayDrone)
+			//	{
+			//		m_ReplayDrone->SetActorLocation(m_PlayerDrone->GetActorLocation());
+			//		m_ReplayDrone->SetActorRotation(m_PlayerDrone->GetActorRotation());
+			//	}
+			//}
 		}
 	}
 }

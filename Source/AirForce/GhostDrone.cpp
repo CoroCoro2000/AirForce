@@ -8,11 +8,8 @@
 
 //コンストラクタ
 AGhostDrone::AGhostDrone()
-	: PlaybackFlame(0)
-	, m_LoadVelocity(FVector::ZeroVector)
+	: m_LoadVelocity(FVector::ZeroVector)
 	, m_LoadQuat(FQuat::Identity)
-	, m_StartLocation(FVector::ZeroVector)
-	, m_StartQuaternion(FQuat::Identity)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -33,13 +30,6 @@ void AGhostDrone::BeginPlay()
 	LoadingRaceVectorFile();
 	//レースのクオータニオンファイル読み込み
 	LoadingRaceQuaternionFile();
-
-
-	//初期位置とメッシュの回転を保存
-	m_StartLocation = GetActorLocation();
-	m_StartQuaternion = m_pBodyMesh->GetComponentQuat();
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *(m_StartLocation.ToString()));
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *(m_StartQuaternion.ToString()));
 }
 
 //毎フレーム処理
@@ -58,19 +48,10 @@ void AGhostDrone::Tick(float DeltaTime)
 
 			PlaybackFlame++;
 
-		if(PlaybackFlame >= m_PlayableFramesNum)
-		{
-			if (m_isReplay)
-			{
-				SetActorLocation(m_StartLocation);
-				m_pBodyMesh->SetWorldRotation(m_StartQuaternion);
-				PlaybackFlame = 0;
-			}
-			else
+			if (PlaybackFlame >= m_PlayableFramesNum)
 			{
 				Destroy();
 			}
-		}
 	}
 }
 

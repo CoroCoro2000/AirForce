@@ -41,6 +41,8 @@ APlayerDrone::APlayerDrone()
 	, m_MotionBlurTargetFPS(8)
 	, m_pLightlineEffect(NULL)
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
+	, m_StartLocation(FVector::ZeroVector)
+	, m_StartQuaternion(FQuat::Identity)
 	, m_CameraRotationYaw(0.f)
 	, m_bIsOutCourse(false)
 {
@@ -100,6 +102,12 @@ void APlayerDrone::BeginPlay()
 	m_SaveVelocityText.Empty();
 	m_SaveQuatText.SetNum(4);
 	m_SaveVelocityText.SetNum(3);
+
+	//初期位置とメッシュの回転を保存
+	m_StartLocation = this->GetActorLocation();
+	m_StartQuaternion = m_pBodyMesh->GetComponentQuat();
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *(m_StartLocation.ToString()));
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *(m_StartQuaternion.ToString()));
 }
 
 //毎フレーム処理
@@ -122,6 +130,9 @@ void APlayerDrone::Tick(float DeltaTime)
 
 	//移動処理
 	UpdateSpeed(DeltaTime);
+
+	//リプレイ更新処理
+	UpdateReplay(DeltaTime);
 
 	//カメラの更新処理
 	UpdateCamera(DeltaTime);
@@ -238,7 +249,7 @@ void APlayerDrone::UpdateWingAccle(const float& DeltaTime)
 	{
 		for (FWing& wing : m_Wings)
 		{
-			//PPAP
+			//羽の回転量の合成
 			wing.AccelState = RightInputValueToWingAcceleration(wing.GetWingNumber()) + LeftInputValueToWingAcceleration(wing.GetWingNumber());
 		}
 		return;
@@ -313,6 +324,35 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 {
 	if (!m_pBodyMesh) { return; }
 
+	if (m_isReplay) 
+	{
+		//読み込んだ移動量のテキストファイルをfloatに変換する
+		bool IsValidTextArray = true;
+		bool IsValidAxisTextArray = true;
+
+		for (int index = 0; index < VECTOR4_COMPONENT_NUM; ++index)
+		{
+			IsValidTextArray = m_SaveQuatText.IsValidIndex(index);
+			IsValidAxisTextArray = m_SaveQuatText[index].IsValidIndex(PlaybackFlame);
+			if (!IsValidTextArray || IsValidAxisTextArray)
+			{
+				break;
+			}
+		}
+
+		FQuat ReplayQuat = FQuat::Identity;
+
+		if (IsValidTextArray && IsValidAxisTextArray)
+		{
+			ReplayQuat.X = FCString::Atof(*(m_SaveQuatText[0][PlaybackFlame]));
+			ReplayQuat.Y = FCString::Atof(*(m_SaveQuatText[1][PlaybackFlame]));
+			ReplayQuat.Z = FCString::Atof(*(m_SaveQuatText[2][PlaybackFlame]));
+			ReplayQuat.W = FCString::Atof(*(m_SaveQuatText[3][PlaybackFlame]));
+		}
+		m_pBodyMesh->SetWorldRotation(ReplayQuat * MOVE_CORRECTION);
+		return; 
+	}
+
 	Super::UpdateRotation(DeltaTime);
 
 	//コントロール可能なら回転量を保存する
@@ -351,6 +391,19 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 		for (TArray<FString>& SaveVelocityText : m_SaveVelocityText)
 		{
 			SaveVelocityText.Add(FString::SanitizeFloat(m_Velocity[index]));
+			++index;
+		}
+	}
+	else if (m_isReplay)
+	{
+		//読み込んだ移動量のテキストファイルをfloatに変換する
+		int index = 0;
+		for (const TArray<FString> SaveVelocityText : m_SaveVelocityText)
+		{
+			if (SaveVelocityText.IsValidIndex(PlaybackFlame))
+			{
+				m_Velocity[index] = FCString::Atof(*(SaveVelocityText[PlaybackFlame]));
+			}
 			++index;
 		}
 	}
@@ -490,6 +543,25 @@ void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 	Super::UpdateWindEffect(DeltaTime);
 }
 
+//リプレイの初期設定
+void APlayerDrone::InitializeReplay()
+{
+	SetActorLocation(m_StartLocation);
+	m_pBodyMesh->SetWorldRotation(m_StartQuaternion);
+	PlaybackFlame = 0;
+}
+//リプレイ更新処理
+void APlayerDrone::UpdateReplay(const float& DeltaTime)
+{
+	if (!m_isReplay) { return; }
+
+	PlaybackFlame++;
+
+	if (PlaybackFlame >= m_SaveVelocityText[0].Num())
+	{
+		InitializeReplay();
+	}
+}
 //レースの座標保存
 void APlayerDrone::WritingBestRaceVector()
 {

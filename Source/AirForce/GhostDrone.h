@@ -41,11 +41,6 @@ private:
 	void UpdateSpeed(const float& DeltaTime)override;
 
 private:
-	UPROPERTY(EditAnywhere, Category = "Drone")
-		int PlaybackFlame;
-	UPROPERTY(EditAnywhere, Category = "Drone")
-		int m_PlayableFramesNum;
-
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
 		FString SaveFolderPath;
 	UPROPERTY(EditAnywhere, Category = "Ghost")
@@ -53,9 +48,4 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Ghost")
 		FQuat m_LoadQuat;
 
-	UPROPERTY(EditAnywhere, Category = "Ghost")
-		bool m_isReplay;
-
-	FVector m_StartLocation;
-	FQuat m_StartQuaternion;
 };

@@ -113,6 +113,12 @@ private:
 	UFUNCTION(BlueprintCallable, Category = "InputAxis")
 		float GetInputValue(const TEnumAsByte<EINPUT_AXIS::Type> _Axis)const { return m_AxisValue[_Axis]; }
 
+	UFUNCTION(BlueprintCallable, Category = "Replay")
+		void SetisReplay(const bool _b) { m_isReplay = _b; }
+
+	//リプレイの初期設定
+	UFUNCTION(BlueprintCallable, Category = "Replay")
+		void InitializeReplay();
 
 	//カメラの初期設定
 	void InitializeCamera();
@@ -144,6 +150,10 @@ private:
 
 	//風のエフェクトの更新処理
 	void UpdateWindEffect(const float& DeltaTime);
+
+	//リプレイ更新処理
+	void UpdateReplay(const float& DeltaTime);
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerCamera")
 		USpringArmComponent* m_pSpringArm;									//スプリングアーム
@@ -179,6 +189,12 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
 		TArray<FString> SaveFolderPath;
+
+	UPROPERTY(EditAnywhere, Category = "Ghost")
+		bool m_isReplay;
+
+	FVector m_StartLocation;
+	FQuat m_StartQuaternion;
 
 	float m_CameraRotationYaw;
 
