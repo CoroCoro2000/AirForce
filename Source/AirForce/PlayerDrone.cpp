@@ -324,7 +324,7 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 {
 	if (!m_pBodyMesh) { return; }
 
-	if (m_isReplay) 
+	if (m_isReplay && !IsEndPlayBackReplay())
 	{
 		//読み込んだ移動量のテキストファイルをfloatに変換する
 		bool IsValidTextArray = true;
@@ -394,7 +394,7 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 			++index;
 		}
 	}
-	else if (m_isReplay)
+	else if (m_isReplay && !IsEndPlayBackReplay())
 	{
 		//読み込んだ移動量のテキストファイルをfloatに変換する
 		int index = 0;
@@ -554,13 +554,11 @@ void APlayerDrone::InitializeReplay()
 void APlayerDrone::UpdateReplay(const float& DeltaTime)
 {
 	if (!m_isReplay) { return; }
-
-	PlaybackFlame++;
-
-	if (PlaybackFlame >= m_SaveVelocityText[0].Num())
-	{
-		InitializeReplay();
+	if (IsEndPlayBackReplay()) {
+		return;
 	}
+	
+	PlaybackFlame++;
 }
 //レースの座標保存
 void APlayerDrone::WritingBestRaceVector()

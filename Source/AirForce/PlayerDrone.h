@@ -76,6 +76,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
 		bool IsMoving(const FVector _axisValue)const { return  (!_axisValue.IsZero() ? true : false); }
 
+	//リプレイが再生終了したか判定する
+	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
+		bool IsEndPlayBackReplay()const { return  (PlaybackFlame >= m_SaveVelocityText[0].Num() ? true : false); }
+
 	//リプレイのレースの座標ファイル書き込み
 	UFUNCTION(BlueprintCallable, Category = "SaveRecord")
 		void WritingReplayRaceVector();
