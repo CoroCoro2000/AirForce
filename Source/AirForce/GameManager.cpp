@@ -19,6 +19,7 @@
 //コンストラクタ
 AGameManager::AGameManager()
 	: m_CurrentScene(ECURRENTSCENE::SCENE_TITLE)
+	, m_isCountDownEnable(false)
 	, m_NextScene()
 	, m_isPause(NULL)
 	, m_isStart(false)
