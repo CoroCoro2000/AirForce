@@ -113,10 +113,8 @@ void AGameManager::Tick(float DeltaTime)
 	case ECURRENTSCENE::SCENE_FIRST:
 
 		//カウントダウン処理
-		if (m_bAllSetup)
-		{
-			CountDown(DeltaTime);
-		}
+		CountDown(DeltaTime);
+	
 		
 		//レースが始まっているならラップタイムを計測する
 		if (m_isStart & !m_isGoal)
