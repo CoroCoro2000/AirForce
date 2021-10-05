@@ -158,6 +158,7 @@ void AGameManager::CountDown(float DeltaTime)
 {
 	//スタートしたなら処理しない
 	if (m_isStart) { return; }
+	if (!m_isCountDownEnable) { return; }
 
 	FString m_prevCountDownText = m_CountDownText;	//1フレーム前のカウントダウンテキスト
 
@@ -211,20 +212,6 @@ void AGameManager::Result(float DeltaTime)
 		if (m_PlayerRank == 0)
 		{
 			m_isNewRecord = true;
-			if (player)
-			{
-				//現在のプレイヤーの挙動をRecord/Bestフォルダに保存する
-				/*player->WritingBestRaceVector();
-				player->WritingBestRaceQuaternion();*/
-			}
-
-		}
-
-		if (player)
-		{
-			//現在のプレイヤーの挙動をRecord/Replayフォルダに保存する
-			/*player->WritingReplayRaceVector();
-			player->WritingReplayRaceQuaternion();*/
 		}
 
 		//ランキング外のスコアを削除

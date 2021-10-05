@@ -106,6 +106,9 @@ public:
 	void NextSceneUp();
 	void NextSceneDown();
 
+	//カウントダウンの設定
+	UFUNCTION(BlueprintCallable, Category = "Flag")
+		void SetIsCountDownEnable(bool _isCountDown) { m_isCountDownEnable = _isCountDown; }
 	//ポーズの設定
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		void SetIsPause() { m_isPause = !m_isPause; }
@@ -186,6 +189,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Flag")
 		FNEXTSCENE m_NextScene;																//次のシーンステート
 
+	UPROPERTY(VisibleAnywhere, Category = "Flag")
+		bool m_isCountDownEnable;								//レース開始フラグ
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
 		bool m_isPause;							//ポーズフラグ
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
