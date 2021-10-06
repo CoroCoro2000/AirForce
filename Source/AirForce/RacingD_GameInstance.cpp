@@ -14,7 +14,6 @@ void URacingD_GameInstance::Init()
 	Super::Init();
 
 	pLoadingScreenSystem = MakeShareable(new FLoadingScreenSystem(this));
-
 	UE_LOG(LogTemp, Warning, TEXT("Init"));
 }
 
