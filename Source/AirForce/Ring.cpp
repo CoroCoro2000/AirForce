@@ -10,10 +10,12 @@
 #include "Ring.h"
 #include "GameUtility.h"
 #include "DroneBase.h"
+#include "PlayerDrone.h"
 #include "Components/StaticMeshComponent.h"
 #include "NiagaraComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Curves/CurveFloat.h"
+#include "Kismet/GameplayStatics.h"
 
 #define SCROLLSPEED_DEFAULT		(0.5f)
 #define SCROLLSPEED_MAX			(SCROLLSPEED_DEFAULT * 2.5f)
@@ -31,6 +33,7 @@ ARing::ARing()
 	, m_pPassedDrone(NULL)
 	, m_HSV(30.f, 40.f, 30.f)
 	, m_InitialTransform(FTransform(FQuat::Identity, FVector::ZeroVector, FVector::OneVector))
+	, m_RingHIttSE(NULL)
 {
 	//毎フレームTickを呼び出すかどうかのフラグ
 	PrimaryActorTick.bCanEverTick = true;
@@ -202,6 +205,11 @@ void ARing::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 		//タグがPlayerだった場合
 		if (OtherActor->ActorHasTag(TEXT("Drone")))
 		{
+			APlayerDrone* player = Cast<APlayerDrone>(OtherActor);
+			if (!player->GetisControl())
+			{
+				return;
+			}
 			//このリングがまだ通過されていない場合
 			if (!m_bIsPassed)
 			{
@@ -212,6 +220,8 @@ void ARing::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 				m_pPassedDrone = Cast<ADroneBase>(OtherActor);
 				//エフェクトの再生
 				m_pNiagaraEffectComp->Activate();
+				//SEの再生
+				UGameplayStatics::PlaySound2D(GetWorld(), m_RingHIttSE);
 				//リングの当たり判定を切る
 				m_pRingMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			}

@@ -68,9 +68,13 @@ void ARingManager::Tick(float DeltaTime)
 	//カラー更新
 	UpdateColor(DeltaTime);
 
-	if (m_pGameManager && m_pChildRings[0])
+	/*if (m_pGameManager && m_pChildRings[0])
 	{
 		m_pGameManager->SetIsGoal(m_pChildRings[0]->GetIsPassed());
+	}*/
+	if (m_pChildRings[0]->GetIsPassed())
+	{
+		m_pGameManager->SetIsGoal(true);
 	}
 }
 

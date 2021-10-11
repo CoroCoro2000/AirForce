@@ -83,7 +83,8 @@ protected:
 		ADroneBase* m_pPassedDrone;							//このリングを通過したドローン
 	UPROPERTY(EditAnywhere)
 		FLinearColor m_HSV;											//リングの色
-
+	UPROPERTY(EditAnywhere, Category = "Sound")
+		USoundBase* m_RingHIttSE;						//リング衝突SE
 	UPROPERTY(VisibleAnywhere)
 		FTransform m_InitialTransform;							//リングの初期トランスフォーム
 };
