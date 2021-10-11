@@ -15,11 +15,13 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Curves/CurveFloat.h"
 
+#define SCROLLSPEED_DEFAULT		(0.5f)
+#define SCROLLSPEED_MAX			(SCROLLSPEED_DEFAULT * 2.5f)
+
 //コンストラクタ
 ARing::ARing()
 	: m_pRingMesh(NULL)
 	, m_pNiagaraEffectComp(NULL)
-	, m_RingScale(1.f)
 	, m_MakeInvisibleCnt(0.f)
 	, m_MakeInvisibleTime(1.5f)
 	, m_SineWidth(10.f)
@@ -28,6 +30,7 @@ ARing::ARing()
 	, m_PassedSceleMax(3.f)
 	, m_pPassedDrone(NULL)
 	, m_HSV(30.f, 40.f, 30.f)
+	, m_InitialTransform(FTransform(FQuat::Identity, FVector::ZeroVector, FVector::OneVector))
 {
 	//毎フレームTickを呼び出すかどうかのフラグ
 	PrimaryActorTick.bCanEverTick = true;
@@ -61,11 +64,9 @@ void ARing::BeginPlay()
 		m_pRingMesh->OnComponentBeginOverlap.AddDynamic(this, &ARing::OnComponentOverlapBegin);
 	}
 
-	//リングの大きさを保持
-	m_RingScale = GetActorScale().GetAbsMax();
-	SetActorScale3D(FVector(m_RingScale));
+	//初期のトランスフォームを保持
+	m_InitialTransform = GetActorTransform();
 
-	m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("BlendColor"), FVector(m_HSV.HSVToLinearRGB()));
 }
 
 //毎フレーム呼び出される関数
@@ -79,6 +80,10 @@ void ARing::Tick(float DeltaTime)
 		if (m_MakeInvisibleCnt < m_MakeInvisibleTime)
 		{
 			m_MakeInvisibleCnt += DeltaTime;
+		}
+		else
+		{
+			Reset();
 		}
 	}
 
@@ -97,6 +102,9 @@ void ARing::UpdateScale(const float& DeltaTime)
 {
 	if (!m_pRingMesh) { return; }
 
+	//リングのスケール
+	FVector RingScale = m_InitialTransform.GetScale3D();
+
 	//リングが通過されていない間は一定の周期で大きさを変える
 	if (!m_bIsPassed)
 	{
@@ -108,7 +116,7 @@ void ARing::UpdateScale(const float& DeltaTime)
 		float ScaleMultiplier = FMath::Lerp(m_SineScaleMin, m_SineScaleMax, SinWave);
 
 		//新しいスケールを適用
-		SetActorScale3D(FVector(m_RingScale * ScaleMultiplier));
+		SetActorScale3D(RingScale * ScaleMultiplier);
 	}
 	//リングが通過されたら大きくする
 	else
@@ -116,8 +124,8 @@ void ARing::UpdateScale(const float& DeltaTime)
 		const float elapsedRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
 
 		//経過率で大きさを変える
-		float Scale = FMath::Lerp(m_RingScale, m_RingScale * 0.05f, elapsedRate);
-		SetActorScale3D(FVector(Scale));
+		FVector Scale = FMath::Lerp(RingScale, RingScale * 0.05f, elapsedRate);
+		SetActorScale3D(Scale);
 
 		//徐々に座標と回転をプレイヤーに合わせる
 		SetActorLocationAndRotation(
@@ -135,10 +143,10 @@ void ARing::UpdateMaterial(const float& DeltaTime)
 	{
 		//くぐられてからの経過率を求める
 		const float elapsedRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
-		m_HSV = FLinearColor::LerpUsingHSV(m_HSV, FLinearColor(5.f, m_HSV.G, 70.f), elapsedRate);
+		float ColorScale = m_HSV.R;
+		ColorScale = FMath::Lerp(m_HSV.R, m_HSV.R * 0.5f, elapsedRate);
 
-		m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), 1.f);
-		m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("BlendColor"), FVector(m_HSV.HSVToLinearRGB()));
+		m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("BlendColor"), FVector(FLinearColor(ColorScale, m_HSV.G, m_HSV.B).HSVToLinearRGB()));
 		m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), 1.f - elapsedRate);
 	}
 	else
@@ -147,10 +155,13 @@ void ARing::UpdateMaterial(const float& DeltaTime)
 		const float WaveWidth = m_SineWidth * GetWorld()->GetTimeSeconds();
 		//サイン波の大きさを0から1に正規化する
 		const float SinWave = FMath::Sin(WaveWidth) * 0.5f + 0.5f;
+		//マテリアルのスクロール速度を設定
+		//float ScrollSpeed = FMath::Lerp(SCROLLSPEED_DEFAULT, SCROLLSPEED_MAX, SinWave);
 		//サイン波の値でリングの色相を変える
 		m_HSV.R = FMath::Lerp(50.f, 30.f, SinWave);
 		m_HSV.B = FMath::Lerp(30.f, 50.f, SinWave);
 		
+		//m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
 		m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("BlendColor"), FVector(m_HSV.HSVToLinearRGB()));
 	}
 }
@@ -162,14 +173,25 @@ void ARing::UpdateEffect(const float& DeltaTime)
 
 	if (m_bIsPassed)
 	{
-		//ドローンに近づく速度
-		const float elapsedRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
-		FLinearColor EffectColor = FLinearColor::LerpUsingHSV(FLinearColor::Red, FLinearColor::Blue, elapsedRate);
-
-		//経過時間に合わせて消していく
-		m_pNiagaraEffectComp->SetVariableLinearColor(TEXT("User.Color"), EffectColor);
+		FLinearColor PaticleColor = m_HSV;
+		PaticleColor.B = 2.f;
+		PaticleColor = FLinearColor::LerpUsingHSV(PaticleColor, PaticleColor * 0.5f, DeltaTime * 0.5f);
+		m_pNiagaraEffectComp->SetVariableLinearColor(TEXT("User.Color"), FVector(PaticleColor.HSVToLinearRGB()));
 	}
+}
 
+//リングの初期化
+void ARing::Reset()
+{
+	m_bIsPassed = false;
+	m_MakeInvisibleCnt = 0.f;
+	m_HSV = FLinearColor(30.f, 40.f, 30.f);
+
+	SetActorTransform(m_InitialTransform);
+	m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), 1.f);
+	m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), SCROLLSPEED_DEFAULT);
+	m_pRingMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	m_pPassedDrone = NULL;
 }
 
 //オーバーラップ開始時に呼ばれる処理
@@ -185,6 +207,7 @@ void ARing::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 			{
 				//通過された状態に変更
 				m_bIsPassed = true;
+				m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), SCROLLSPEED_MAX);
 
 				m_pPassedDrone = Cast<ADroneBase>(OtherActor);
 				//エフェクトの再生
