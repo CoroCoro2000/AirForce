@@ -98,6 +98,14 @@ public:
 		void SetIsOutCourse(const bool _isOutCourse) { m_bIsOutCourse = _isOutCourse; }
 	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
 		bool GetIsOutCourse()const { return m_bIsOutCourse; }
+
+	//リプレイの初期設定
+	UFUNCTION(BlueprintCallable, Category = "Replay")
+		void InitializeReplay();
+	UFUNCTION(BlueprintCallable, Category = "Replay")
+		void SetisReplay(const bool _b) { m_isReplay = _b; }
+	UFUNCTION(BlueprintCallable, Category = "Replay")
+		bool GetisReplay()const { return m_isReplay; }
 private:
 	//【入力バインド】各スティックの入力
 	void Input_Throttle(float _axisValue);
@@ -116,13 +124,6 @@ private:
 
 	UFUNCTION(BlueprintCallable, Category = "InputAxis")
 		float GetInputValue(const TEnumAsByte<EINPUT_AXIS::Type> _Axis)const { return m_AxisValue[_Axis]; }
-
-	UFUNCTION(BlueprintCallable, Category = "Replay")
-		void SetisReplay(const bool _b) { m_isReplay = _b; }
-
-	//リプレイの初期設定
-	UFUNCTION(BlueprintCallable, Category = "Replay")
-		void InitializeReplay();
 
 	//カメラの初期設定
 	void InitializeCamera();

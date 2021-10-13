@@ -124,16 +124,19 @@ void ARing::UpdateScale(const float& DeltaTime)
 	//リングが通過されたら大きくする
 	else
 	{
-		const float elapsedRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
+		if (m_pPassedDrone)
+		{
+			const float elapsedRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
 
-		//経過率で大きさを変える
-		FVector Scale = FMath::Lerp(RingScale, RingScale * 0.05f, elapsedRate);
-		SetActorScale3D(Scale);
+			//経過率で大きさを変える
+			FVector Scale = FMath::Lerp(RingScale, RingScale * 0.05f, elapsedRate);
+			SetActorScale3D(Scale);
 
-		//徐々に座標と回転をプレイヤーに合わせる
-		SetActorLocationAndRotation(
-			FMath::Lerp(GetActorLocation(), m_pPassedDrone->GetActorLocation(), elapsedRate),
-			FMath::Lerp(GetActorQuat(), m_pPassedDrone->GetBodyMeshRotation().Quaternion(), elapsedRate));
+			//徐々に座標と回転をプレイヤーに合わせる
+			SetActorLocationAndRotation(
+				FMath::Lerp(GetActorLocation(), m_pPassedDrone->GetActorLocation(), elapsedRate),
+				FMath::Lerp(GetActorQuat(), m_pPassedDrone->GetBodyMeshRotation().Quaternion(), elapsedRate));
+		}
 	}
 }
 
@@ -205,11 +208,6 @@ void ARing::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 		//タグがPlayerだった場合
 		if (OtherActor->ActorHasTag(TEXT("Drone")))
 		{
-			APlayerDrone* player = Cast<APlayerDrone>(OtherActor);
-			if (!player->GetisControl())
-			{
-				return;
-			}
 			//このリングがまだ通過されていない場合
 			if (!m_bIsPassed)
 			{
