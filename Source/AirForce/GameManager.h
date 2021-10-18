@@ -12,12 +12,13 @@
 //インクルード
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "DroneBase.h"
 #include "Ring.h"
 #include "Kismet/KismetTextLibrary.h"
 #include "GameManager.generated.h"
 
 class USoundBase;
+class ADroneBase;
+class AGhostDrone;
 
 //シーン管理列挙
 UENUM(BlueprintType)
@@ -218,8 +219,14 @@ private:
 		TArray<FString> m_RapTimeText;			//ラップテキスト
 	UPROPERTY(EditAnywhere, Category = "Result")
 		FString m_RapDefaultText;				//ラップデフォルトテキスト
-	UPROPERTY(EditAnywhere, Category = "Result")
-		FString m_RapTimeTextPath;				//ラップテキストパス
+
+	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
+		FString m_SaveRecordFolderPath;					//レコードをたどるパスを設定
+	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
+		FString m_SaveStageFolderPath;					//ステージをたどるパスを設定
+	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
+		FString m_SaveRapTimeTextPath;					//ラップテキストパスをたどるパスを設定
+
 	UPROPERTY(EditAnywhere, Category = "Result")
 		int m_PlayerRank;						//プレイヤーの順位
 	UPROPERTY(EditAnywhere, Category = "Result")
@@ -231,7 +238,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
 		ADroneBase* m_PlayerDrone;						//プレイヤードローン
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
-		ADroneBase* m_GhostDrone;						//ゴーストドローン
+		AGhostDrone* m_GhostDrone;						//ゴーストドローン
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
 		ADroneBase* m_ReplayDrone;						//リプレイドローン
 

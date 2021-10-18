@@ -333,7 +333,7 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 		for (int index = 0; index < VECTOR4_COMPONENT_NUM; ++index)
 		{
 			IsValidTextArray = m_SaveQuatText.IsValidIndex(index);
-			IsValidAxisTextArray = m_SaveQuatText[index].IsValidIndex(PlaybackFlame);
+			IsValidAxisTextArray = m_SaveQuatText[index].IsValidIndex(m_PlaybackFlame);
 			if (!IsValidTextArray || IsValidAxisTextArray)
 			{
 				break;
@@ -344,10 +344,10 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 
 		if (IsValidTextArray && IsValidAxisTextArray)
 		{
-			ReplayQuat.X = FCString::Atof(*(m_SaveQuatText[0][PlaybackFlame]));
-			ReplayQuat.Y = FCString::Atof(*(m_SaveQuatText[1][PlaybackFlame]));
-			ReplayQuat.Z = FCString::Atof(*(m_SaveQuatText[2][PlaybackFlame]));
-			ReplayQuat.W = FCString::Atof(*(m_SaveQuatText[3][PlaybackFlame]));
+			ReplayQuat.X = FCString::Atof(*(m_SaveQuatText[0][m_PlaybackFlame]));
+			ReplayQuat.Y = FCString::Atof(*(m_SaveQuatText[1][m_PlaybackFlame]));
+			ReplayQuat.Z = FCString::Atof(*(m_SaveQuatText[2][m_PlaybackFlame]));
+			ReplayQuat.W = FCString::Atof(*(m_SaveQuatText[3][m_PlaybackFlame]));
 		}
 		m_pBodyMesh->SetWorldRotation(ReplayQuat * MOVE_CORRECTION);
 		return; 
@@ -400,9 +400,9 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 		int index = 0;
 		for (const TArray<FString> SaveVelocityText : m_SaveVelocityText)
 		{
-			if (SaveVelocityText.IsValidIndex(PlaybackFlame))
+			if (SaveVelocityText.IsValidIndex(m_PlaybackFlame))
 			{
-				m_Velocity[index] = FCString::Atof(*(SaveVelocityText[PlaybackFlame]));
+				m_Velocity[index] = FCString::Atof(*(SaveVelocityText[m_PlaybackFlame]));
 			}
 			++index;
 		}
@@ -574,7 +574,7 @@ void APlayerDrone::InitializeReplay()
 {
 	SetActorLocation(m_StartLocation);
 	m_pBodyMesh->SetWorldRotation(m_StartQuaternion);
-	PlaybackFlame = 0;
+	m_PlaybackFlame = 0;
 }
 //リプレイ更新処理
 void APlayerDrone::UpdateReplay(const float& DeltaTime)
@@ -583,7 +583,7 @@ void APlayerDrone::UpdateReplay(const float& DeltaTime)
 
 	if (!IsEndPlayBackReplay())
 	{
-		PlaybackFlame++;
+		m_PlaybackFlame++;
 	}
 }
 //レースの座標保存
@@ -595,7 +595,7 @@ void APlayerDrone::WritingBestRaceVector()
 	int index = 0;
 	for (const TArray<FString>& SaveVelocityText : m_SaveVelocityText)
 	{
-		FString FliePath = FPaths::ProjectDir() + SaveFolderPath[EPATH_DRONE::BEST] + m_SaveVelocityLoadPath[index];
+		FString FliePath = FPaths::ProjectDir() + m_SaveRecordFolderPath + m_SaveStageFolderPath + m_SaveTypeFolderPath[EPATH_DRONE::BEST] + m_SaveVelocityLoadPath[index];
 		FFileHelper::SaveStringArrayToFile(SaveVelocityText, *FliePath);
 		++index;
 	}
@@ -610,7 +610,7 @@ void APlayerDrone::WritingBestRaceQuaternion()
 	int index = 0;
 	for (const TArray<FString> SaveQuatText : m_SaveQuatText)
 	{
-		FString FliePath = FPaths::ProjectDir() + SaveFolderPath[EPATH_DRONE::BEST] + m_SaveQuatLoadPath[index];
+		FString FliePath = FPaths::ProjectDir() + m_SaveRecordFolderPath + m_SaveStageFolderPath + m_SaveTypeFolderPath[EPATH_DRONE::BEST] + m_SaveQuatLoadPath[index];
 		FFileHelper::SaveStringArrayToFile(SaveQuatText, *FliePath);
 		++index;
 	}
@@ -625,7 +625,7 @@ void APlayerDrone::WritingReplayRaceVector()
 	int index = 0;
 	for (const TArray<FString>& SaveVelocityText : m_SaveVelocityText)
 	{
-		FString FliePath = FPaths::ProjectDir() + SaveFolderPath[EPATH_DRONE::REPLAY] + m_SaveVelocityLoadPath[index];
+		FString FliePath = FPaths::ProjectDir() + m_SaveRecordFolderPath + m_SaveStageFolderPath + m_SaveTypeFolderPath[EPATH_DRONE::REPLAY] + m_SaveVelocityLoadPath[index];
 		FFileHelper::SaveStringArrayToFile(SaveVelocityText, *FliePath);
 		++index;
 	}
@@ -640,7 +640,7 @@ void APlayerDrone::WritingReplayRaceQuaternion()
 	int index = 0;
 	for (const TArray<FString> SaveQuatText : m_SaveQuatText)
 	{
-		FString FliePath = FPaths::ProjectDir() + SaveFolderPath[EPATH_DRONE::REPLAY] + m_SaveQuatLoadPath[index];
+		FString FliePath = FPaths::ProjectDir() + m_SaveRecordFolderPath + m_SaveStageFolderPath + m_SaveTypeFolderPath[EPATH_DRONE::REPLAY] + m_SaveQuatLoadPath[index];
 		FFileHelper::SaveStringArrayToFile(SaveQuatText, *FliePath);
 		++index;
 	}

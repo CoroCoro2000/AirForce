@@ -42,7 +42,7 @@ private:
 
 private:
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
-		FString SaveFolderPath;
+		FString m_SaveTypeFolderPath;
 	UPROPERTY(EditAnywhere, Category = "Ghost")
 		FVector m_LoadVelocity;														
 	UPROPERTY(EditAnywhere, Category = "Ghost")

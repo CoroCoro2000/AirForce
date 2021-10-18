@@ -78,7 +78,7 @@ public:
 
 	//リプレイが再生終了したか判定する
 	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
-		bool IsEndPlayBackReplay()const { return  (PlaybackFlame > m_SaveVelocityText[EPATH_DRONE::REPLAY].Num() -1 ? true : false); }
+		bool IsEndPlayBackReplay()const { return  (m_PlaybackFlame > m_SaveVelocityText[EPATH_DRONE::REPLAY].Num() -1 ? true : false); }
 
 	//リプレイのレースの座標ファイル書き込み
 	UFUNCTION(BlueprintCallable, Category = "SaveRecord")
@@ -193,7 +193,7 @@ private:
 		FVector4 m_AxisValue;												//各軸の入力値(0:AILERON、1:ELEVATOR、2:THROTTLE、3:LADDER)
 
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
-		TArray<FString> SaveFolderPath;
+		TArray<FString> m_SaveTypeFolderPath;
 
 	UPROPERTY(EditAnywhere, Category = "Ghost")
 		bool m_isReplay;

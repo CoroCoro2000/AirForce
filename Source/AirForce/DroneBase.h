@@ -203,6 +203,10 @@ public:
 	//	ドローンの加速フラグ取得
 	UFUNCTION(BlueprintCallable, Category = "Drone|Speed")
 		bool GetIsOverAccle()const { return m_bIsPassedRing; }
+
+	//ステージパス取得
+	UFUNCTION(BlueprintCallable, Category = "SaveFilePath")
+		void SetStagePath(FString _StagePath) { m_SaveStageFolderPath = _StagePath; }
 protected:
 	//羽の加速度更新処理
 	virtual void UpdateWingAccle(const float& DeltaTime);
@@ -316,10 +320,14 @@ protected:
 	TArray<TArray<FString>> m_SaveVelocityText;			//読み込んだ毎フレームの移動量を格納する配列
 	TArray<TArray<FString>> m_SaveQuatText;				//読み込んだ毎フレームの回転量を格納する配列
 	UPROPERTY(EditAnywhere, Category = "Drone")
-		int PlaybackFlame;
+		int m_PlaybackFlame;
 	UPROPERTY(EditAnywhere, Category = "Drone")
 		int m_PlayableFramesNum;
 
+	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
+		FString m_SaveRecordFolderPath;									//レコードをたどるパスを設定
+	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
+		FString m_SaveStageFolderPath;									//ステージをたどるパスを設定
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
 		TArray<FString> m_SaveVelocityLoadPath;							//移動量が書きこまれたファイルをたどるパスを設定
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")

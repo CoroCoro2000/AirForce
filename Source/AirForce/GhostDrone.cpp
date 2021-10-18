@@ -25,11 +25,6 @@ AGhostDrone::AGhostDrone()
 void AGhostDrone::BeginPlay()
 {
 	Super::BeginPlay();
-
-	//レースの座標ファイル読み込み
-	LoadingRaceVectorFile();
-	//レースのクオータニオンファイル読み込み
-	LoadingRaceQuaternionFile();
 }
 
 //毎フレーム処理
@@ -46,9 +41,9 @@ void AGhostDrone::Tick(float DeltaTime)
 			//移動処理
 			UpdateSpeed(DeltaTime);
 
-			PlaybackFlame++;
+			m_PlaybackFlame++;
 
-			if (PlaybackFlame >= m_PlayableFramesNum)
+			if (m_PlaybackFlame >= m_PlayableFramesNum)
 			{
 				Destroy();
 			}
@@ -65,7 +60,7 @@ void AGhostDrone::UpdateRotation(const float& DeltaTime)
 	for (int index = 0; index < VECTOR4_COMPONENT_NUM; ++index)
 	{
 		IsValidTextArray = m_SaveQuatText.IsValidIndex(index);
-		IsValidAxisTextArray = m_SaveQuatText[index].IsValidIndex(PlaybackFlame);
+		IsValidAxisTextArray = m_SaveQuatText[index].IsValidIndex(m_PlaybackFlame);
 		if (!IsValidTextArray || IsValidAxisTextArray)
 		{
 			break;
@@ -74,10 +69,10 @@ void AGhostDrone::UpdateRotation(const float& DeltaTime)
 
 	if (IsValidTextArray && IsValidAxisTextArray)
 	{
-		m_LoadQuat.X = FCString::Atof(*(m_SaveQuatText[0][PlaybackFlame]));
-		m_LoadQuat.Y = FCString::Atof(*(m_SaveQuatText[1][PlaybackFlame]));
-		m_LoadQuat.Z = FCString::Atof(*(m_SaveQuatText[2][PlaybackFlame]));
-		m_LoadQuat.W = FCString::Atof(*(m_SaveQuatText[3][PlaybackFlame]));
+		m_LoadQuat.X = FCString::Atof(*(m_SaveQuatText[0][m_PlaybackFlame]));
+		m_LoadQuat.Y = FCString::Atof(*(m_SaveQuatText[1][m_PlaybackFlame]));
+		m_LoadQuat.Z = FCString::Atof(*(m_SaveQuatText[2][m_PlaybackFlame]));
+		m_LoadQuat.W = FCString::Atof(*(m_SaveQuatText[3][m_PlaybackFlame]));
 	}
 	m_pBodyMesh->SetWorldRotation(m_LoadQuat * MOVE_CORRECTION);
 }
@@ -91,9 +86,9 @@ void AGhostDrone::UpdateSpeed(const float& DeltaTime)
 	int index = 0;
 	for (const TArray<FString> SaveVelocityText : m_SaveVelocityText)
 	{
-		if (SaveVelocityText.IsValidIndex(PlaybackFlame))
+		if (SaveVelocityText.IsValidIndex(m_PlaybackFlame))
 		{
-			m_LoadVelocity[index] = FCString::Atof(*(SaveVelocityText[PlaybackFlame]));
+			m_LoadVelocity[index] = FCString::Atof(*(SaveVelocityText[m_PlaybackFlame]));
 		}
 		++index;
 	}
@@ -113,7 +108,7 @@ void AGhostDrone::LoadingRaceVectorFile()
 		//ファイルを開いて保存されている値を読み込む
 		for (int index = 0; index < (int)m_SaveVelocityText.Num(); ++index)
 		{
-			FString LoadFilePath = FPaths::ProjectDir() + SaveFolderPath + m_SaveVelocityLoadPath[index];
+			FString LoadFilePath = FPaths::ProjectDir() + m_SaveRecordFolderPath + m_SaveStageFolderPath + m_SaveTypeFolderPath + m_SaveVelocityLoadPath[index];
 			FFileHelper::LoadFileToStringArray(m_SaveVelocityText[index], *LoadFilePath);
 
 			//再生可能なフレーム数を取得
@@ -146,7 +141,7 @@ void AGhostDrone::LoadingRaceQuaternionFile()
 		//ファイルを開いて保存されている値を読み込む
 		for (int index = 0; index < (int)m_SaveQuatText.Num(); ++index)
 		{
-			FString LoadFilePath = FPaths::ProjectDir() + SaveFolderPath + m_SaveQuatLoadPath[index];
+			FString LoadFilePath = FPaths::ProjectDir() + m_SaveRecordFolderPath + m_SaveStageFolderPath + m_SaveTypeFolderPath + m_SaveQuatLoadPath[index];
 			FFileHelper::LoadFileToStringArray(m_SaveQuatText[index], *LoadFilePath);
 
 			//再生可能なフレーム数を取得

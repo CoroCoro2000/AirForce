@@ -47,7 +47,7 @@ void AGameManager::BeginPlay()
 {
 	Super::BeginPlay();
 	//ファイル読み込み
-	FFileHelper::LoadFileToStringArray(m_RapTimeText, *(FPaths::ProjectDir() + m_RapTimeTextPath));
+	FFileHelper::LoadFileToStringArray(m_RapTimeText, *(FPaths::ProjectDir() + m_SaveRecordFolderPath + m_SaveStageFolderPath + m_SaveRapTimeTextPath));
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (PlayerController)
@@ -63,6 +63,7 @@ void AGameManager::BeginPlay()
 	if (pDrone)
 	{
 		m_PlayerDrone = Cast<ADroneBase>(pDrone);
+		m_PlayerDrone->SetStagePath(m_SaveStageFolderPath);
 	}
 
 	if (m_CurrentScene == ECURRENTSCENE::SCENE_FIRST)
@@ -76,27 +77,18 @@ void AGameManager::BeginPlay()
 			if (ghostSoftClass)
 			{
 				AActor* ghostDrone = GetWorld()->SpawnActor<AActor>(ghostSoftClass); // スポーン処理
-				m_GhostDrone = Cast<ADroneBase>(ghostDrone);
+				m_GhostDrone = Cast<AGhostDrone>(ghostDrone);
 				if (m_GhostDrone)
 				{
 					m_GhostDrone->SetActorLocation(m_PlayerDrone->GetActorLocation());
 					m_GhostDrone->SetActorRotation(m_PlayerDrone->GetActorRotation());
+					m_GhostDrone->SetStagePath(m_SaveStageFolderPath);
+					//レースの座標ファイル読み込み
+					m_GhostDrone->LoadingRaceVectorFile();
+					//レースのクオータニオンファイル読み込み
+					m_GhostDrone->LoadingRaceQuaternionFile();
 				}
 			}
-
-			//リプレイドローン生成
-			//FString replayPath = TEXT("/Game/BP/ReplayDroneBP.ReplayDroneBP_C");
-			//TSubclassOf<AActor> replaySoftClass = TSoftClassPtr<AActor>(FSoftObjectPath(*replayPath)).LoadSynchronous(); // 上記で設定したパスに該当するクラスを取得
-			//if (replaySoftClass)
-			//{
-			//	AActor* replayDrone = GetWorld()->SpawnActor<AActor>(replaySoftClass); // スポーン処理
-			//	m_ReplayDrone = Cast<ADroneBase>(replayDrone);
-			//	if (m_ReplayDrone)
-			//	{
-			//		m_ReplayDrone->SetActorLocation(m_PlayerDrone->GetActorLocation());
-			//		m_ReplayDrone->SetActorRotation(m_PlayerDrone->GetActorRotation());
-			//	}
-			//}
 		}
 	}
 }
@@ -227,7 +219,7 @@ void AGameManager::Result(float DeltaTime)
 		}
 
 		//テキストファイル書き込み
-		FFileHelper::SaveStringArrayToFile(m_RapTimeText, *(FPaths::ProjectDir() + m_RapTimeTextPath));
+		FFileHelper::SaveStringArrayToFile(m_RapTimeText, *(FPaths::ProjectDir() + m_SaveRecordFolderPath + m_SaveStageFolderPath + m_SaveRapTimeTextPath));
 
 		//書き込みフラグをONにする
 		m_isScoreWrite = true;
