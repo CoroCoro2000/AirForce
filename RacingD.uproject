@@ -53,11 +53,6 @@
 				"Linux",
 				"Mac"
 			]
-		},
-		{
-			"Name": "LoadingScreenSystemPlugin",
-			"Enabled": false,
-			"MarketplaceURL": "https://indiebrothers.itch.io/ue4-loading-screen-system-plugin-unreal-engine-4"
 		}
 	],
 	"TargetPlatforms": [
