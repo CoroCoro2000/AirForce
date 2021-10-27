@@ -49,6 +49,7 @@ ADroneBase::ADroneBase()
 	, m_isControl(false)
 	, m_isFloating(true)
 	, m_AxisValuePerFrame(FVector4(0.f, 0.f, 0.f, 0.f))
+	, m_LocalAxis(FVector::ZeroVector)
 	, m_pWindEffect(NULL)
 	, m_WindRotationSpeed(5.f)
 	, m_WindOpacity(0.f)
@@ -278,13 +279,14 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 		float RotYaw = m_pBodyMesh->GetComponentRotation().Yaw;
 		FQuat BodyQuat = FRotator(0.f, RotYaw, 0.f).Quaternion();
 
-		m_Velocity = FVector::ZeroVector;
+		m_LocalAxis = FVector::ZeroVector;
 		FVector NormalizeValue = FVector(m_AxisAccel).GetAbs().GetSafeNormal();
-		m_Velocity += BodyQuat.GetRightVector() * m_Speed * m_AxisAccel.X;
-		m_Velocity += BodyQuat.GetForwardVector() * m_Speed * -m_AxisAccel.Y;
-		m_Velocity += BodyQuat.GetUpVector() * m_Speed * m_AxisAccel.Z;
+		m_LocalAxis += BodyQuat.GetRightVector() * m_AxisAccel.X;
+		m_LocalAxis += BodyQuat.GetForwardVector() * -m_AxisAccel.Y;
+		m_LocalAxis += BodyQuat.GetUpVector() * m_AxisAccel.Z;
 
-		m_AxisAccel.Rotation();
+		m_Velocity = m_LocalAxis * m_Speed;
+
 		//上限でクランプ
 		m_Velocity = CGameUtility::SetDecimalTruncation(m_Velocity, 3);
 		//高度上限を超えていたら自動的に高度を下げる

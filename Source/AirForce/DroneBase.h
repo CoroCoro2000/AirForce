@@ -207,6 +207,8 @@ public:
 	//ステージパス取得
 	UFUNCTION(BlueprintCallable, Category = "SaveFilePath")
 		void SetStagePath(FString _StagePath) { m_SaveStageFolderPath = _StagePath; }
+	//ローカル軸を取得
+	FVector GetLocalAxis()const { return m_LocalAxis; }
 protected:
 	//羽の加速度更新処理
 	virtual void UpdateWingAccle(const float& DeltaTime);
@@ -308,6 +310,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Drone")
 		FVector4 m_AxisValuePerFrame;													//毎フレーム更新される入力の値
 
+	FVector m_LocalAxis;																//ドローンのローカル軸
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		UNiagaraComponent* m_pWindEffect;									//風のエフェクト
 	UPROPERTY(EditAnywhere, Category = "Effect")

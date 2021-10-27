@@ -8,7 +8,7 @@
 // 更新者		:19CU0104 池田翔一郎
 // 更新内容		:2021/06/07 ドローンの軌跡エフェクトを追加
 //				:2021/06/16 ドローンの羽の回転処理の追加
-//------------------------------------------------------------------------
+//-----------------------------------------------------------------------
 
 //インクルード
 #include "PlayerDrone.h"
@@ -22,9 +22,10 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "UObject/ConstructorHelpers.h"
-#include "Engine/StaticMeshActor.h"
 #include "Misc/FileHelper.h"
 #include "DrawDebugHelpers.h"
+
+//#define DEBUG_CAMERA
 
 //コンストラクタ
 APlayerDrone::APlayerDrone()
@@ -433,92 +434,92 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	//移動量に応じてカメラのブレを大きくする
 	bool isMove = !m_AxisValuePerFrame.IsNearlyZero3();
 
-	if (!m_isReplay)
+	//レイの開始点と終点を設定(ドローンの座標から前方に向かって)
+	float RotYaw = m_pBodyMesh->GetComponentRotation().Yaw;
+	FQuat BodyQuat = FRotator(0.f, RotYaw, 0.f).Quaternion();
+
+	float RayLength = 1500.f;
+	FVector Start = GetActorLocation();
+	FVector End = Start + BodyQuat.GetForwardVector() * RayLength;
+	//ヒット結果を格納する配列
+	TArray<FHitResult> OutHits;
+	//トレースする対象(自身は対象から外す)
+	FCollisionQueryParams CollisionParam;
+	CollisionParam.AddIgnoredActor(this);
+
+	//レイを飛ばし、WorldStaticのコリジョンチャンネルを持つオブジェクトのヒット判定を取得する
+	bool isHit = GetWorld()->LineTraceMultiByObjectType(OutHits, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+	bool isClimbingSlope = false;
+	//レイがヒットしたらアクターのタグを確認
+	if (isHit)
 	{
-		//レイの開始点と終点を設定(ドローンの座標から前方に向かって)
-		float RotYaw = m_pBodyMesh->GetComponentRotation().Yaw;
-		FQuat BodyQuat = FRotator(0.f, RotYaw, 0.f).Quaternion();
-
-		float RayLength = 1500.f;
-		FVector Start = GetActorLocation();
-		FVector End = Start + BodyQuat.GetForwardVector() * RayLength;
-		//ヒット結果を格納する配列
-		TArray<FHitResult> OutHits;
-		//トレースする対象(自身は対象から外す)
-		FCollisionQueryParams CollisionParam;
-		CollisionParam.AddIgnoredActor(this);
-
-		//レイを飛ばし、WorldStaticのコリジョンチャンネルを持つオブジェクトのヒット判定を取得する
-		bool isHit = GetWorld()->LineTraceMultiByObjectType(OutHits, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
-		bool isClimbingSlope = false;
-		//レイがヒットしたらアクターのタグを確認
-		if (isHit)
+		//Slopeのタグを持つアクターがあればカメラを上げるフラグを立てる
+		for (const FHitResult& HitResult : OutHits)
 		{
-			//Slopeのタグを持つアクターがあればカメラを上げるフラグを立てる
-			for (const FHitResult& HitResult : OutHits)
+			if (HitResult.GetActor())
 			{
-				if (HitResult.GetActor())
+				if (HitResult.GetActor()->ActorHasTag(TEXT("Slope")))
 				{
-					if (HitResult.GetActor()->ActorHasTag(TEXT("Slope")))
-					{
-						isClimbingSlope = true;
+					isClimbingSlope = true;
 
-						//傾斜との距離を測定する
-						m_DistanceToSlope = FVector::Dist(GetActorLocation(), HitResult.Location);
-						break;
-					}
+					//傾斜との距離を測定する
+					m_DistanceToSlope = FVector::Dist(GetActorLocation(), HitResult.Location);
+					break;
 				}
 			}
 		}
+	}
 
 #ifdef DEBUG_UpdateCamera
-		FColor LineColor = isClimbingSlope ? FColor::Yellow : FColor::Blue;
-		//デバッグ用のラインを描画
-		DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.f);
+	FColor LineColor = isClimbingSlope ? FColor::Yellow : FColor::Blue;
+	//デバッグ用のラインを描画
+	DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.f);
 
 #endif // DEBUG_UpdateCamera
 
-		//カメラと機体の角度を取得
-		FRotator CameraRotation = m_pCamera->GetRelativeRotation();
-		FRotator BodyRotation = m_pBodyMesh->GetRelativeRotation();
+	//カメラと機体の角度を取得
+	FRotator CameraRotation = m_pCamera->GetRelativeRotation();
+	FRotator BodyRotation = m_pBodyMesh->GetRelativeRotation();
 
-		//減衰比率を設定(フレーム落ちした際にLerpの上限を越えないように上限を1でクランプする)
-		FRotator AttenRate = FRotator(
-			FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Pitch, 0.f, 1.f),
-			FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Yaw, 0.f, 1.f),
-			FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Roll, 0.f, 1.f));
+	//減衰比率を設定(フレーム落ちした際にLerpの上限を越えないように上限を1でクランプする)
+	FRotator AttenRate = FRotator(
+		FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Pitch, 0.f, 1.f),
+		FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Yaw, 0.f, 1.f),
+		FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Roll, 0.f, 1.f));
 
-		//指定の角度まで補間しながら回転させる
-		//斜面を登っているときは見上げるような角度にする
-		if (isClimbingSlope)
-		{
-			float radSlope = FMath::Atan2(m_HeightFromGround, m_DistanceToSlope);
-			float degSlope = FMath::ClampAngle(FMath::RadiansToDegrees(radSlope), SLOPE_MIN, m_TiltLimit);
-			CameraRotation.Pitch = FMath::Lerp(CameraRotation.Pitch, degSlope, AttenRate.Pitch);
-		}
-		else
-		{
-			CameraRotation.Pitch = FMath::Lerp(CameraRotation.Pitch, FMath::Clamp(BodyRotation.Pitch, -5.f, 5.f), AttenRate.Pitch);
-		}
-		m_CameraRotationYaw = FMath::Lerp(0.f, m_AxisValuePerFrame.W * 5.f, AttenRate.Yaw);
-		CameraRotation.Roll = FMath::Lerp(CameraRotation.Roll, BodyRotation.Roll * 0.7f, AttenRate.Roll);
+	//指定の角度まで補間しながら回転させる
+	//斜面を登っているときは見上げるような角度にする
+	if (isClimbingSlope)
+	{
+		float radSlope = FMath::Atan2(m_HeightFromGround, m_DistanceToSlope);
+		float degSlope = FMath::ClampAngle(FMath::RadiansToDegrees(radSlope), SLOPE_MIN, m_TiltLimit);
+		CameraRotation.Pitch = FMath::Lerp(CameraRotation.Pitch, degSlope, AttenRate.Pitch);
+	}
+	else
+	{
+		CameraRotation.Pitch = FMath::Lerp(CameraRotation.Pitch, FMath::Clamp(BodyRotation.Pitch, -5.f, 5.f), AttenRate.Pitch);
+	}
+	m_CameraRotationYaw = FMath::Lerp(0.f, m_AxisValuePerFrame.W * 5.f, AttenRate.Yaw);
+	CameraRotation.Roll = FMath::Lerp(CameraRotation.Roll, BodyRotation.Roll * 0.7f, AttenRate.Roll);
 
-		//ソケットの位置を更新
-		FVector SocketAttenRate = FVector(
-			FMath::Clamp(DeltaTime * 1.5f, 0.f, 1.f),
-			FMath::Clamp(DeltaTime * 0.8f, 0.f, 1.f),
-			FMath::Clamp(DeltaTime * 1.5f, 0.f, 1.f));
+	//ソケットの位置を更新
+	FVector SocketAttenRate = FVector(
+		FMath::Clamp(DeltaTime * 1.5f, 0.f, 1.f),
+		FMath::Clamp(DeltaTime * 0.8f, 0.f, 1.f),
+		FMath::Clamp(DeltaTime * 1.5f, 0.f, 1.f));
 
-		float HorizontalAxis = (FMath::Abs(m_AxisValuePerFrame.X) > FMath::Abs(m_AxisValuePerFrame.W) ? m_AxisValuePerFrame.X : m_AxisValuePerFrame.W);
+	float HorizontalAxis = (FMath::Abs(m_AxisValuePerFrame.X) > FMath::Abs(m_AxisValuePerFrame.W) ? m_AxisValuePerFrame.X : m_AxisValuePerFrame.W);
 
-		m_pSpringArm->SocketOffset.X = FMath::Lerp(m_pSpringArm->SocketOffset.X, m_AxisValuePerFrame.Y * m_CameraSocketOffsetMax.X, SocketAttenRate.X);
-		m_pSpringArm->SocketOffset.Y = FMath::Lerp(m_pSpringArm->SocketOffset.Y, HorizontalAxis * m_CameraSocketOffsetMax.Y, SocketAttenRate.Y);
-		m_pSpringArm->SocketOffset.Z = FMath::Lerp(m_pSpringArm->SocketOffset.Z, -CameraRotation.Pitch, SocketAttenRate.Z);
+	m_pSpringArm->SocketOffset.X = FMath::Lerp(m_pSpringArm->SocketOffset.X, m_AxisValuePerFrame.Y * m_CameraSocketOffsetMax.X, SocketAttenRate.X);
+	m_pSpringArm->SocketOffset.Y = FMath::Lerp(m_pSpringArm->SocketOffset.Y, HorizontalAxis * m_CameraSocketOffsetMax.Y, SocketAttenRate.Y);
+	m_pSpringArm->SocketOffset.Z = FMath::Lerp(m_pSpringArm->SocketOffset.Z, -CameraRotation.Pitch, SocketAttenRate.Z);
 
-		//カメラの回転を更新
-		m_pCamera->SetRelativeRotation(CameraRotation.Quaternion() * MOVE_CORRECTION);
-		m_pSpringArm->SetRelativeRotation(FRotator(0.f, BodyRotation.Yaw + m_CameraRotationYaw, 0.f) * MOVE_CORRECTION);
+	//カメラの回転を更新
+	m_pCamera->SetRelativeRotation(CameraRotation.Quaternion() * MOVE_CORRECTION);
+	m_pSpringArm->SetRelativeRotation(FRotator(0.f, BodyRotation.Yaw + m_CameraRotationYaw, 0.f) * MOVE_CORRECTION);
 
+	if (!m_isReplay)
+	{
 		//移動に応じて視野角を変更
 		float FOV = isMove ? (m_bIsPassedRing ? 125.f : 105.f) : 90.f;
 		float FOVAttenRate = FMath::Clamp(DeltaTime * 3.f, 0.f, 1.f);
@@ -532,12 +533,9 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 		m_pCamera->PostProcessSettings.MotionBlurAmount = FMath::Lerp(m_pCamera->PostProcessSettings.MotionBlurAmount, MotionBlurAmount, FOVAttenRate);
 		m_pCamera->PostProcessSettings.MotionBlurMax = FMath::Lerp(m_pCamera->PostProcessSettings.MotionBlurMax, MotionBlurMax, FOVAttenRate);
 		m_pCamera->PostProcessSettings.MotionBlurTargetFPS = MotionBlurTargetFPS;
+
 	}
-
-
-
-	//リプレイ中のカメラワークを設定
-	if (m_isReplay)
+	else 
 	{
 		bool isReplayMove = !m_Velocity.IsNearlyZero();
 		//移動に応じて視野角を変更
@@ -554,6 +552,8 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 		m_pCamera->PostProcessSettings.MotionBlurMax = FMath::Lerp(m_pCamera->PostProcessSettings.MotionBlurMax, MotionBlurMax, FOVAttenRate);
 		m_pCamera->PostProcessSettings.MotionBlurTargetFPS = MotionBlurTargetFPS;
 	}
+
+
 }
 		
 

@@ -13,12 +13,8 @@
 #include "PlayerDrone.h"
 #include "Components/StaticMeshComponent.h"
 #include "NiagaraComponent.h"
-#include "UObject/ConstructorHelpers.h"
-#include "Curves/CurveFloat.h"
 #include "Kismet/GameplayStatics.h"
-
-#define SCROLLSPEED_DEFAULT		(0.5f)
-#define SCROLLSPEED_MAX			(SCROLLSPEED_DEFAULT * 2.5f)
+#include "BlueprintFunctionUtility.h"
 
 //コンストラクタ
 ARing::ARing()
@@ -31,9 +27,10 @@ ARing::ARing()
 	, m_SineScaleMax(1.05f)
 	, m_PassedSceleMax(3.f)
 	, m_pPassedDrone(NULL)
+	, m_bIsUnRotation(false)
 	, m_HSV(30.f, 40.f, 30.f)
 	, m_InitialTransform(FTransform(FQuat::Identity, FVector::ZeroVector, FVector::OneVector))
-	, m_RingHIttSE(NULL)
+	, m_RingHitSE(NULL)
 {
 	//毎フレームTickを呼び出すかどうかのフラグ
 	PrimaryActorTick.bCanEverTick = true;
@@ -132,10 +129,14 @@ void ARing::UpdateScale(const float& DeltaTime)
 			FVector Scale = FMath::Lerp(RingScale, RingScale * 0.05f, elapsedRate);
 			SetActorScale3D(Scale);
 
+			FRotator TargetRotation = m_bIsUnRotation ?
+				m_pPassedDrone->GetBodyMeshRotation() * -1.f :
+				m_pPassedDrone->GetBodyMeshRotation();
+			
 			//徐々に座標と回転をプレイヤーに合わせる
 			SetActorLocationAndRotation(
 				FMath::Lerp(GetActorLocation(), m_pPassedDrone->GetActorLocation(), elapsedRate),
-				FMath::Lerp(GetActorQuat(), m_pPassedDrone->GetBodyMeshRotation().Quaternion(), elapsedRate));
+				FMath::Lerp(GetActorRotation(), TargetRotation, elapsedRate));
 		}
 	}
 }
@@ -161,13 +162,10 @@ void ARing::UpdateMaterial(const float& DeltaTime)
 		const float WaveWidth = m_SineWidth * GetWorld()->GetTimeSeconds();
 		//サイン波の大きさを0から1に正規化する
 		const float SinWave = FMath::Sin(WaveWidth) * 0.5f + 0.5f;
-		//マテリアルのスクロール速度を設定
-		//float ScrollSpeed = FMath::Lerp(SCROLLSPEED_DEFAULT, SCROLLSPEED_MAX, SinWave);
 		//サイン波の値でリングの色相を変える
 		m_HSV.R = FMath::Lerp(50.f, 30.f, SinWave);
 		m_HSV.B = FMath::Lerp(30.f, 50.f, SinWave);
 		
-		//m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
 		m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("BlendColor"), FVector(m_HSV.HSVToLinearRGB()));
 	}
 }
@@ -186,16 +184,33 @@ void ARing::UpdateEffect(const float& DeltaTime)
 	}
 }
 
+//リングが逆回転するかのフラグ
+bool ARing::IsUnRotation()
+{
+	if (!m_pPassedDrone) { return false; }
+
+	//ドローンの向きに合わせてリングの向きを変更する
+	FRotator RingRotation = GetActorRotation();
+	FRotator DroneRotation = m_pPassedDrone->GetBodyMeshRotation();
+	FVector DroneRotationVector = DroneRotation.Vector();
+
+	FVector RotationVector = RingRotation.RotateVector(DroneRotationVector);
+	FVector UnRotationVector = RingRotation.UnrotateVector(DroneRotationVector);
+
+	//逆回転のほうがドローンの回転に近ければtrueを返す
+	return FVector::Dist(RotationVector, DroneRotationVector) > FVector::Dist(UnRotationVector, DroneRotationVector);
+}
+
 //リングの初期化
 void ARing::Reset()
 {
 	m_bIsPassed = false;
 	m_MakeInvisibleCnt = 0.f;
 	m_HSV = FLinearColor(30.f, 40.f, 30.f);
-
+	float ScrollSpeed = 0.5f;
+	m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
 	SetActorTransform(m_InitialTransform);
 	m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), 1.f);
-	m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), SCROLLSPEED_DEFAULT);
 	m_pRingMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	m_pPassedDrone = NULL;
 }
@@ -213,13 +228,17 @@ void ARing::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 			{
 				//通過された状態に変更
 				m_bIsPassed = true;
-				m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), SCROLLSPEED_MAX);
+				m_bIsUnRotation = IsUnRotation();
+
+				//マテリアルの回転速度を上げる
+				float ScrollSpeed = 1.f;
+				m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
 
 				m_pPassedDrone = Cast<ADroneBase>(OtherActor);
 				//エフェクトの再生
 				m_pNiagaraEffectComp->Activate();
 				//SEの再生
-				UGameplayStatics::PlaySound2D(GetWorld(), m_RingHIttSE);
+				UGameplayStatics::PlaySound2D(GetWorld(), m_RingHitSE);
 				//リングの当たり判定を切る
 				m_pRingMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			}

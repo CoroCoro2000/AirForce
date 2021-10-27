@@ -57,6 +57,9 @@ private:
 	//リングのエフェクト更新
 	void UpdateEffect(const float& DeltaTime);
 
+	//リングの回転の向きを決める関数
+	bool IsUnRotation();
+
 	//リングの初期化
 	void Reset();
 
@@ -81,10 +84,12 @@ protected:
 		float m_PassedSceleMax;									//リング通過後の大きさ
 	UPROPERTY(VisibleAnywhere)
 		ADroneBase* m_pPassedDrone;							//このリングを通過したドローン
+	UPROPERTY(VisibleAnywhere)
+		bool m_bIsUnRotation;											//逆回転するかどうか
 	UPROPERTY(EditAnywhere)
 		FLinearColor m_HSV;											//リングの色
-	UPROPERTY(EditAnywhere, Category = "Sound")
-		USoundBase* m_RingHIttSE;						//リング衝突SE
 	UPROPERTY(VisibleAnywhere)
 		FTransform m_InitialTransform;							//リングの初期トランスフォーム
+	UPROPERTY(EditAnywhere, Category = "Sound")
+		USoundBase* m_RingHitSE;								//リング衝突SE
 };
