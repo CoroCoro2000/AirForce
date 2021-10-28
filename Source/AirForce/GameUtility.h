@@ -8,9 +8,6 @@
 //インクルードガード
 #pragma once
 
-//インクルード
-#include "TimerManager.h"
-
 //前方宣言
 class AActor;
 

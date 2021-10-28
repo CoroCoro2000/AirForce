@@ -3,6 +3,7 @@
 
 #include "BlueprintFunctionUtility.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 //コンストラクタ
 UBlueprintFunctionUtility::UBlueprintFunctionUtility(const FObjectInitializer& ObjectInitializer)
@@ -40,5 +41,32 @@ void UBlueprintFunctionUtility::GetAllActorHasTags(const UObject* WorldContextOb
 				}
 			}
 		}
+	}
+}
+
+//ターゲットに向かう回転量を返す関数
+FQuat UBlueprintFunctionUtility::RInterpToQuaternion(const FRotator Current, const FRotator Target, const float DeltaTime, const float InterpSpeed)
+{
+	//回転角度
+	float RotateAngle = DeltaTime * InterpSpeed;
+	//現在の回転とターゲットのXベクトル
+	FVector CurrentXVector = Current.Vector();
+	FVector TargetXVector = Target.Vector();
+	//回転軸
+	FVector RotationAxis = CurrentXVector * TargetXVector;
+
+	//なす角を求める
+	float dot = CurrentXVector | TargetXVector;
+	float DegAngle = UKismetMathLibrary::DegAcos(dot);
+
+	//回転角度よりなす角が小さい場合はTargetまでの回転量を返す
+	if (DegAngle <= RotateAngle)
+	{
+		return Target.Quaternion();
+	}
+	else
+	{
+		//クォータニオンによる回転
+		return UKismetMathLibrary::Conv_VectorToQuaterion(UKismetMathLibrary::RotateAngleAxis(CurrentXVector, RotateAngle, RotationAxis));
 	}
 }
