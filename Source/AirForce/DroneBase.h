@@ -21,6 +21,7 @@ class USphereComponent;
 class UNiagaraSystem;
 class UNiagaraComponent;
 class USoundBase;
+class USpotLightComponent;
 
 //移動用ビットフィールド
 struct FMoveDirectionFlag
@@ -344,4 +345,9 @@ protected:
 		float m_CountLimitTime;													//リングをくぐってから数える時間の上限	
 	UPROPERTY(EditAnywhere, Category = "Ring")
 		float m_OverAccelerator;												//リングをくぐったときの加速倍率
+
+	UPROPERTY(EditAnywhere, Category = "Light")
+		USpotLightComponent* m_pLeftSpotLight;
+	UPROPERTY(EditAnywhere, Category = "Light")
+		USpotLightComponent* m_pRightSpotLight;
 };

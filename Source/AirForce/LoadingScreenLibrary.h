@@ -29,7 +29,7 @@ public:
 	//読み込みをするパッケージ名の設定
 	void SetPackageNameForLoadingProgress(FName InPackageName) { m_PackageName = InPackageName; }
 	//ロード画面の表示
-	void ShowLoadingScreen(const TSubclassOf<UUserWidget> WidgetClass);
+	void ShowLoadingScreen(const TSubclassOf<UUserWidget> WidgetClass, const FName InPackageName);
 	//ロード画面の非表示
 	void HideLoadingScreen();
 	//ロードの進捗を取得する関数

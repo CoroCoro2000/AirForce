@@ -45,7 +45,7 @@ void FLoadingScreenSystem::Tick(float DeltaTime)
 }
 
 //ロードウィジェットの表示
-void FLoadingScreenSystem::ShowLoadingScreen(const TSubclassOf<UUserWidget> WidgetClass)
+void FLoadingScreenSystem::ShowLoadingScreen(const TSubclassOf<UUserWidget> WidgetClass, const FName InPackageName)
 {
 	if (m_bShowing) { return; }
 	if (!m_pGameInstance) { return; }
@@ -57,6 +57,8 @@ void FLoadingScreenSystem::ShowLoadingScreen(const TSubclassOf<UUserWidget> Widg
 		{
 			if (UGameViewportClient* pGameViewportClient = m_pGameInstance->GetGameViewportClient())
 			{
+				//ロードするパッケージ名を表示
+				m_PackageName = InPackageName;
 				//ロード画面を表示
 				const int32 ZOrder = 10000;
 				pGameViewportClient->AddViewportWidgetContent(m_pLoadingScreenWidget.ToSharedRef(), ZOrder);
@@ -194,7 +196,7 @@ void ULoadingScreenLibrary::ShowLoadingScreen(const TSubclassOf<UUserWidget> Wid
 	{
 		if (TSharedPtr<FLoadingScreenSystem> pLoadingScreenSystem = pGameInstance->GetLoadingScreenSystem())
 		{
-			pLoadingScreenSystem->ShowLoadingScreen(WidgetClass);
+			pLoadingScreenSystem->ShowLoadingScreen(WidgetClass, InPackageName);
 		}
 	}
 }

@@ -10,10 +10,13 @@
 #include "DroneBase.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
-#include "UObject/ConstructorHelpers.h"
-#include "DrawDebugHelpers.h"
+#include "Components/SpotLightComponent.h"
 #include "NiagaraComponent.h"
 #include "GameUtility.h"
+
+#if WITH_EDITOR
+#include "DrawDebugHelpers.h"
+#endif // WITH_EDITOR
 
 //コンストラクタ
 ADroneBase::ADroneBase()
@@ -58,6 +61,8 @@ ADroneBase::ADroneBase()
 	, m_SincePassageCount(0.f)
 	, m_CountLimitTime(1.f)
 	, m_OverAccelerator(1.5f)
+	, m_pLeftSpotLight(NULL)
+	, m_pRightSpotLight(NULL)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -73,53 +78,76 @@ ADroneBase::ADroneBase()
 	}
 
 	//ボディのメッシュアセットを探索
-	ConstructorHelpers::FObjectFinder<UStaticMesh> pBodyMesh(TEXT("StaticMesh'/Game/Model/Drone/NewDrone/Drone.Drone'"));
+	FSoftObjectPath BodyMeshPath = TEXT("/Game/Model/Drone/NewDrone/Drone.Drone");
+	UStaticMesh* pBodyMesh = TSoftObjectPtr<UStaticMesh>(BodyMeshPath).LoadSynchronous();
 	//ボディメッシュ生成
 	m_pBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
 
 	//ボディメッシュの検索、生成に成功したら
-	if (m_pBodyMesh && pBodyMesh.Succeeded())
+	if (m_pBodyMesh && pBodyMesh)
 	{
 		//メッシュのセットアップ
 		m_pBodyMesh->SetupAttachment(m_pDroneCollision);
-		m_pBodyMesh->SetStaticMesh(pBodyMesh.Object);
+		m_pBodyMesh->SetStaticMesh(pBodyMesh);
 	}
 
 	//羽のメッシュアセットを探索
 	//右ねじと左ねじの羽を取得する
-	ConstructorHelpers::FObjectFinder<UStaticMesh> pRightTwistWing(TEXT("StaticMesh'/Game/Model/Drone/Drone_Mesh/CGAXR_2021_07_31/Wing/CGAXR_FAN_RIGHT_TWIST.CGAXR_FAN_RIGHT_TWIST'"));
-	ConstructorHelpers::FObjectFinder<UStaticMesh> pLeftTwistWing(TEXT("StaticMesh'/Game/Model/Drone/Drone_Mesh/CGAXR_2021_07_31/Wing/CGAXR_FAN_LEFT_TWIST.CGAXR_FAN_LEFT_TWIST'"));
+	FSoftObjectPath LeftTwistWingPath = TEXT("/Game/Model/Drone/Drone_Mesh/CGAXR_2021_07_31/Wing/CGAXR_FAN_LEFT_TWIST.CGAXR_FAN_LEFT_TWIST");
+	FSoftObjectPath RightTwistWingPath = TEXT("/Game/Model/Drone/Drone_Mesh/CGAXR_2021_07_31/Wing/CGAXR_FAN_RIGHT_TWIST.CGAXR_FAN_RIGHT_TWIST");
+	UStaticMesh* pLeftTwistWing = TSoftObjectPtr<UStaticMesh>(LeftTwistWingPath).LoadSynchronous();
+	UStaticMesh* pRightTwistWing = TSoftObjectPtr<UStaticMesh>(RightTwistWingPath).LoadSynchronous();
 	
 	//羽のメッシュ検索に成功したら羽の生成処理
-	if (!pRightTwistWing.Succeeded() || !pLeftTwistWing.Succeeded()) { return; }
-	for (int index = 0; index < EWING::NUM; ++index)
+	if (pRightTwistWing && pLeftTwistWing)
 	{
-		//右回りの羽を調べる
-		const bool isRightTrun = (index == 0 || index == 3) ? true : false;
-
-		const FName WingName = isRightTrun ?
-			(index + 1 < 3) ? "LF_Wing" : "RB_Wing" :
-			(index + 1 > 2) ? "LB_Wing" : "RF_Wing";
-		FRotator InitRotaion = FRotator::ZeroRotator;
-		InitRotaion.Yaw = (index < 2) ?
-			(index == 0) ? -45.f : 45.f :
-			(index == 2) ? 45.f : -45.f;
-
-		//配列の追加(識別番号、羽のメッシュ)
-		m_Wings[index] = FWing(FWing(index, CreateDefaultSubobject<UStaticMeshComponent>(WingName)));
-
-		if (m_Wings[index].GetWingMesh())
+		for (int index = 0; index < EWING::NUM; ++index)
 		{
-			//羽のメッシュを設定
-			m_Wings[index].GetWingMesh()->SetStaticMesh((isRightTrun ? pLeftTwistWing.Object : pRightTwistWing.Object));
-			//ボディにアタッチする
-			m_Wings[index].GetWingMesh()->SetupAttachment(m_pBodyMesh);
-			//羽のメッシュコリジョンを無効にする
-			m_Wings[index].GetWingMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			//ソケットの位置に羽をアタッチ
-			m_Wings[index].GetWingMesh()->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, WingName);
-			m_Wings[index].GetWingMesh()->SetRelativeRotation(InitRotaion);
+			//右回りの羽を調べる
+			const bool isRightTrun = (index == 0 || index == 3);
+
+			const FName WingName = isRightTrun ?
+				(index + 1 < 3) ? TEXT("LF_Wing") : TEXT("RB_Wing") :
+				(index + 1 > 2) ? TEXT("LB_Wing") : TEXT("RF_Wing");
+			FRotator InitRotaion = FRotator::ZeroRotator;
+			InitRotaion.Yaw = (index < 2) ?
+				(index == 0) ? -45.f : 45.f :
+				(index == 2) ? 45.f : -45.f;
+
+			//配列の追加(識別番号、羽のメッシュ)
+			m_Wings[index] = FWing(FWing(index, CreateDefaultSubobject<UStaticMeshComponent>(WingName)));
+
+			if (m_Wings[index].GetWingMesh())
+			{
+				//羽のメッシュを設定
+				m_Wings[index].GetWingMesh()->SetStaticMesh((isRightTrun ? pLeftTwistWing : pRightTwistWing));
+				//ボディにアタッチする
+				m_Wings[index].GetWingMesh()->SetupAttachment(m_pBodyMesh);
+				//羽のメッシュコリジョンを無効にする
+				m_Wings[index].GetWingMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				//ソケットの位置に羽をアタッチ
+				m_Wings[index].GetWingMesh()->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, WingName);
+				m_Wings[index].GetWingMesh()->SetRelativeRotation(InitRotaion);
+			}
 		}
+	}
+
+	//ライトコンポーネント生成
+	m_pLeftSpotLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("LeftLight"));
+	m_pRightSpotLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("RightLight"));
+
+	if (m_pLeftSpotLight && m_pRightSpotLight && m_pBodyMesh)
+	{
+		m_pLeftSpotLight->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("LeftSpotLight"));
+		m_pRightSpotLight->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("RightSpotLight"));
+		m_pLeftSpotLight->SetOuterConeAngle(20.f);
+		m_pRightSpotLight->SetOuterConeAngle(20.f);
+		m_pLeftSpotLight->Intensity = 2500.f;
+		m_pRightSpotLight->Intensity = 2500.f;
+		m_pLeftSpotLight->LightColor = FColor(51, 153, 204);
+		m_pRightSpotLight->LightColor = FColor(51, 153, 204);
+		m_pLeftSpotLight->SetRelativeRotation(FRotator(0.f, -20.f, 0.f));
+		m_pRightSpotLight->SetRelativeRotation(FRotator(0.f, 20.f, 0.f));
 	}
 }
 
