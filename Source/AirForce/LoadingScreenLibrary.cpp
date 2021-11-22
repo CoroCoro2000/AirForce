@@ -22,7 +22,7 @@ FLoadingScreenSystem::FLoadingScreenSystem(URacingD_GameInstance* InGameInstance
 	, m_LastTickTime(0.0)
 	, m_PackageName(TEXT(""))
 	, m_Progress(0.f)
-	, m_AsyncLoadingFlushUpdateHandle()
+	, m_AsyncLoadingFlushUpdateHandle(FDelegateHandle::EGenerateNewHandleType::GenerateNewHandle)
 {
 	//ロード中のスレート更新をする関数をバインド
 	m_AsyncLoadingFlushUpdateHandle = FCoreDelegates::OnAsyncLoadingFlushUpdate.AddRaw(this, &FLoadingScreenSystem::OnAsyncLoadingFlushUpdate);
@@ -32,7 +32,10 @@ FLoadingScreenSystem::FLoadingScreenSystem(URacingD_GameInstance* InGameInstance
 FLoadingScreenSystem::~FLoadingScreenSystem()
 {
 	//ロード中のスレート更新をする関数のバインドを解除
-	FCoreDelegates::OnAsyncLoadingFlushUpdate.Remove(m_AsyncLoadingFlushUpdateHandle);
+	if (m_AsyncLoadingFlushUpdateHandle.IsValid())
+	{
+		FCoreDelegates::OnAsyncLoadingFlushUpdate.Remove(m_AsyncLoadingFlushUpdateHandle);
+	}
 }
 
 //毎フレーム実行される関数
