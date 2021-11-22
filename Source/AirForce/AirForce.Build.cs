@@ -14,8 +14,6 @@ public class AirForce : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"InputCore",
-				"HeadMountedDisplay",
-				"MoviePlayer" ,
 				"Slate",
 				"SlateCore",
 				"UMG",

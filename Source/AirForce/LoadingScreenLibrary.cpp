@@ -8,7 +8,6 @@
 #include "SlateBasics.h"
 #include "SlateExtras.h"
 #include "Framework/Application/SlateApplication.h"
-#include "MoviePlayer.h"
 #include "UnrealEngine.h"
 #include "Engine/Engine.h"
 #include "Engine/LevelStreaming.h"
@@ -23,21 +22,74 @@ FLoadingScreenSystem::FLoadingScreenSystem(URacingD_GameInstance* InGameInstance
 	, m_LastTickTime(0.0)
 	, m_PackageName(TEXT(""))
 	, m_Progress(0.f)
+	, m_AsyncLoadingFlushUpdateHandle()
 {
-	//ロード中に呼び出す関数を登録
-	FCoreDelegates::OnAsyncLoadingFlushUpdate.AddRaw(this, &FLoadingScreenSystem::OnAsyncLoadingFlushUpdate);
+	//ロード中のスレート更新をする関数をバインド
+	m_AsyncLoadingFlushUpdateHandle = FCoreDelegates::OnAsyncLoadingFlushUpdate.AddRaw(this, &FLoadingScreenSystem::OnAsyncLoadingFlushUpdate);
 }
 
 //デストラクタ
 FLoadingScreenSystem::~FLoadingScreenSystem()
 {
-
+	//ロード中のスレート更新をする関数のバインドを解除
+	FCoreDelegates::OnAsyncLoadingFlushUpdate.Remove(m_AsyncLoadingFlushUpdateHandle);
 }
 
 //毎フレーム実行される関数
 void FLoadingScreenSystem::Tick(float DeltaTime)
 {
 
+}
+
+//ロードウィジェットの表示
+void FLoadingScreenSystem::ShowLoadingScreen(const TSubclassOf<UUserWidget> WidgetClass)
+{
+	if (m_bShowing) { return; }
+	if (!m_pGameInstance) { return; }
+
+	if (UUserWidget* pLoadingWidget = CreateWidget(m_pGameInstance, WidgetClass))
+	{
+		m_pLoadingScreenWidget = pLoadingWidget->TakeWidget();
+		if (m_pLoadingScreenWidget.IsValid())
+		{
+			if (UGameViewportClient* pGameViewportClient = m_pGameInstance->GetGameViewportClient())
+			{
+				//ロード画面を表示
+				const int32 ZOrder = 10000;
+				pGameViewportClient->AddViewportWidgetContent(m_pLoadingScreenWidget.ToSharedRef(), ZOrder);
+
+				// Widgetが表示されているはずなので3D描画を完全にカットする
+				pGameViewportClient->bDisableWorldRendering = true;
+				if (!GIsEditor)
+				{
+					FSlateApplication::Get().Tick();
+				}
+				//表示状態に切り替える
+				m_bShowing = true;
+			}
+		}
+	}
+}
+
+//ロードウィジェットの非表示
+void FLoadingScreenSystem::HideLoadingScreen()
+{
+	if (!m_bShowing) { return; }
+	if (!GEngine) { return; }
+	if (!m_pGameInstance) { return; }
+	if (!m_pLoadingScreenWidget.IsValid()) { return; }
+
+	if (UGameViewportClient* pGameViewportClient = m_pGameInstance->GetGameViewportClient())
+	{
+		//3D描画をONにする
+		pGameViewportClient->bDisableWorldRendering = false;
+		//ロード画面を非表示にする
+		pGameViewportClient->RemoveViewportWidgetContent(m_pLoadingScreenWidget.ToSharedRef());
+		//ウィジェットのポインタを解放するためにGCを呼び出す
+		GEngine->ForceGarbageCollection(true);
+		//非表示状態に切り替える
+		m_bShowing = false;
+	}
 }
 
 //ロードの進捗を取得する関数
@@ -98,62 +150,6 @@ float FLoadingScreenSystem::GetLoadingProgress()
 	return m_Progress;
 }
 
-//ロード開始時に呼び出される関数
-void FLoadingScreenSystem::OnBeginLoadingScreen(const FString& MapName)
-{
-	//ロード中に表示する画面の設定
-	FLoadingScreenAttributes LoadingScreen;
-
-	if (m_pGameInstance)
-	{
-		UUserWidget* LoadingWidget = CreateWidget(m_pGameInstance, m_pGameInstance->GetLoadingUMGClass());
-		if (LoadingWidget)
-		{
-			m_pLoadingScreenWidget = LoadingWidget->TakeWidget();
-			LoadingScreen.WidgetLoadingScreen = m_pLoadingScreenWidget;
-			LoadingScreen.bAutoCompleteWhenLoadingCompletes = true;
-			LoadingScreen.bAllowEngineTick = true;
-		}
-
-		//ムービープレイヤー上でロード画面を表示する
-		IGameMoviePlayer* pGameMoviePlayer = GetMoviePlayer();
-		if (pGameMoviePlayer)
-		{
-			m_bLoading = true;
-			m_Progress = 0.0f;
-			pGameMoviePlayer->SetupLoadingScreen(LoadingScreen);
-		}
-
-		//ロード中は3D描画を切る
-		if (m_pGameInstance->GetGameViewportClient())
-		{
-			m_pGameInstance->GetGameViewportClient()->bDisableWorldRendering = true;
-		}
-
-	}
-}
-
-//ロード終了時に呼び出される関数
-void FLoadingScreenSystem::OnEndLoadingScreen(UWorld* world)
-{
-	if (m_pGameInstance)
-	{
-		//ロード画面を消す前に3D描画をONにする
-		if (m_pGameInstance->GetGameViewportClient())
-		{
-			m_pGameInstance->GetGameViewportClient()->bDisableWorldRendering = false;
-		}
-	}
-
-	//ロード画面の再生を停止する
-	IGameMoviePlayer* pGameMoviePlayer = GetMoviePlayer();
-	if (pGameMoviePlayer)
-	{
-		pGameMoviePlayer->StopMovie();
-		m_bLoading = false;
-	}
-}
-
 /*このデリゲート関数はロード中に高頻度で呼ばれるので、適切な間隔でスレートの更新を呼ぶようにする*/
 void FLoadingScreenSystem::OnAsyncLoadingFlushUpdate()
 {
@@ -166,7 +162,8 @@ void FLoadingScreenSystem::OnAsyncLoadingFlushUpdate()
 	if (DeltaTime > 1.0f / 60.0f)
 	{
 		m_LastTickTime = CurrentTime;
-		if (m_bLoading) {
+		if (m_bShowing) 
+		{
 			// スレート更新
 			FSlateApplication::Get().Tick();
 
@@ -187,36 +184,39 @@ ULoadingScreenLibrary::ULoadingScreenLibrary(const FObjectInitializer& ObjectIni
 
 }
 
-void ULoadingScreenLibrary::SetTargetPackageForLoadingProgress(const UObject* WorldContextObject, FName InPackageName)
+//ロード画面の表示
+void ULoadingScreenLibrary::ShowLoadingScreen(const TSubclassOf<UUserWidget> WidgetClass, FName InPackageName)
 {
-	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	if (World == nullptr) { return; }
-	URacingD_GameInstance* GameInstance = Cast<URacingD_GameInstance>(World->GetGameInstance());
-	if (GameInstance == nullptr) { return; }
-	if (GameInstance->GetLoadingScreenSystem().IsValid() == false) { return; }
-	return GameInstance->GetLoadingScreenSystem()->SetPackageNameForLoadingProgress(InPackageName);
-}
-
-float ULoadingScreenLibrary::GetLoadingProgress(const UObject* WorldContextObject)
-{
-	URacingD_GameInstance* GameInstance = Cast<URacingD_GameInstance>(WorldContextObject->GetOuter());
-	if (GameInstance == nullptr)	//Try to get a gameinstance through a world.
+	if (URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
 	{
-		UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-		if (World == nullptr) { return 0.f; }
-		GameInstance = Cast<URacingD_GameInstance>(World->GetGameInstance());
-		if (GameInstance == nullptr) { return 0.f; }
+		if (TSharedPtr<FLoadingScreenSystem> pLoadingScreenSystem = pGameInstance->GetLoadingScreenSystem())
+		{
+			pLoadingScreenSystem->ShowLoadingScreen(WidgetClass);
+		}
 	}
-	if (GameInstance->GetLoadingScreenSystem().IsValid() == false) { return 0.f; }
-	return GameInstance->GetLoadingScreenSystem()->GetLoadingProgress();
 }
 
-//レベルのロード後に開く関数
-void ULoadingScreenLibrary::LoadAndOpenLevel(const UObject* WorldContextObject, const FName PersistentLevelName, const bool bAbsolute, const FString Options)
+//ロード画面の非表示
+void ULoadingScreenLibrary::HideLoadingScreen()
 {
-	//ロードするレベル名を設定
-	ULoadingScreenLibrary::SetTargetPackageForLoadingProgress(WorldContextObject, PersistentLevelName);
+	if (URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
+	{
+		if (TSharedPtr<FLoadingScreenSystem> pLoadingScreenSystem = pGameInstance->GetLoadingScreenSystem())
+		{
+			pLoadingScreenSystem->HideLoadingScreen();
+		}
+	}
+}
 
-	//レベルを開く
-	UGameplayStatics::OpenLevel(WorldContextObject, PersistentLevelName, bAbsolute, Options);
+float ULoadingScreenLibrary::GetLoadingProgress()
+{
+	float progress = 0.f;
+	if (URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
+	{
+		if (TSharedPtr<FLoadingScreenSystem> pLoadingScreenSystem = pGameInstance->GetLoadingScreenSystem())
+		{
+			progress = pLoadingScreenSystem->GetLoadingProgress();
+		}
+	}
+	return progress;
 }
