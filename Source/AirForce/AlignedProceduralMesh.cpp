@@ -30,6 +30,7 @@ AAlignedProceduralMesh::AAlignedProceduralMesh()
 	{
 		RootComponent = m_pMeshes;
 		m_pMeshes->SetMobility(EComponentMobility::Static);
+		m_pMeshes->SetCollisionObjectType(ECollisionChannel::ECC_WorldStatic);
 	}
 }
 

@@ -31,6 +31,7 @@ AProceduralMeshOnSpline::AProceduralMeshOnSpline()
 	if (m_pMeshes && m_pSpline)
 	{
 		m_pMeshes->SetupAttachment(m_pSpline);
+		m_pMeshes->SetCollisionObjectType(ECollisionChannel::ECC_WorldStatic);
 	}
 }
 
