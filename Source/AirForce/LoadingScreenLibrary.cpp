@@ -19,6 +19,7 @@
 FLoadingScreenSystem::FLoadingScreenSystem(URacingD_GameInstance* InGameInstance)
 	: m_pGameInstance(InGameInstance)
 	, m_pLoadingScreenWidget()
+	, m_bShowing(false)
 	, m_LastTickTime(0.0)
 	, m_PackageName(TEXT(""))
 	, m_Progress(0.f)
@@ -152,7 +153,7 @@ float FLoadingScreenSystem::GetLoadingProgress()
 
 	float Current = Sum / PackageNum;
 	m_Progress = Current * 0.05f + m_Progress * 0.95f;
-	return m_Progress;
+	return m_Progress / 100.f;
 }
 
 /*このデリゲート関数はロード中に高頻度で呼ばれるので、適切な間隔でスレートの更新を呼ぶようにする*/
@@ -224,4 +225,18 @@ float ULoadingScreenLibrary::GetLoadingProgress()
 		}
 	}
 	return progress;
+}
+
+//ロード画面が表示中か判定
+bool ULoadingScreenLibrary::IsShowLoadingScreen()
+{
+	bool isShow = false;
+	if (URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
+	{
+		if (TSharedPtr<FLoadingScreenSystem> pLoadingScreenSystem = pGameInstance->GetLoadingScreenSystem())
+		{
+			isShow = pLoadingScreenSystem->IsShow();
+		}
+	}
+	return isShow;
 }
