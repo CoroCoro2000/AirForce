@@ -575,16 +575,14 @@ void APlayerDrone::InitializeReplay()
 	SetActorLocation(m_StartLocation);
 	m_pBodyMesh->SetWorldRotation(m_StartQuaternion);
 	m_PlaybackFlame = 0;
+	m_isReplay = true;
 }
 //リプレイ更新処理
 void APlayerDrone::UpdateReplay(const float& DeltaTime)
 {
-	if (!m_isReplay) { return; }
+	if (!m_isReplay || IsEndPlayBackReplay()) { return; }
 
-	if (!IsEndPlayBackReplay())
-	{
-		m_PlaybackFlame++;
-	}
+	m_PlaybackFlame++;
 }
 //レースの座標保存
 void APlayerDrone::WritingBestRaceVector()

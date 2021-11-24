@@ -199,7 +199,7 @@ public:
 
 	//	ドローンの時速(kilometers per hour)取得
 	UFUNCTION(BlueprintCallable, Category = "Drone|Speed")
-		float GetKPH(const float DeltaTime)const { return m_Velocity.Size() * (60.f / (1.f / DeltaTime)) / 100000.f / DeltaTime * 3600.f * 5.f; }
+		float GetKPH(const float DeltaTime)const { return m_Velocity.Size() * (60.f / (1.f / DeltaTime)) / 100000.f / DeltaTime * 3600.f * 2.f; }
 	
 	//	ドローンの加速フラグ取得
 	UFUNCTION(BlueprintCallable, Category = "Drone|Speed")
