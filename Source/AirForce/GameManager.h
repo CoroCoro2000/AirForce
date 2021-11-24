@@ -12,7 +12,6 @@
 //インクルード
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Ring.h"
 #include "Kismet/KismetTextLibrary.h"
 #include "GameManager.generated.h"
 

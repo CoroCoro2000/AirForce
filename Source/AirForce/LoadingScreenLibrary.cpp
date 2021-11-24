@@ -13,7 +13,6 @@
 #include "Engine/LevelStreaming.h"
 #include "Engine/GameViewportClient.h"
 #include "UObject/UObjectGlobals.h"
-#include "Kismet/GameplayStatics.h"
 
 //コンストラクタ
 FLoadingScreenSystem::FLoadingScreenSystem(URacingD_GameInstance* InGameInstance)
