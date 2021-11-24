@@ -21,7 +21,7 @@ public:
 	//コンストラクタ
 	FLoadingScreenSystem(URacingD_GameInstance* InGameInstance);
 	//デストラクタ
-	~FLoadingScreenSystem();
+	virtual ~FLoadingScreenSystem();
 	//CycleCounterを返す関数
 	virtual TStatId GetStatId() const  override{ RETURN_QUICK_DECLARE_CYCLE_STAT(FLoadingScreenSystem, STATGROUP_Tickables); }
 	//毎フレーム実行される関数
@@ -29,12 +29,13 @@ public:
 	//読み込みをするパッケージ名の設定
 	void SetPackageNameForLoadingProgress(FName InPackageName) { m_PackageName = InPackageName; }
 	//ロード画面の表示
-	void ShowLoadingScreen(const TSubclassOf<UUserWidget> WidgetClass);
+	void ShowLoadingScreen(const TSubclassOf<UUserWidget> WidgetClass, const FName InPackageName);
 	//ロード画面の非表示
 	void HideLoadingScreen();
+	//ロード画面が表示中か判定
+	bool IsShow()const { return m_bShowing; }
 	//ロードの進捗を取得する関数
 	float GetLoadingProgress();
-
 
 private:
 	//スレートの更新処理
@@ -72,5 +73,7 @@ public:
 	//ロードの進行状況を取得
 	UFUNCTION(BlueprintCallable)
 		static float GetLoadingProgress();
-
+	//ロード画面が表示中か判定
+	UFUNCTION(BlueprintCallable)
+		static bool IsShowLoadingScreen();
 };

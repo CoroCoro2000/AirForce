@@ -63,14 +63,6 @@ void AGoalGate::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent
 		//ドローンがゴール判定に当たったらゴールフラグを立てる
 		if (OtherActor->ActorHasTag(TEXT("Drone")))
 		{
-			//プレイヤーのリプレイを再生する
-			APlayerDrone* pPlayer = Cast<APlayerDrone>(OtherActor);
-			if (pPlayer)
-			{
-				pPlayer->InitializeReplay();
-				pPlayer->SetisReplay(true);
-			}
-
 			if (m_pGameManager)
 			{
 				m_pGameManager->SetIsGoal(true);

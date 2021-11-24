@@ -13,12 +13,12 @@
 #include "Engine/LevelStreaming.h"
 #include "Engine/GameViewportClient.h"
 #include "UObject/UObjectGlobals.h"
-#include "Kismet/GameplayStatics.h"
 
 //コンストラクタ
 FLoadingScreenSystem::FLoadingScreenSystem(URacingD_GameInstance* InGameInstance)
 	: m_pGameInstance(InGameInstance)
 	, m_pLoadingScreenWidget()
+	, m_bShowing(false)
 	, m_LastTickTime(0.0)
 	, m_PackageName(TEXT(""))
 	, m_Progress(0.f)
@@ -45,7 +45,7 @@ void FLoadingScreenSystem::Tick(float DeltaTime)
 }
 
 //ロードウィジェットの表示
-void FLoadingScreenSystem::ShowLoadingScreen(const TSubclassOf<UUserWidget> WidgetClass)
+void FLoadingScreenSystem::ShowLoadingScreen(const TSubclassOf<UUserWidget> WidgetClass, const FName InPackageName)
 {
 	if (m_bShowing) { return; }
 	if (!m_pGameInstance) { return; }
@@ -57,6 +57,9 @@ void FLoadingScreenSystem::ShowLoadingScreen(const TSubclassOf<UUserWidget> Widg
 		{
 			if (UGameViewportClient* pGameViewportClient = m_pGameInstance->GetGameViewportClient())
 			{
+				//ロードするパッケージ名を表示
+				m_PackageName = InPackageName;
+				m_Progress = 0.f;
 				//ロード画面を表示
 				const int32 ZOrder = 10000;
 				pGameViewportClient->AddViewportWidgetContent(m_pLoadingScreenWidget.ToSharedRef(), ZOrder);
@@ -150,7 +153,7 @@ float FLoadingScreenSystem::GetLoadingProgress()
 
 	float Current = Sum / PackageNum;
 	m_Progress = Current * 0.05f + m_Progress * 0.95f;
-	return m_Progress;
+	return m_Progress / 100.f;
 }
 
 /*このデリゲート関数はロード中に高頻度で呼ばれるので、適切な間隔でスレートの更新を呼ぶようにする*/
@@ -194,7 +197,7 @@ void ULoadingScreenLibrary::ShowLoadingScreen(const TSubclassOf<UUserWidget> Wid
 	{
 		if (TSharedPtr<FLoadingScreenSystem> pLoadingScreenSystem = pGameInstance->GetLoadingScreenSystem())
 		{
-			pLoadingScreenSystem->ShowLoadingScreen(WidgetClass);
+			pLoadingScreenSystem->ShowLoadingScreen(WidgetClass, InPackageName);
 		}
 	}
 }
@@ -222,4 +225,18 @@ float ULoadingScreenLibrary::GetLoadingProgress()
 		}
 	}
 	return progress;
+}
+
+//ロード画面が表示中か判定
+bool ULoadingScreenLibrary::IsShowLoadingScreen()
+{
+	bool isShow = false;
+	if (URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
+	{
+		if (TSharedPtr<FLoadingScreenSystem> pLoadingScreenSystem = pGameInstance->GetLoadingScreenSystem())
+		{
+			isShow = pLoadingScreenSystem->IsShow();
+		}
+	}
+	return isShow;
 }

@@ -21,6 +21,7 @@ class USphereComponent;
 class UNiagaraSystem;
 class UNiagaraComponent;
 class USoundBase;
+class USpotLightComponent;
 
 //移動用ビットフィールド
 struct FMoveDirectionFlag
@@ -198,7 +199,7 @@ public:
 
 	//	ドローンの時速(kilometers per hour)取得
 	UFUNCTION(BlueprintCallable, Category = "Drone|Speed")
-		float GetKPH(const float DeltaTime)const { return m_Velocity.Size() * (60.f / (1.f / DeltaTime)) / 100000.f / DeltaTime * 3600.f * 5.f; }
+		float GetKPH(const float DeltaTime)const { return m_Velocity.Size() * (60.f / (1.f / DeltaTime)) / 100000.f / DeltaTime * 3600.f * 2.f; }
 	
 	//	ドローンの加速フラグ取得
 	UFUNCTION(BlueprintCallable, Category = "Drone|Speed")
@@ -344,4 +345,9 @@ protected:
 		float m_CountLimitTime;													//リングをくぐってから数える時間の上限	
 	UPROPERTY(EditAnywhere, Category = "Ring")
 		float m_OverAccelerator;												//リングをくぐったときの加速倍率
+
+	UPROPERTY(EditAnywhere, Category = "Light")
+		USpotLightComponent* m_pLeftSpotLight;
+	UPROPERTY(EditAnywhere, Category = "Light")
+		USpotLightComponent* m_pRightSpotLight;
 };

@@ -103,8 +103,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Replay")
 		void InitializeReplay();
 	UFUNCTION(BlueprintCallable, Category = "Replay")
-		void SetisReplay(const bool _b) { m_isReplay = _b; }
-	UFUNCTION(BlueprintCallable, Category = "Replay")
 		bool GetisReplay()const { return m_isReplay; }
 private:
 	//【入力バインド】各スティックの入力
