@@ -4,12 +4,14 @@
 #include "LevelStreamingVolumeActor.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/LevelStreaming.h"
 
 // Sets default values
 ALevelStreamingVolumeActor::ALevelStreamingVolumeActor()
 	: m_pStreamingVolume(NULL)
 	, m_LoadLevelNames()
 	, m_UnloadLevelName(TEXT("None"))
+	, m_LoadIndex(0)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
@@ -53,6 +55,42 @@ int32 ALevelStreamingVolumeActor::GetStreamingLevelNum()const
 	return StreamingLevelNum;
 }
 
+//ロードが終わったとき呼び出す関数
+void ALevelStreamingVolumeActor::ShowLevel()
+{
+	if (m_LoadLevelNames.IsValidIndex(m_LoadIndex))
+	{
+		if (ULevelStreaming* pLevelStreaming = UGameplayStatics::GetStreamingLevel(this, m_LoadLevelNames[m_LoadIndex]))
+		{
+			if (pLevelStreaming->IsLevelVisible() == false)
+			{
+				pLevelStreaming->SetShouldBeVisible(true);
+				++m_LoadIndex;
+
+#if WITH_EDITOR
+				UE_LOG(LogTemp, Warning, TEXT("ShowLevel()"));
+#endif // WITH_EDITOR
+			}
+		}
+	}
+}
+
+//サブレベルを非表示にする関数
+void ALevelStreamingVolumeActor::HideLevel()
+{
+	if (ULevelStreaming* pLevelStreaming = UGameplayStatics::GetStreamingLevel(this, m_UnloadLevelName))
+	{
+		if (pLevelStreaming->IsLevelVisible())
+		{
+			pLevelStreaming->SetShouldBeVisible(false);
+
+#if WITH_EDITOR
+			UE_LOG(LogTemp, Warning, TEXT("HideLevel()"));
+#endif // WITH_EDITOR
+		}
+	}
+}
+
 //オーバーラップした瞬間呼び出される関数
 void ALevelStreamingVolumeActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -64,8 +102,12 @@ void ALevelStreamingVolumeActor::OnComponentBeginOverlap(UPrimitiveComponent* Ov
 			for (const FName LoadLevelName : m_LoadLevelNames)
 			{
 				int32 UUID = GetStreamingLevelNum();
-				FLatentActionInfo LatentAction(-1, UUID, TEXT(""), NULL);
+				FLatentActionInfo LatentAction(-1, UUID, TEXT(""), this);
 				UGameplayStatics::LoadStreamLevel(this, LoadLevelName, true, false, LatentAction);
+
+#if WITH_EDITOR
+				UE_LOG(LogTemp, Warning, TEXT("UUID[%d]"), UUID);
+#endif // WITH_EDITOR
 			}
 		}
 	}
@@ -74,14 +116,21 @@ void ALevelStreamingVolumeActor::OnComponentBeginOverlap(UPrimitiveComponent* Ov
 //オーバーラップしていたコンポーネントが離れた瞬間呼び出される関数
 void ALevelStreamingVolumeActor::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (OtherActor && OtherActor != this)
+	if (m_UnloadLevelName != TEXT("None"))
 	{
-		//オーバーラップしたアクターがドローンなら隣のサブレベルをアンロード、非表示
-		if (OtherActor->ActorHasTag(TEXT("Drone")))
+		if (OtherActor && OtherActor != this)
 		{
-			int32 UUID = GetStreamingLevelNum();
-			FLatentActionInfo LatentAction(-1, UUID, TEXT(""), NULL);
-			UGameplayStatics::UnloadStreamLevel(this, m_UnloadLevelName, LatentAction, false);
+			//オーバーラップしたアクターがドローンなら隣のサブレベルをアンロード、非表示
+			if (OtherActor->ActorHasTag(TEXT("Drone")))
+			{
+				int32 UUID = GetStreamingLevelNum();
+				FLatentActionInfo LatentAction(-1, UUID, TEXT(""), this);
+				UGameplayStatics::UnloadStreamLevel(this, m_UnloadLevelName, LatentAction, false);
+
+#if WITH_EDITOR
+				UE_LOG(LogTemp, Warning, TEXT("UUID[%d]"), UUID);
+#endif // WITH_EDITOR
+			}
 		}
 	}
 }

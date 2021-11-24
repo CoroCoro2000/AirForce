@@ -35,8 +35,14 @@ public:
 public:
 
 private:
-	//ストリーミングロード中のレベル数を取得
+	//ストリーミングロードに利用するUUIDを取得
 	int32 GetStreamingLevelNum()const;
+	//サブレベルの表示をする関数
+	UFUNCTION()
+		void ShowLevel();
+	//サブレベルを非表示にする関数
+	UFUNCTION()
+		void HideLevel();
 
 private:
 	UPROPERTY(EditAnywhere)
@@ -45,4 +51,6 @@ private:
 		TArray<FName> m_LoadLevelNames;								//ロード、表示するレベルの名前
 	UPROPERTY(EditAnywhere)
 		FName m_UnloadLevelName;											//アンロード、非表示にするレベルの名前
+	UPROPERTY(VisibleAnywhere)
+		int m_LoadIndex;															//ロードするマップの番号
 };

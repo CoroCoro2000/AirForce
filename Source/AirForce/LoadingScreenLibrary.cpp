@@ -124,11 +124,14 @@ float FLoadingScreenSystem::GetLoadingProgress()
 		PackageNames.Reserve(World->GetStreamingLevels().Num());
 		for (ULevelStreaming* LevelStreaming : World->GetStreamingLevels())
 		{
-			if (LevelStreaming
-				&& !LevelStreaming->GetWorldAsset().IsNull()
-				&& LevelStreaming->GetWorldAsset() != World)
+			if (LevelStreaming)
 			{
-				PackageNames.Add(LevelStreaming->GetWorldAssetPackageFName());
+				if (!LevelStreaming->GetWorldAsset().IsNull()
+					&& LevelStreaming->GetWorldAsset() != World
+					&& LevelStreaming->HasLoadRequestPending())
+				{
+					PackageNames.Add(LevelStreaming->GetWorldAssetPackageFName());
+				}
 			}
 		}
 		for (FName& LevelName : PackageNames)
