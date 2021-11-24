@@ -149,6 +149,9 @@ ADroneBase::ADroneBase()
 		m_pLeftSpotLight->SetRelativeRotation(FRotator(0.f, -20.f, 0.f));
 		m_pRightSpotLight->SetRelativeRotation(FRotator(0.f, 20.f, 0.f));
 	}
+
+	//タグを追加
+	Tags.Add(TEXT("Drone"));
 }
 
 //ゲーム開始時に1度だけ処理

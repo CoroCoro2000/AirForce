@@ -90,6 +90,9 @@ APlayerDrone::APlayerDrone()
 
 	//デフォルトプレイヤーとして設定
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
+
+	//プレイヤータグを追加
+	Tags.Add(TEXT("Player"));
 }
 
 
