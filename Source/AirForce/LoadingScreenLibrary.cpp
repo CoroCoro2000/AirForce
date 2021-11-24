@@ -60,6 +60,7 @@ void FLoadingScreenSystem::ShowLoadingScreen(const TSubclassOf<UUserWidget> Widg
 			{
 				//ロードするパッケージ名を表示
 				m_PackageName = InPackageName;
+				m_Progress = 0.f;
 				//ロード画面を表示
 				const int32 ZOrder = 10000;
 				pGameViewportClient->AddViewportWidgetContent(m_pLoadingScreenWidget.ToSharedRef(), ZOrder);
