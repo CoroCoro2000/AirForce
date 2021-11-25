@@ -32,6 +32,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+public:
+	//ストリーミングのBox判定を取得
+	UFUNCTION(BlueprintCallable)
+		UBoxComponent* GetStreamingVolume()const { return m_pStreamingVolume; }
+
 private:
 	//ロードをする関数
 	void LoadStream();
