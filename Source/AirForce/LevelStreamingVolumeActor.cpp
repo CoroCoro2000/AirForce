@@ -4,12 +4,12 @@
 #include "LevelStreamingVolumeActor.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "RacingD_GameInstance.h"
 
 // Sets default values
 ALevelStreamingVolumeActor::ALevelStreamingVolumeActor()
 	: m_pStreamingVolume(NULL)
-	, m_LoadLevelNames()
-	, m_UnloadLevelNames()
+	, m_LevelName(TEXT("None"))
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
@@ -42,6 +42,48 @@ void ALevelStreamingVolumeActor::Tick(float DeltaTime)
 
 }
 
+//ロードをする関数
+void ALevelStreamingVolumeActor::LoadStream()
+{
+	if (URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
+	{
+		const int32 UUID = pGameInstance->GenerateUUID();
+		if (TSharedPtr<FLatentActionInfo> pLatentAction = MakeShareable(new FLatentActionInfo(1, UUID, TEXT("LoadCompleted"), this)))
+		{
+			UGameplayStatics::LoadStreamLevel(this, m_LevelName, true, false, *pLatentAction);
+		}
+#if WITH_EDITOR
+		UE_LOG(LogTemp, Warning, TEXT("Load::UUID[%d]"), UUID);
+#endif // WITH_EDITOR
+	}
+}
+
+//アンロードをする関数
+void ALevelStreamingVolumeActor::UnloadStream()
+{
+	if (URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
+	{
+		const int32 UUID = pGameInstance->GenerateUUID();
+		if (TSharedPtr<FLatentActionInfo> pLatentAction = MakeShareable(new FLatentActionInfo(1, UUID, TEXT("LoadCompleted"), this)))
+		{
+			UGameplayStatics::UnloadStreamLevel(this, m_LevelName, *pLatentAction, false);
+		}
+#if WITH_EDITOR
+		UE_LOG(LogTemp, Warning, TEXT("UnLoad::UUID[%d]"), UUID);
+#endif // WITH_EDITOR
+	}
+}
+
+//ロード完了時に実行する関数
+void ALevelStreamingVolumeActor::LoadCompleted()const
+{
+	//UUIDを削除
+	if (URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
+	{
+		pGameInstance->DeleteUUID();
+	}
+}
+
 //オーバーラップした瞬間呼び出される関数
 void ALevelStreamingVolumeActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -50,17 +92,7 @@ void ALevelStreamingVolumeActor::OnComponentBeginOverlap(UPrimitiveComponent* Ov
 		//オーバーラップしたアクターがPlayerなら指定された名前のサブレベルをロード、表示
 		if (OtherActor->ActorHasTag(TEXT("Player")))
 		{
-			int32 UUID = m_LoadLevelNames.Num() + m_UnloadLevelNames.Num();
-			for (const FName LoadLevelName : m_LoadLevelNames)
-			{
-				FLatentActionInfo LatentAction(-1, UUID, TEXT(""), NULL);
-				UUID++;
-				UGameplayStatics::LoadStreamLevel(this, LoadLevelName, true, false, LatentAction);
-
-#if WITH_EDITOR
-				UE_LOG(LogTemp, Warning, TEXT("Load::UUID[%d]"), UUID);
-#endif // WITH_EDITOR
-			}
+			LoadStream();
 		}
 	}
 }
@@ -70,20 +102,10 @@ void ALevelStreamingVolumeActor::OnComponentEndOverlap(UPrimitiveComponent* Over
 {
 	if (OtherActor && OtherActor != this)
 	{
-		//オーバーラップしたアクターがPlayerなら指定された名前のサブレベルをアンロード、非表示
+		//オーバーラップしたアクターがPlayerなら指定された名前のサブレベルをロード、表示
 		if (OtherActor->ActorHasTag(TEXT("Player")))
 		{
-			int32 UUID = m_LoadLevelNames.Num() - m_UnloadLevelNames.Num();
-			for (const FName LoadLevelName : m_UnloadLevelNames)
-			{
-				FLatentActionInfo LatentAction(-1, UUID, TEXT(""), NULL);
-				UUID++;
-				UGameplayStatics::UnloadStreamLevel(this, LoadLevelName, LatentAction, false);
-
-#if WITH_EDITOR
-				UE_LOG(LogTemp, Warning, TEXT("Unload::UUID[%d]"), UUID);
-#endif // WITH_EDITOR
-			}
+			UnloadStream();
 		}
 	}
 }

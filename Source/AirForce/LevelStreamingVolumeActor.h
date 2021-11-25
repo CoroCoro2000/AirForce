@@ -33,10 +33,17 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
+	//ロードをする関数
+	void LoadStream();
+	//アンロードをする関数
+	void UnloadStream();
+	//ロード完了時に実行する関数
+	UFUNCTION()
+		void LoadCompleted()const;
+
+private:
 	UPROPERTY(EditAnywhere)
 		UBoxComponent* m_pStreamingVolume;						//ストリーミングを開始するトリガー
 	UPROPERTY(EditAnywhere)
-		TArray<FName> m_LoadLevelNames;								//ロード、表示するレベルの名前
-	UPROPERTY(EditAnywhere)
-		TArray<FName> m_UnloadLevelNames;							//アンロード、非表示にするレベルの名前
+		FName m_LevelName;													//ストリーミングロードするレベルの名前
 };

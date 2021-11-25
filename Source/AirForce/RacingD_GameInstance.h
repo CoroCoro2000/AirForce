@@ -31,7 +31,12 @@ public:
 	static URacingD_GameInstance* Get();
 	//ロードスクリーン用のシステムを取得
 	TSharedPtr<FLoadingScreenSystem> GetLoadingScreenSystem()const { return m_pLoadingScreenSystem; }
+	//ストリーミングロードのID取得
+	int32 GenerateUUID() { return ++m_LoadStreamID; }
+	//ストリーミングロードのID削除
+	void DeleteUUID() { --m_LoadStreamID; }
 
 private:
 	TSharedPtr<FLoadingScreenSystem> m_pLoadingScreenSystem;						//ロードスクリーンシステム
+	int32 m_LoadStreamID;																					//ストリーミングロードのID
 };
