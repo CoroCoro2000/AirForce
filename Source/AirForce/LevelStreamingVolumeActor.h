@@ -44,11 +44,18 @@ private:
 	void UnloadStream();
 	//ロード完了時に実行する関数
 	UFUNCTION()
-		void LoadCompleted()const;
+		void LoadCompleted();
 
 private:
 	UPROPERTY(EditAnywhere)
 		UBoxComponent* m_pStreamingVolume;						//ストリーミングを開始するトリガー
 	UPROPERTY(EditAnywhere)
 		FName m_LevelName;													//ストリーミングロードするレベルの名前
+
+#if WITH_EDITOR
+	float m_LoadStartTime;
+	float m_UnloadStartTime;
+	bool m_bLoad;
+#endif // WITH_EDITOR
+
 };

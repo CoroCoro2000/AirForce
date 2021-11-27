@@ -31,6 +31,7 @@ void URacingD_GameInstance::Shutdown()
 	if (m_pLoadingScreenSystem.IsValid())
 	{
 		m_pLoadingScreenSystem.Reset();
+		m_pLoadingScreenSystem = nullptr;
 	}
 }
 
