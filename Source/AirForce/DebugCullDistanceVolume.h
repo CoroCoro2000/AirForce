@@ -33,11 +33,11 @@ public:
 
 private:
     virtual void OnConstruction(const FTransform& Transform)override;
+#endif // WITH_EDITOR
 
     UPROPERTY(EditAnywhere, DisplayName = ShapeColor)
         FColor m_Color;
     UPROPERTY(EditAnywhere, DisplayName = Text)
         FText m_Text;
     class UTextRenderComponent* m_pTextComponent;
-#endif // WITH_EDITOR
 };

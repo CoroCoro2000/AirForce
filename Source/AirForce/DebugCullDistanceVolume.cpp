@@ -2,23 +2,16 @@
 
 
 #include "DebugCullDistanceVolume.h"
-
-#if WITH_EDITOR
 #include "Components/TextRenderComponent.h"
-#include "EngineDefines.h"
-#endif // WITH_EDITOR
 
 ADebugCullDistanceVolume::ADebugCullDistanceVolume(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
-#if WITH_EDITOR
-	, m_Color(FColor::Yellow)
-	, m_Text(FText::FromString(TEXT("CullDistanceVolume")))
-	, m_pTextComponent(CreateDefaultSubobject<UTextRenderComponent>(TEXT("CullDistanceVolume")))
-#endif//WITH_EDITOR
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-#if WITH_EDITOR
+	m_Color = FColor::Yellow;
+	m_Text = FText::FromString(TEXT("CullDistanceVolume"));
+	m_pTextComponent = CreateDefaultSubobject<UTextRenderComponent>(TEXT("CullDistanceVolume"));
 	if (m_pTextComponent)
 	{
 		m_pTextComponent->SetupAttachment(RootComponent);
@@ -27,7 +20,6 @@ ADebugCullDistanceVolume::ADebugCullDistanceVolume(const FObjectInitializer& Obj
 		m_pTextComponent->bHiddenInGame = true;
 		m_pTextComponent->bIsEditorOnly = true;
 	}
-#endif // WITH_EDITOR
 }
 
 //ゲーム開始時に1度だけ実行される関数

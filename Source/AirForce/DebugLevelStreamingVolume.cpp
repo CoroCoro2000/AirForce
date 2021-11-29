@@ -2,9 +2,9 @@
 
 
 #include "DebugLevelStreamingVolume.h"
+#include "Components/TextRenderComponent.h"
 
 #if WITH_EDITOR
-#include "Components/TextRenderComponent.h"
 #include "Engine/LevelStreaming.h"
 #include "Logging/MessageLog.h"
 #include "Misc/UObjectToken.h"
@@ -15,15 +15,12 @@
 //コンストラクタ
 ADebugLevelStreamingVolume::ADebugLevelStreamingVolume(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
-#if WITH_EDITOR
-	, m_Color(FColor::Blue)
-	, m_Text(FText::FromString(TEXT("StreamingVolume")))
-	, m_pTextComponent(CreateDefaultSubobject<UTextRenderComponent>(TEXT("StreamingLevelNumber")))
-#endif//WITH_EDITOR
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-#if WITH_EDITOR
+	m_Color = FColor::Blue;
+	m_Text = FText::FromString(TEXT("StreamingVolume"));
+	m_pTextComponent = CreateDefaultSubobject<UTextRenderComponent>(TEXT("StreamingLevelNumber"));
 	if (m_pTextComponent)
 	{
 		m_pTextComponent->SetupAttachment(RootComponent);
@@ -32,7 +29,6 @@ ADebugLevelStreamingVolume::ADebugLevelStreamingVolume(const FObjectInitializer&
 		m_pTextComponent->bHiddenInGame = true;
 		m_pTextComponent->bIsEditorOnly = true;
 	}
-#endif // WITH_EDITOR
 }
 
 //ゲーム開始時に1度だけ実行される関数
@@ -66,7 +62,6 @@ void ADebugLevelStreamingVolume::CheckForErrors()
 {
 	AVolume::CheckForErrors();
 
-	// Streaming level volumes are not permitted outside the persistent level.
 	if (GetLevel() != GetWorld()->PersistentLevel)
 	{
 		FFormatNamedArguments Arguments;
@@ -77,7 +72,6 @@ void ADebugLevelStreamingVolume::CheckForErrors()
 			->AddToken(FMapErrorToken::Create(FMapErrors::LevelStreamingVolume));
 	}
 
-	// Warn if the volume has no streaming levels associated with it
 	bool bHasAssociatedLevels = false;
 	for (ULevelStreaming* LevelStreaming : GetWorld()->GetStreamingLevels())
 	{

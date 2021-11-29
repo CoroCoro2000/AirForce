@@ -27,26 +27,20 @@ public:
 	virtual void Tick(float DeltaTime)override;
 
 private:
-	//~ Begin UObject Interface.
 	virtual void PostLoad() override;
-	//~ End UObject Interface.
-
 
 #if WITH_EDITOR
 private:
-	//~ Begin AActor Interface.
 	virtual void CheckForErrors() override;
-	//~ End AActor Interface.
 
-	/** Updates list of streaming levels that are referenced by this streaming volume */
 	void UpdateStreamingLevelsRefs();
 
 	virtual void OnConstruction(const FTransform& Transform)override;
+#endif // WITH_EDITOR
 
 	UPROPERTY(EditAnywhere, DisplayName = ShapeColor)
 		FColor m_Color;
 	UPROPERTY(EditAnywhere, DisplayName = Text)
 		FText m_Text;
 	class UTextRenderComponent* m_pTextComponent;
-#endif // WITH_EDITOR
 };
