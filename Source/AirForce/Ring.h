@@ -15,7 +15,30 @@
 //前方宣言
 class UStaticMeshComponent;
 class UNiagaraComponent;
+class UNiagaraSystem;
 class ADroneBase;
+
+USTRUCT(BlueprintType)
+struct FFollowingEffectDronePair
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, Category = FollowingEffectDronePair)
+		ADroneBase* pDrone;
+	UPROPERTY(EditAnywhere, Category = FollowingEffectDronePair)
+		UNiagaraComponent* pFollowingEffect;
+
+	//コンストラクタ
+	FFollowingEffectDronePair()
+		: pDrone(nullptr)
+		, pFollowingEffect(nullptr)
+	{}
+	FFollowingEffectDronePair(ADroneBase* Drone, UNiagaraComponent* FollowingEffect)
+		: pDrone(Drone)
+		, pFollowingEffect(FollowingEffect)
+	{}
+};
 
 UCLASS()
 class AIRFORCE_API ARing : public AActor
@@ -37,59 +60,45 @@ public:
 protected:
 	//オーバーラップ時に呼ばれるイベント関数を登録
 	UFUNCTION()
-		virtual void OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+		virtual void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 public:
 	//通過されているかのフラグ取得
 	FORCEINLINE bool GetIsPassed()const { return m_bIsPassed; }
 	//メッシュ取得
-	FORCEINLINE UStaticMeshComponent* GetMesh()const { return m_pRingMesh; }
-	//ナイアガラコンポーネント取得
-	FORCEINLINE UNiagaraComponent* GetEffectComponent()const { return m_pNiagaraEffectComp; }
+	UStaticMeshComponent* GetMesh()const { return m_pRingMesh; }
 
 private:
+	//サインカーブの値を更新
+	void UpdateSineCurve(const float& DeltaTime);
 	//リングのサイズ更新
 	void UpdateScale(const float& DeltaTime);
-
 	//リングのマテリアル更新
 	void UpdateMaterial(const float& DeltaTime);
-
 	//リングのエフェクト更新
 	void UpdateEffect(const float& DeltaTime);
 
-	//リングの回転の向きを決める関数
-	bool IsUnRotation();
-
-	//リングの初期化
-	void Reset();
-
 protected:
 	UPROPERTY(EditAnywhere)
-		UStaticMeshComponent* m_pRingMesh;				//リングのメッシュ
+		UStaticMeshComponent* m_pRingMesh;														//リングのメッシュ
 	UPROPERTY(EditAnywhere)
-		UNiagaraComponent* m_pNiagaraEffectComp;		//リングを通過した際に出すエフェクト
+		TArray<struct FFollowingEffectDronePair> m_pFollowingEffectDronePairs;		//通過したドローンと追従エフェクトのペア
+	UPROPERTY(EditAnywhere)
+		UNiagaraSystem* m_pEffect;																		//通過時に出すエフェクト
 	UPROPERTY(VisibleAnywhere)
-		bool m_bIsPassed;												//このリングが通過されたか判定
+		bool m_bIsPassed;																						//このリングが通過されたか判定
+	UPROPERTY(EditAnywhere)
+		float m_SineWidth;																						//サイン波の間隔
+	UPROPERTY(EditAnywhere)
+		float m_SineScaleMin;																					//サイン波の最小値
+	UPROPERTY(EditAnywhere)
+		float m_SineScaleMax;																				//サイン波の最大値
+	UPROPERTY(EditAnywhere)
+		float m_SineCurveValue;																				//サイン波の値
 	UPROPERTY(VisibleAnywhere)
-		float m_MakeInvisibleCnt;									//リングが消えるまでのカウンター
+		float m_RingScale;																						//リングのスケール
 	UPROPERTY(EditAnywhere)
-		float m_MakeInvisibleTime;									//リングが消えるまでの時間
-	UPROPERTY(EditAnywhere)
-		float m_SineWidth;												//サイン波の間隔
-	UPROPERTY(EditAnywhere)
-		float m_SineScaleMin;											//サイン波の最小値
-	UPROPERTY(EditAnywhere)
-		float m_SineScaleMax;										//サイン波の最大値
-	UPROPERTY(EditAnywhere)
-		float m_PassedSceleMax;									//リング通過後の大きさ
-	UPROPERTY(VisibleAnywhere)
-		ADroneBase* m_pPassedDrone;							//このリングを通過したドローン
-	UPROPERTY(VisibleAnywhere)
-		bool m_bIsUnRotation;											//逆回転するかどうか
-	UPROPERTY(EditAnywhere)
-		FLinearColor m_HSV;											//リングの色
-	UPROPERTY(VisibleAnywhere)
-		FTransform m_InitialTransform;							//リングの初期トランスフォーム
+		FLinearColor m_HSV;																					//リングの色
 	UPROPERTY(EditAnywhere, Category = "Sound")
-		USoundBase* m_RingHitSE;								//リング衝突SE
+		USoundBase* m_RingHitSE;																		//リング衝突SE
 };

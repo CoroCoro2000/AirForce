@@ -8,28 +8,23 @@
 
 
 #include "Ring.h"
-#include "GameUtility.h"
 #include "DroneBase.h"
-#include "PlayerDrone.h"
 #include "Components/StaticMeshComponent.h"
 #include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
-#include "BlueprintFunctionUtility.h"
 
 //コンストラクタ
 ARing::ARing()
 	: m_pRingMesh(NULL)
-	, m_pNiagaraEffectComp(NULL)
-	, m_MakeInvisibleCnt(0.f)
-	, m_MakeInvisibleTime(1.5f)
+	, m_pFollowingEffectDronePairs()
+	, m_pEffect(NULL)
 	, m_SineWidth(10.f)
 	, m_SineScaleMin(0.8f)
 	, m_SineScaleMax(1.05f)
-	, m_PassedSceleMax(3.f)
-	, m_pPassedDrone(NULL)
-	, m_bIsUnRotation(false)
+	, m_SineCurveValue(0.f)
+	, m_RingScale(1.f)
 	, m_HSV(30.f, 40.f, 30.f)
-	, m_InitialTransform(FTransform(FQuat::Identity, FVector::ZeroVector, FVector::OneVector))
 	, m_RingHitSE(NULL)
 {
 	//毎フレームTickを呼び出すかどうかのフラグ
@@ -40,13 +35,6 @@ ARing::ARing()
 	if (m_pRingMesh)
 	{
 		RootComponent = m_pRingMesh;
-	}
-
-	//ナイアガラのエフェクトコンポーネント生成
-	m_pNiagaraEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("m_pNiagaraEffectComp"));
-	if (m_pNiagaraEffectComp && m_pRingMesh)
-	{
-		m_pNiagaraEffectComp->SetupAttachment(m_pRingMesh);
 	}
 
 	//タグの追加
@@ -61,12 +49,11 @@ void ARing::BeginPlay()
 	if (m_pRingMesh)
 	{
 		//オーバーラップ開始時に呼ばれるイベント関数を登録
-		m_pRingMesh->OnComponentBeginOverlap.AddDynamic(this, &ARing::OnComponentOverlapBegin);
+		m_pRingMesh->OnComponentBeginOverlap.AddDynamic(this, &ARing::OnComponentBeginOverlap);
 	}
 
-	//初期のトランスフォームを保持
-	m_InitialTransform = GetActorTransform();
-
+	//リングの初期スケールを保持
+	m_RingScale = GetActorScale3D().GetMax();
 }
 
 //毎フレーム呼び出される関数
@@ -74,18 +61,8 @@ void ARing::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (m_bIsPassed)
-	{
-		//指定の時間を越えるまで時間を計測
-		if (m_MakeInvisibleCnt < m_MakeInvisibleTime)
-		{
-			m_MakeInvisibleCnt += DeltaTime;
-		}
-		else
-		{
-			Reset();
-		}
-	}
+	//サインカーブの値を更新
+	UpdateSineCurve(DeltaTime);
 
 	//リングのサイズ更新
 	UpdateScale(DeltaTime);
@@ -97,47 +74,33 @@ void ARing::Tick(float DeltaTime)
 	UpdateEffect(DeltaTime);
 }
 
+//サインカーブの値を更新
+void ARing::UpdateSineCurve(const float& DeltaTime)
+{
+	if (const UWorld* pWorld = GetWorld())
+	{
+		//サイン波の幅を設定
+		const float WaveWidth = m_SineWidth * pWorld->GetTimeSeconds();
+		//サイン波の大きさを0から1に正規化する
+		m_SineCurveValue = FMath::Sin(WaveWidth) * 0.5f + 0.5f;
+	}
+}
+
 //リングのサイズ更新
 void ARing::UpdateScale(const float& DeltaTime)
 {
-	if (!m_pRingMesh) { return; }
-
-	//リングのスケール
-	FVector RingScale = m_InitialTransform.GetScale3D();
-
-	//リングが通過されていない間は一定の周期で大きさを変える
-	if (!m_bIsPassed)
+	//通過フラグが立っているならリングを拡大する
+	if (m_bIsPassed)
 	{
-		//サイン波の幅を設定
-		const float WaveWidth = m_SineWidth * GetWorld()->GetTimeSeconds();
-		//サイン波の大きさを0から1に正規化する
-		const float SinWave = FMath::Sin(WaveWidth) * 0.5f + 0.5f;
-		//サイン波の値でリングの大きさを変える
-		float ScaleMultiplier = FMath::Lerp(m_SineScaleMin, m_SineScaleMax, SinWave);
 
-		//新しいスケールを適用
-		SetActorScale3D(RingScale * ScaleMultiplier);
 	}
-	//リングが通過されたら大きくする
+	//通過フラグが立っていないときはSin波の間隔で拡大縮小を繰り返す
 	else
 	{
-		if (m_pPassedDrone)
-		{
-			const float elapsedRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
-
-			//経過率で大きさを変える
-			FVector Scale = FMath::Lerp(RingScale, RingScale * 0.05f, elapsedRate);
-			SetActorScale3D(Scale);
-
-			FRotator TargetRotation = m_bIsUnRotation ?
-				m_pPassedDrone->GetBodyMeshRotation() * -1.f :
-				m_pPassedDrone->GetBodyMeshRotation();
-			
-			//徐々に座標と回転をプレイヤーに合わせる
-			SetActorLocationAndRotation(
-				FMath::Lerp(GetActorLocation(), m_pPassedDrone->GetActorLocation(), elapsedRate),
-				FMath::Lerp(GetActorRotation(), TargetRotation, elapsedRate));
-		}
+		//サイン波の値でリングの大きさを変える
+		float ScaleMultiplier = FMath::Lerp(m_SineScaleMin, m_SineScaleMax, m_SineCurveValue);
+		//新しいスケールを適用
+		SetActorScale3D(FVector(m_RingScale * ScaleMultiplier));
 	}
 }
 
@@ -148,24 +111,13 @@ void ARing::UpdateMaterial(const float& DeltaTime)
 
 	if (m_bIsPassed)
 	{
-		//くぐられてからの経過率を求める
-		const float elapsedRate = FMath::Clamp(m_MakeInvisibleCnt / m_MakeInvisibleTime, 0.f, 1.f);
-		float ColorScale = m_HSV.R;
-		ColorScale = FMath::Lerp(m_HSV.R, m_HSV.R * 0.5f, elapsedRate);
 
-		m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("BlendColor"), FVector(FLinearColor(ColorScale, m_HSV.G, m_HSV.B).HSVToLinearRGB()));
-		m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), 1.f - elapsedRate);
 	}
+	//通過フラグが立っていない間はメッシュの拡縮に合わせてリングの色を変える
 	else
 	{
-		//サイン波の幅を設定
-		const float WaveWidth = m_SineWidth * GetWorld()->GetTimeSeconds();
-		//サイン波の大きさを0から1に正規化する
-		const float SinWave = FMath::Sin(WaveWidth) * 0.5f + 0.5f;
-		//サイン波の値でリングの色相を変える
-		m_HSV.R = FMath::Lerp(50.f, 30.f, SinWave);
-		m_HSV.B = FMath::Lerp(30.f, 50.f, SinWave);
-		
+		m_HSV.R = FMath::Lerp(50.f, 30.f, m_SineCurveValue);
+		m_HSV.B = FMath::Lerp(30.f, 50.f, m_SineCurveValue);
 		m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("BlendColor"), FVector(m_HSV.HSVToLinearRGB()));
 	}
 }
@@ -173,74 +125,54 @@ void ARing::UpdateMaterial(const float& DeltaTime)
 //リングのエフェクト更新
 void ARing::UpdateEffect(const float& DeltaTime)
 {
-	if (!m_pNiagaraEffectComp || !m_pPassedDrone) { return; }
+	if (m_pFollowingEffectDronePairs.Num() <= 0) { return; }
 
-	if (m_bIsPassed)
+	//エフェクトが消えていたら配列から削除するため、逆順にfor文を回す
+	for (int32 index = m_pFollowingEffectDronePairs.Num() - 1; index >= 0; --index)
 	{
-		FLinearColor PaticleColor = m_HSV;
-		PaticleColor.B = 2.f;
-		PaticleColor = FLinearColor::LerpUsingHSV(PaticleColor, PaticleColor * 0.5f, DeltaTime * 0.5f);
-		m_pNiagaraEffectComp->SetVariableLinearColor(TEXT("User.Color"), FVector(PaticleColor.HSVToLinearRGB()));
+		if (m_pFollowingEffectDronePairs.IsValidIndex(index))
+		{
+			FFollowingEffectDronePair& EffectDronePair = m_pFollowingEffectDronePairs[index];
+			//エフェクトをドローンに追従させる
+			if (IsValid(EffectDronePair.pFollowingEffect))
+			{
+				if (EffectDronePair.pDrone)
+				{
+					FVector DroneLocation = EffectDronePair.pDrone->GetActorLocation();
+					EffectDronePair.pFollowingEffect->SetVariableVec3(TEXT("User.Aim_position"), DroneLocation);
+				}
+			}
+			//エフェクトが消えたら配列から削除する
+			else
+			{
+				m_pFollowingEffectDronePairs.RemoveAt(index);
+			}
+		}
 	}
 }
 
-//リングが逆回転するかのフラグ
-bool ARing::IsUnRotation()
-{
-	if (!m_pPassedDrone) { return false; }
-
-	//ドローンの向きに合わせてリングの向きを変更する
-	FRotator RingRotation = GetActorRotation();
-	FRotator DroneRotation = m_pPassedDrone->GetBodyMeshRotation();
-	FVector DroneRotationVector = DroneRotation.Vector();
-
-	FVector RotationVector = RingRotation.RotateVector(DroneRotationVector);
-	FVector UnRotationVector = RingRotation.UnrotateVector(DroneRotationVector);
-
-	//逆回転のほうがドローンの回転に近ければtrueを返す
-	return FVector::Dist(RotationVector, DroneRotationVector) > FVector::Dist(UnRotationVector, DroneRotationVector);
-}
-
-//リングの初期化
-void ARing::Reset()
-{
-	m_bIsPassed = false;
-	m_MakeInvisibleCnt = 0.f;
-	m_HSV = FLinearColor(30.f, 40.f, 30.f);
-	float ScrollSpeed = 0.5f;
-	m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
-	SetActorTransform(m_InitialTransform);
-	m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), 1.f);
-	m_pRingMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	m_pPassedDrone = NULL;
-}
-
 //オーバーラップ開始時に呼ばれる処理
-void ARing::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ARing::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OverlappedComponent && OtherActor && OtherActor != this)
+	if (OtherActor && OtherActor != this)
 	{
 		//タグがPlayerだった場合
 		if (OtherActor->ActorHasTag(TEXT("Drone")))
 		{
-			//このリングがまだ通過されていない場合
-			if (!m_bIsPassed)
+			if (m_pEffect)
 			{
-				//通過された状態に変更
-				m_bIsPassed = true;
-				m_bIsUnRotation = IsUnRotation();
+				//ヒットしたドローンとエフェクトを配列に格納する
+				m_pFollowingEffectDronePairs.Add(
+					FFollowingEffectDronePair(
+						Cast<ADroneBase>(OtherActor),
+						UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, m_pEffect, GetActorLocation())));
 
 				//マテリアルの回転速度を上げる
 				float ScrollSpeed = 1.f;
 				m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
 
-				m_pPassedDrone = Cast<ADroneBase>(OtherActor);
-				//エフェクトの再生
-				m_pNiagaraEffectComp->Activate();
 				//SEの再生
 				UGameplayStatics::PlaySound2D(GetWorld(), m_RingHitSE);
-				//リングの当たり判定を切る
-				m_pRingMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			}
 		}
 	}
