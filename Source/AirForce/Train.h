@@ -7,7 +7,7 @@
 #include "Train.generated.h"
 
 //前方宣言
-class USkeletalMeshComponent;
+class UPoseableMeshComponent;
 class ASplineActor;
 
 UCLASS()
@@ -37,7 +37,7 @@ private:
 
 private:
 	UPROPERTY(EditAnywhere)
-		USkeletalMeshComponent* m_pTrainMesh;								//電車のメッシュ
+		UPoseableMeshComponent* m_pTrainMesh;								//電車のメッシュ
 	UPROPERTY(EditAnywhere)
 		ASplineActor* m_pSplineActor;												//電車の移動に使うスプラインを持つアクター
 	UPROPERTY(EditAnywhere)
