@@ -9,7 +9,7 @@
 
 //コンストラクタ
 URacingD_GameInstance::URacingD_GameInstance()
-	: m_pLoadingScreenSystem()
+	: m_pLoadingScreenSystem(nullptr)
 {
 
 }

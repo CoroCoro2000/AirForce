@@ -132,20 +132,22 @@ void ARing::UpdateEffect(const float& DeltaTime)
 	{
 		if (m_pFollowingEffectDronePairs.IsValidIndex(index))
 		{
-			FFollowingEffectDronePair& EffectDronePair = m_pFollowingEffectDronePairs[index];
-			//エフェクトをドローンに追従させる
-			if (IsValid(EffectDronePair.pFollowingEffect))
+			if (const FFollowingEffectDronePair* EffectDronePair = &m_pFollowingEffectDronePairs[index])
 			{
-				if (EffectDronePair.pDrone)
+				//エフェクトをドローンに追従させる
+				if (IsValid(EffectDronePair->pFollowingEffect))
 				{
-					FVector DroneLocation = EffectDronePair.pDrone->GetActorLocation();
-					EffectDronePair.pFollowingEffect->SetVariableVec3(TEXT("User.Aim_position"), DroneLocation);
+					if (EffectDronePair->pDrone)
+					{
+						FVector DroneLocation = EffectDronePair->pDrone->GetActorLocation();
+						EffectDronePair->pFollowingEffect->SetVariableVec3(TEXT("User.Aim_position"), DroneLocation);
+					}
 				}
-			}
-			//エフェクトが消えたら配列から削除する
-			else
-			{
-				m_pFollowingEffectDronePairs.RemoveAt(index);
+				//エフェクトが消えたら配列から削除する
+				else
+				{
+					m_pFollowingEffectDronePairs.RemoveAt(index);
+				}
 			}
 		}
 	}
