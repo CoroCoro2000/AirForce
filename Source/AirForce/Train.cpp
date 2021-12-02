@@ -16,6 +16,9 @@ ATrain::ATrain()
 	, m_Deceleration(5.f)
 	, m_MoveDistance(0.f)
 	, m_bLoop(true)
+	, m_FrontBoneRotation(FRotator::ZeroRotator)
+	, m_Joint1BoneRotation(FRotator::ZeroRotator)
+	, m_Joint2BoneRotation(FRotator::ZeroRotator)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -32,6 +35,15 @@ void ATrain::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if (m_pTrainMesh)
+	{
+		m_FrontBoneRotation = m_pTrainMesh->GetBoneRotationByName(TEXT("Front"), EBoneSpaces::WorldSpace);
+		m_FrontBoneRotation.Yaw -= 90.096451f;
+		m_Joint1BoneRotation = m_pTrainMesh->GetBoneRotationByName(TEXT("joint1"), EBoneSpaces::WorldSpace);
+		m_Joint1BoneRotation.Yaw -= 90.096451f;
+		m_Joint2BoneRotation = m_pTrainMesh->GetBoneRotationByName(TEXT("joint2"), EBoneSpaces::WorldSpace);
+		m_Joint2BoneRotation.Yaw -= 90.096451f;
+	}
 }
 
 // Called every frame
@@ -53,7 +65,6 @@ void ATrain::Tick(float DeltaTime)
 void ATrain::UpdateSpeed(const float& DeltaTime)
 {
 	m_CurrentSpeed = FMath::Lerp(m_CurrentSpeed, m_MaxSpeed, DeltaTime * m_Acceleration);
-	UE_LOG(LogTemp, Warning, TEXT("Speed[%f]"), m_CurrentSpeed);
 }
 
 //移動の更新
@@ -84,17 +95,17 @@ void ATrain::UpdateRotation(const float& DeltaTime)
 	FVector Joint1BoneLocation = m_pTrainMesh->GetBoneLocationByName(TEXT("joint1"), EBoneSpaces::WorldSpace);
 	FVector Joint2BoneLocation = m_pTrainMesh->GetBoneLocationByName(TEXT("joint2"), EBoneSpaces::WorldSpace);
 
-	//1両目から2両目のボーンの距離を求める
-	float Dist1 = FVector::Dist(FrontBoneLocation, Joint1BoneLocation);
-	float Dist2 = Dist1 + FVector::Dist(Joint1BoneLocation, Joint2BoneLocation);
+	//ボーンの距離を求める
+	float Dist1 = FMath::Abs(FVector::Dist(FrontBoneLocation, Joint1BoneLocation));
+	float Dist2 = FMath::Abs(FVector::Dist(Joint1BoneLocation, Joint2BoneLocation));
 
 	//各ボーンの回転量を求める
 	FRotator FrontRotation = m_pSplineActor->GetCurrentRotation(m_MoveDistance, m_bLoop);
 	FRotator Joint1Rotation = m_pSplineActor->GetCurrentRotation(m_MoveDistance - Dist1, m_bLoop);
-	FRotator Joint2Rotation = m_pSplineActor->GetCurrentRotation(m_MoveDistance - Dist2, m_bLoop);
+	FRotator Joint2Rotation = m_pSplineActor->GetCurrentRotation(m_MoveDistance - (Dist1 + Dist2), m_bLoop);
 
 	//各ボーンを回転させる
-	m_pTrainMesh->SetBoneRotationByName(TEXT("Front"), FrontRotation, EBoneSpaces::WorldSpace);
-	m_pTrainMesh->SetBoneRotationByName(TEXT("joint1"), Joint1Rotation, EBoneSpaces::WorldSpace);
-	m_pTrainMesh->SetBoneRotationByName(TEXT("joint2"), Joint2Rotation, EBoneSpaces::WorldSpace);
+	m_pTrainMesh->SetBoneRotationByName(TEXT("Front"), FrontRotation + m_FrontBoneRotation, EBoneSpaces::WorldSpace);
+	m_pTrainMesh->SetBoneRotationByName(TEXT("joint1"), Joint1Rotation + m_Joint1BoneRotation, EBoneSpaces::WorldSpace);
+	m_pTrainMesh->SetBoneRotationByName(TEXT("joint2"), Joint2Rotation + m_Joint2BoneRotation, EBoneSpaces::WorldSpace);
 }

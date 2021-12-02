@@ -52,4 +52,12 @@ private:
 		float m_MoveDistance;															//電車がスプラインの開始点から進んだ距離
 	UPROPERTY(EditAnywhere)
 		bool m_bLoop;																		//スプラインの終点に到着したら始点からループするかどうか
+
+	UPROPERTY(EditAnywhere)
+		FRotator m_FrontBoneRotation;
+	UPROPERTY(EditAnywhere)
+		FRotator m_Joint1BoneRotation;
+	UPROPERTY(EditAnywhere)
+		FRotator m_Joint2BoneRotation;
+
 };
