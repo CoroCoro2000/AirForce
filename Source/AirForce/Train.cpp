@@ -77,8 +77,16 @@ void ATrain::UpdateMove(const float& DeltaTime)
 	float Speed = m_CurrentSpeed * DeltaTime;
 	m_MoveDistance += Speed;
 
+	if (m_bLoop)
+	{
+		if (m_pSplineActor->GetSpline()->GetSplineLength() <= m_MoveDistance)
+		{
+			m_MoveDistance = 0.f;
+		}
+	}
+
 	//スプラインの座標を取得
-	FVector NewLocation = m_pSplineActor->GetCurrentLocation(m_MoveDistance, m_bLoop);
+	FVector NewLocation = m_pSplineActor->GetCurrentLocation(m_MoveDistance, false);
 
 	//座標に移動
 	m_pTrainMesh->SetBoneLocationByName(TEXT("Front"), NewLocation, EBoneSpaces::WorldSpace);
@@ -100,9 +108,9 @@ void ATrain::UpdateRotation(const float& DeltaTime)
 	float Dist2 = FMath::Abs(FVector::Dist(Joint1BoneLocation, Joint2BoneLocation));
 
 	//各ボーンの回転量を求める
-	FRotator FrontRotation = m_pSplineActor->GetCurrentRotation(m_MoveDistance, m_bLoop);
-	FRotator Joint1Rotation = m_pSplineActor->GetCurrentRotation(m_MoveDistance - Dist1, m_bLoop);
-	FRotator Joint2Rotation = m_pSplineActor->GetCurrentRotation(m_MoveDistance - (Dist1 + Dist2), m_bLoop);
+	FRotator FrontRotation = m_pSplineActor->GetCurrentRotation(m_MoveDistance, false);
+	FRotator Joint1Rotation = m_pSplineActor->GetCurrentRotation(m_MoveDistance - Dist1, false);
+	FRotator Joint2Rotation = m_pSplineActor->GetCurrentRotation(m_MoveDistance - (Dist1 + Dist2), false);
 
 	//各ボーンを回転させる
 	m_pTrainMesh->SetBoneRotationByName(TEXT("Front"), FrontRotation + m_FrontBoneRotation, EBoneSpaces::WorldSpace);
