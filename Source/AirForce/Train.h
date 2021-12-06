@@ -7,6 +7,7 @@
 #include "Train.generated.h"
 
 //前方宣言
+class USkeletalMeshComponent;
 class UPoseableMeshComponent;
 class ASplineActor;
 
@@ -36,6 +37,8 @@ private:
 	void UpdateRotation(const float& DeltaTime);
 
 private:
+	UPROPERTY(EditAnywhere)
+		USkeletalMeshComponent* m_pTrain;
 	UPROPERTY(EditAnywhere)
 		UPoseableMeshComponent* m_pTrainMesh;								//電車のメッシュ
 	UPROPERTY(EditAnywhere)
