@@ -350,4 +350,6 @@ protected:
 		USpotLightComponent* m_pLeftSpotLight;
 	UPROPERTY(EditAnywhere, Category = "Light")
 		USpotLightComponent* m_pRightSpotLight;
+	UPROPERTY(EditAnywhere, Category = "Effect")
+		UNiagaraSystem* m_pRingHitEffect;
 };

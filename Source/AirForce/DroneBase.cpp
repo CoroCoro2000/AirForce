@@ -12,6 +12,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "GameUtility.h"
 
 #if WITH_EDITOR
@@ -63,6 +64,7 @@ ADroneBase::ADroneBase()
 	, m_OverAccelerator(1.5f)
 	, m_pLeftSpotLight(NULL)
 	, m_pRightSpotLight(NULL)
+	, m_pRingHitEffect(NULL)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -505,9 +507,16 @@ void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedCom
 		//タグがRingだった場合
 		if (OtherActor->ActorHasTag(TEXT("Ring")))
 		{
-			//上限を越えて加速できるようにする
-			m_SincePassageCount = 0.f;
+			//加速フラグを立てる
 			m_bIsPassedRing = true;
+			//リングのヒットエフェクトをスポーン
+			if (m_pRingHitEffect && m_pBodyMesh)
+			{
+				UNiagaraFunctionLibrary::SpawnSystemAttached(m_pRingHitEffect, m_pBodyMesh, TEXT("BodyCenter"), FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTargetIncludingScale, true);
+			}
+
+			//加速計測カウンターをリセット
+			m_SincePassageCount = 0.f;
 		}
 	}
 #ifdef DEBUG_CollisionOverlap_Begin
