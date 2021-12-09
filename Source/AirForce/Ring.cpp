@@ -163,18 +163,21 @@ void ARing::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AA
 		{
 			if (m_pEffect)
 			{
-				//ヒットしたドローンとエフェクトを配列に格納する
-				m_pFollowingEffectDronePairs.Add(
-					FFollowingEffectDronePair(
-						Cast<ADroneBase>(OtherActor),
-						UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, m_pEffect, GetActorLocation())));
+				if (ADroneBase* pDrone = Cast<ADroneBase>(OtherActor))
+				{
+					//ヒットしたドローンとエフェクトを配列に格納する
+					m_pFollowingEffectDronePairs.Add(FFollowingEffectDronePair(pDrone, UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, m_pEffect, GetActorLocation(), GetActorRotation())));
 
-				//マテリアルの回転速度を上げる
-				float ScrollSpeed = 1.f;
-				m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
+					//マテリアルの回転速度を上げる
+					float ScrollSpeed = 1.f;
+					m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
 
-				//SEの再生
-				UGameplayStatics::PlaySound2D(GetWorld(), m_RingHitSE);
+					//SEの再生
+					if (pDrone->GetisControl())
+					{
+						UGameplayStatics::PlaySound2D(GetWorld(), m_RingHitSE);
+					}
+				}
 			}
 		}
 	}

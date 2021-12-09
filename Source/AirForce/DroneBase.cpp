@@ -529,26 +529,37 @@ void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* 
 {
 	if (OtherActor && OtherActor != this)
 	{
-		m_isFloating = false;
+		FVector progressVector = m_AxisAccel;
 
-		if (FVector(m_AxisAccel).GetAbsMax() > 0.2f)
+		//ヒットしたアクターの法線ベクトルを取得
+		FVector HitActorNormal = Hit.Normal;
+
+		//進行ベクトルと法線ベクトルの内積を求める
+		float dot = progressVector | HitActorNormal;
+
+		//反射ベクトルを求める
+		FVector reflectVector = progressVector - dot * 2.f * HitActorNormal;
+		float RayLength = 30.f;
+		FVector Start = Hit.Location;
+		FVector End = Start + RayLength * reflectVector;
+		//トレースする対象(自身は対象から外す)
+		FCollisionQueryParams CollisionParam;
+		CollisionParam.AddIgnoredActor(this);
+		FHitResult OutHit;
+		//レイを飛ばして反射する時に引っかかっているか確認する
+		bool isHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+
+		if (isHit)
 		{
-
-			FVector progressVector = m_AxisAccel;
-
-			//ヒットしたアクターの法線ベクトルを取得
-			FVector HitActorNormal = Hit.Normal;
-
-			//進行ベクトルと法線ベクトルの内積を求める
-			float dot = progressVector | HitActorNormal;
-
-			//反射ベクトルを求める
-			FVector reflectVector = progressVector - dot * 2.f * HitActorNormal;
-
-			//反射ベクトルを進行方向に設定
-			m_AxisAccel = FVector4(reflectVector * 0.5f, m_AxisAccel.W);
+			reflectVector = reflectVector - (reflectVector | OutHit.Normal) * 2.f * OutHit.Normal;
 		}
 
-		m_isFloating = true;
+#if WITH_EDITOR
+		FColor LineColor = (isHit ? FColor::Red : FColor::Blue);
+		DrawDebugLine(GetWorld(), Start, Start + reflectVector * RayLength, LineColor, false, 2.f);
+#endif // WITH_EDITOR
+
+		//反射ベクトルを進行方向に設定
+		m_AxisAccel = FVector4(reflectVector * 0.7f, m_AxisAccel.W);
 	}
 }

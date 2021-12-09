@@ -112,6 +112,7 @@ void ADebugLevelStreamingVolume::UpdateStreamingLevelsRefs()
 
 void ADebugLevelStreamingVolume::OnConstruction(const FTransform& Transform)
 {
+	Super::OnConstruction(Transform);
 	if (!m_pTextComponent) { return; }
 
 	//ボリュームのバウンスサイズを取得
