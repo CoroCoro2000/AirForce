@@ -273,13 +273,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
 		float m_SpeedPerSecondMax;						//ドローンの最大秒速(m)
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
-		FVector4 m_AxisAccel;
+		FVector4 m_AxisAccel;						//各軸の加速度
 	UPROPERTY(EditAnywhere, Category = "Physical")
 		float m_Acceleration;							//加速度
 	UPROPERTY(EditAnywhere, Category = "Physical")
 		float m_Deceleration;							//減速度
 	UPROPERTY(EditAnywhere, Category = "Physical")
 		float m_Turning;								//逆入力した時の減速率
+	UPROPERTY(EditAnywhere, Category = "Physical")
+		float m_Attenuation;							//衝突時の速度減衰率
+	UPROPERTY(EditAnywhere, Category = "Physical")
+		float m_TempHitTime;						//前にヒットした時間
 	UPROPERTY(EditAnywhere, Category = "Physical")
 		float m_DroneWeight;							//ドローンの重量(kg)
 	UPROPERTY(VisibleAnywhere, Category = "Physical")

@@ -13,6 +13,7 @@
 #include "Components/SpotLightComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "GameUtility.h"
 
 #if WITH_EDITOR
@@ -39,6 +40,8 @@ ADroneBase::ADroneBase()
 	, m_Acceleration(0.8f)
 	, m_Deceleration(1.2f)
 	, m_Turning(0.6f)
+	, m_Attenuation(0.7f)
+	, m_TempHitTime(0.f)
 	, m_DroneWeight(0.3f)
 	, m_Velocity(FVector::ZeroVector)
 	, m_CentrifugalForce(FVector::ZeroVector)
@@ -176,6 +179,7 @@ void ADroneBase::BeginPlay()
 void ADroneBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
 
 	//ステート更新処理
 	//UpdateState();
@@ -527,39 +531,26 @@ void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedCom
 //ドローンの当たり判定にオブジェクトがヒットした時呼ばれるイベント関数を登録
 void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (OtherActor && OtherActor != this)
+	if (m_pBodyMesh && OtherActor && OtherActor != this)
 	{
-		FVector progressVector = m_AxisAccel;
+		//ドローンのYaw回転を取得
+		m_pBodyMesh->GetComponentRotation().Yaw;
+		FTransform Transform = FTransform(FRotator(0.f, m_pBodyMesh->GetComponentRotation().Yaw, 0.f), m_AxisAccel, FVector::OneVector);
 
-		//ヒットしたアクターの法線ベクトルを取得
-		FVector HitActorNormal = Hit.Normal;
-
-		//進行ベクトルと法線ベクトルの内積を求める
-		float dot = progressVector | HitActorNormal;
-
+		//ドローンの進行ベクトル(ワールド軸に変換)
+		FVector WorldDirection = UKismetMathLibrary::TransformDirection(Transform, m_AxisAccel);
 		//反射ベクトルを求める
-		FVector reflectVector = progressVector - dot * 2.f * HitActorNormal;
-		float RayLength = 30.f;
-		FVector Start = Hit.Location;
-		FVector End = Start + RayLength * reflectVector;
-		//トレースする対象(自身は対象から外す)
-		FCollisionQueryParams CollisionParam;
-		CollisionParam.AddIgnoredActor(this);
-		FHitResult OutHit;
-		//レイを飛ばして反射する時に引っかかっているか確認する
-		bool isHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
-
-		if (isHit)
-		{
-			reflectVector = reflectVector - (reflectVector | OutHit.Normal) * 2.f * OutHit.Normal;
-		}
+		FVector reflectVector = WorldDirection - Hit.Normal * (2.f * (WorldDirection | Hit.Normal));
+		//求めた反射ベクトルはワールド軸なので、ドローンの回転に合わせたローカル軸に直す
+		FVector LocalReflectVector = UKismetMathLibrary::InverseTransformDirection(Transform, reflectVector);
+		//反射ベクトルを進行方向に設定
+		m_AxisAccel = FVector4(LocalReflectVector * m_Attenuation, m_AxisAccel.W);
 
 #if WITH_EDITOR
-		FColor LineColor = (isHit ? FColor::Red : FColor::Blue);
-		DrawDebugLine(GetWorld(), Start, Start + reflectVector * RayLength, LineColor, false, 2.f);
-#endif // WITH_EDITOR
-
-		//反射ベクトルを進行方向に設定
-		m_AxisAccel = FVector4(reflectVector * 0.7f, m_AxisAccel.W);
+		FVector Start = GetActorLocation();
+		DrawDebugLine(GetWorld(), Start, Start + Hit.Normal * 100.f, FColor::Red, false, 3.f);
+		DrawDebugLine(GetWorld(), Start, Start + reflectVector * 100.f, FColor::Yellow, false, 3.f);
+		DrawDebugLine(GetWorld(), Start, Start + LocalReflectVector * 100.f, FColor::Blue, false, 3.f);
+#endif //WITH_EDITOR
 	}
 }
