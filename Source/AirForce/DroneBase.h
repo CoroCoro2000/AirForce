@@ -226,6 +226,7 @@ protected:
 	//風のエフェクト更新処理
 	virtual void UpdateWindEffect(const float& DeltaTime);
 
+
 	//進行軸と入力軸が逆向きか確認
 	bool IsReverseInput(const float& _movingAxis, const float& _axisValue)const { return (_movingAxis < 0.f && 0.f < _axisValue) || (_movingAxis > 0.f && 0.f > _axisValue); }
 
@@ -282,8 +283,6 @@ protected:
 		float m_Turning;								//逆入力した時の減速率
 	UPROPERTY(EditAnywhere, Category = "Physical")
 		float m_Attenuation;							//衝突時の速度減衰率
-	UPROPERTY(EditAnywhere, Category = "Physical")
-		float m_TempHitTime;						//前にヒットした時間
 	UPROPERTY(EditAnywhere, Category = "Physical")
 		float m_DroneWeight;							//ドローンの重量(kg)
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
@@ -356,4 +355,6 @@ protected:
 		USpotLightComponent* m_pRightSpotLight;
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		UNiagaraSystem* m_pRingHitEffect;
+	UPROPERTY(EditAnywhere, Category = "Hit")
+		FVector m_TempLocation;
 };

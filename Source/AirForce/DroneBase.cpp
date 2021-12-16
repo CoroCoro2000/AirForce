@@ -41,7 +41,6 @@ ADroneBase::ADroneBase()
 	, m_Deceleration(1.2f)
 	, m_Turning(0.6f)
 	, m_Attenuation(0.7f)
-	, m_TempHitTime(0.f)
 	, m_DroneWeight(0.3f)
 	, m_Velocity(FVector::ZeroVector)
 	, m_CentrifugalForce(FVector::ZeroVector)
@@ -68,6 +67,7 @@ ADroneBase::ADroneBase()
 	, m_pLeftSpotLight(NULL)
 	, m_pRightSpotLight(NULL)
 	, m_pRingHitEffect(NULL)
+	, m_TempLocation(FVector::ZeroVector)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -195,7 +195,6 @@ void ADroneBase::Tick(float DeltaTime)
 
 	//速度更新処理
 	UpdateSpeed(DeltaTime);
-
 }
 
 //【入力バインド】コントローラー入力設定
@@ -447,7 +446,7 @@ void ADroneBase::UpdateWindEffect(const float& DeltaTime)
 	float AccelRate = FMath::Clamp(m_AxisAccel.Size3() / m_WingAccelMax, 0.f, 1.f);
 	float Opacity = (m_AxisValuePerFrame.Y < 0.f) ? AxisValue * (m_bIsPassedRing ? 1.f : 0.6f) : 0.f;
 	m_WindOpacity = FMath::Lerp(m_WindOpacity, Opacity, DeltaTime * 5.f);
-	float WindNoise = (AxisValue != 0.f ? (m_bIsPassedRing ? 15.f : 20.f): 40.f);
+	float WindNoise = (AxisValue != 0.f ? (m_bIsPassedRing ? 10.f : 20.f): 40.f);
 	m_WindNoise = FMath::Lerp(m_WindNoise, WindNoise, DeltaTime * 5.f);
 	float effectScale = FMath::Lerp(5.f, 3.f, AxisValue);
 	float effectLocationX = FMath::Lerp(-40.f, 0.f, AxisValue);
@@ -533,24 +532,32 @@ void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* 
 {
 	if (m_pBodyMesh && OtherActor && OtherActor != this)
 	{
-		//ドローンのYaw回転を取得
-		m_pBodyMesh->GetComponentRotation().Yaw;
-		FTransform Transform = FTransform(FRotator(0.f, m_pBodyMesh->GetComponentRotation().Yaw, 0.f), m_AxisAccel, FVector::OneVector);
+		//スティック軸の入力座標を取得
+		FVector AxisAccle = m_AxisAccel;
+		//ドローンのワールド軸方向を取得
+		FVector WorldDir = (GetActorLocation() - m_TempLocation).GetSafeNormal();
 
-		//ドローンの進行ベクトル(ワールド軸に変換)
-		FVector WorldDirection = UKismetMathLibrary::TransformDirection(Transform, m_AxisAccel);
+		//スティック座標とワールド座標の2点間の角度を求める
+		FVector Dir = AxisAccle - (2.f * (AxisAccle | WorldDir) * WorldDir);
+
 		//反射ベクトルを求める
-		FVector reflectVector = WorldDirection - Hit.Normal * (2.f * (WorldDirection | Hit.Normal));
-		//求めた反射ベクトルはワールド軸なので、ドローンの回転に合わせたローカル軸に直す
-		FVector LocalReflectVector = UKismetMathLibrary::InverseTransformDirection(Transform, reflectVector);
+		FVector WorldReflectVector = Dir - Hit.Normal * (2.f * (Dir | Hit.Normal));
+
+		FVector LocalWorldReflectVector = WorldReflectVector - (2.f * (WorldReflectVector | WorldDir) * WorldDir);
 		//反射ベクトルを進行方向に設定
-		m_AxisAccel = FVector4(LocalReflectVector * m_Attenuation, m_AxisAccel.W);
+		m_AxisAccel = FVector4(LocalWorldReflectVector * m_Attenuation, m_AxisAccel.W);
 
 #if WITH_EDITOR
-		FVector Start = GetActorLocation();
-		DrawDebugLine(GetWorld(), Start, Start + Hit.Normal * 100.f, FColor::Red, false, 3.f);
-		DrawDebugLine(GetWorld(), Start, Start + reflectVector * 100.f, FColor::Yellow, false, 3.f);
-		DrawDebugLine(GetWorld(), Start, Start + LocalReflectVector * 100.f, FColor::Blue, false, 3.f);
+		//UE_LOG(LogTemp, Warning, TEXT("WorldDir[%s]"), *WorldDir.ToString());
+		//UE_LOG(LogTemp, Warning, TEXT("AccleWorldAxis[%s]"), *AccleWorldAxis.ToString());
+		//UE_LOG(LogTemp, Warning, TEXT("WorldReflectVector[%s]"), *WorldReflectVector.ToString());
+		////UE_LOG(LogTemp, Warning, TEXT("LocalReflectVector[%s]"), *LocalReflectVector.ToString());
+		//UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------"));
+
+		//DrawDebugLine(GetWorld(), Hit.Location, Hit.Location + Hit.Normal * 100.f, FColor::Red, false, 5.f);
+		//DrawDebugLine(GetWorld(), Hit.Location, Hit.Location + WorldReflectVector * 100.f, FColor::Yellow, false, 5.f);
+		//DrawDebugLine(GetWorld(), Hit.Location, Hit.Location - WorldDir * 100.f, FColor::Blue, false, 5.f);
 #endif //WITH_EDITOR
+
 	}
 }

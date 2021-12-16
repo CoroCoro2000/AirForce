@@ -418,7 +418,9 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 			m_Velocity = FMath::Lerp(m_Velocity, FVector::ZeroVector, DeltaTime * m_Deceleration);
 		}
 	}
-
+	//前フレームの座標を保持
+	m_TempLocation = GetActorLocation();
+	//座標を更新
 	AddActorWorldOffset(m_Velocity * MOVE_CORRECTION, true);
 }
 
