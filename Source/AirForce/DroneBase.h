@@ -355,6 +355,4 @@ protected:
 		USpotLightComponent* m_pRightSpotLight;
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		UNiagaraSystem* m_pRingHitEffect;
-	UPROPERTY(EditAnywhere, Category = "Hit")
-		FVector m_TempLocation;
 };

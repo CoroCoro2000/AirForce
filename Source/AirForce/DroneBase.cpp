@@ -40,7 +40,7 @@ ADroneBase::ADroneBase()
 	, m_Acceleration(0.8f)
 	, m_Deceleration(1.2f)
 	, m_Turning(0.6f)
-	, m_Attenuation(0.7f)
+	, m_Attenuation(0.5f)
 	, m_DroneWeight(0.3f)
 	, m_Velocity(FVector::ZeroVector)
 	, m_CentrifugalForce(FVector::ZeroVector)
@@ -67,7 +67,6 @@ ADroneBase::ADroneBase()
 	, m_pLeftSpotLight(NULL)
 	, m_pRightSpotLight(NULL)
 	, m_pRingHitEffect(NULL)
-	, m_TempLocation(FVector::ZeroVector)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -532,32 +531,14 @@ void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* 
 {
 	if (m_pBodyMesh && OtherActor && OtherActor != this)
 	{
+		FQuat Quat = FRotator(0.f, m_pBodyMesh->GetComponentQuat().Rotator().Yaw + 90.f, 0.f).Quaternion();
 		//スティック軸の入力座標を取得
 		FVector AxisAccle = m_AxisAccel;
-		//ドローンのワールド軸方向を取得
-		FVector WorldDir = (GetActorLocation() - m_TempLocation).GetSafeNormal();
-
-		//スティック座標とワールド座標の2点間の角度を求める
-		FVector Dir = AxisAccle - (2.f * (AxisAccle | WorldDir) * WorldDir);
-
+		FVector WorldDir = Quat.RotateVector(AxisAccle);
 		//反射ベクトルを求める
-		FVector WorldReflectVector = Dir - Hit.Normal * (2.f * (Dir | Hit.Normal));
-
-		FVector LocalWorldReflectVector = WorldReflectVector - (2.f * (WorldReflectVector | WorldDir) * WorldDir);
+		FVector ReflectVector = WorldDir - Hit.Normal * (2.f * (WorldDir | Hit.Normal));
+		FVector LocalDir = Quat.Inverse().RotateVector(ReflectVector);
 		//反射ベクトルを進行方向に設定
-		m_AxisAccel = FVector4(LocalWorldReflectVector * m_Attenuation, m_AxisAccel.W);
-
-#if WITH_EDITOR
-		//UE_LOG(LogTemp, Warning, TEXT("WorldDir[%s]"), *WorldDir.ToString());
-		//UE_LOG(LogTemp, Warning, TEXT("AccleWorldAxis[%s]"), *AccleWorldAxis.ToString());
-		//UE_LOG(LogTemp, Warning, TEXT("WorldReflectVector[%s]"), *WorldReflectVector.ToString());
-		////UE_LOG(LogTemp, Warning, TEXT("LocalReflectVector[%s]"), *LocalReflectVector.ToString());
-		//UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------"));
-
-		//DrawDebugLine(GetWorld(), Hit.Location, Hit.Location + Hit.Normal * 100.f, FColor::Red, false, 5.f);
-		//DrawDebugLine(GetWorld(), Hit.Location, Hit.Location + WorldReflectVector * 100.f, FColor::Yellow, false, 5.f);
-		//DrawDebugLine(GetWorld(), Hit.Location, Hit.Location - WorldDir * 100.f, FColor::Blue, false, 5.f);
-#endif //WITH_EDITOR
-
+		m_AxisAccel = FVector4(LocalDir * m_Attenuation, m_AxisAccel.W);
 	}
 }
