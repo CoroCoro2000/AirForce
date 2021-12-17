@@ -441,7 +441,7 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	float RotYaw = m_pBodyMesh->GetComponentRotation().Yaw;
 	FQuat BodyQuat = FRotator(0.f, RotYaw, 0.f).Quaternion();
 
-	float RayLength = 1500.f;
+	float RayLength = 2000.f;
 	FVector Start = GetActorLocation();
 	FVector End = Start + BodyQuat.GetForwardVector() * RayLength;
 	//ƒqƒbƒgŒ‹‰Ê‚ðŠi”[‚·‚é”z—ñ
@@ -515,7 +515,8 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 
 	m_pSpringArm->SocketOffset.X = FMath::Lerp(m_pSpringArm->SocketOffset.X, m_AxisValuePerFrame.Y * m_CameraSocketOffsetMax.X, SocketAttenRate.X);
 	m_pSpringArm->SocketOffset.Y = FMath::Lerp(m_pSpringArm->SocketOffset.Y, HorizontalAxis * m_CameraSocketOffsetMax.Y, SocketAttenRate.Y);
-	m_pSpringArm->SocketOffset.Z = FMath::Lerp(m_pSpringArm->SocketOffset.Z, -CameraRotation.Pitch, SocketAttenRate.Z);
+	m_pSpringArm->SocketOffset.Z = FMath::Lerp(m_pSpringArm->SocketOffset.Z, -CameraRotation.Pitch * 1.5f, SocketAttenRate.Z);
+	m_pSpringArm->TargetArmLength = FMath::Lerp(m_pSpringArm->TargetArmLength, (isClimbingSlope ? 150.f : 90.f), SocketAttenRate.Z);
 
 	//ƒJƒƒ‰‚Ì‰ñ“]‚ðXV
 	m_pCamera->SetRelativeRotation(CameraRotation.Quaternion() * MOVE_CORRECTION);

@@ -531,14 +531,16 @@ void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* 
 {
 	if (m_pBodyMesh && OtherActor && OtherActor != this)
 	{
-		FQuat Quat = FRotator(0.f, m_pBodyMesh->GetComponentQuat().Rotator().Yaw + 90.f, 0.f).Quaternion();
-		//スティック軸の入力座標を取得
+		FQuat Quat = FRotator(0.f, m_pBodyMesh->GetComponentRotation().Yaw + 90.f, 0.f).Quaternion();
+		//入力軸を取得
 		FVector AxisAccle = m_AxisAccel;
+		//ワールド座標に変換
 		FVector WorldDir = Quat.RotateVector(AxisAccle);
 		//反射ベクトルを求める
 		FVector ReflectVector = WorldDir - Hit.Normal * (2.f * (WorldDir | Hit.Normal));
-		FVector LocalDir = Quat.Inverse().RotateVector(ReflectVector);
+		//求めた反射ベクトルを入力軸の座標に変換
+		FVector LocalReflectVector = Quat.Inverse().RotateVector(ReflectVector);
 		//反射ベクトルを進行方向に設定
-		m_AxisAccel = FVector4(LocalDir * m_Attenuation, m_AxisAccel.W);
+		m_AxisAccel = FVector4(LocalReflectVector * m_Attenuation, m_AxisAccel.W);
 	}
 }
