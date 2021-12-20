@@ -30,6 +30,9 @@ ATrain::ATrain()
 	{
 		RootComponent = m_pTrain;
 	}
+
+	//ƒ^ƒO‚Ì’Ç‰Á
+	Tags.Add(TEXT("Train"));
 }
 
 // Called when the game starts or when spawned

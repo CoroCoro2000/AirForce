@@ -459,14 +459,14 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 		//Slopeのタグを持つアクターがあればカメラを上げるフラグを立てる
 		for (const FHitResult& HitResult : OutHits)
 		{
-			if (HitResult.GetActor())
+			if (AActor* pHitActor = HitResult.GetActor())
 			{
-				if (HitResult.GetActor()->ActorHasTag(TEXT("Slope")))
+				if (pHitActor->ActorHasTag(TEXT("Slope")))
 				{
 					isClimbingSlope = true;
 
 					//傾斜との距離を測定する
-					m_DistanceToSlope = FVector::Dist(GetActorLocation(), HitResult.Location);
+					m_DistanceToSlope = HitResult.Distance;
 					break;
 				}
 			}

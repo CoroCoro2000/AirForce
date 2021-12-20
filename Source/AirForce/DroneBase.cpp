@@ -443,9 +443,9 @@ void ADroneBase::UpdateWindEffect(const float& DeltaTime)
 	float AxisValue = FVector2D(m_AxisValuePerFrame.X, m_AxisValuePerFrame.Y).GetSafeNormal().Size();
 	//加速率を計算
 	float AccelRate = FMath::Clamp(m_AxisAccel.Size3() / m_WingAccelMax, 0.f, 1.f);
-	float Opacity = (m_AxisValuePerFrame.Y < 0.f) ? AxisValue * (m_bIsPassedRing ? 1.f : 0.6f) : 0.f;
+	float Opacity = (m_AxisValuePerFrame.Y < 0.f) ? AxisValue * (m_bIsPassedRing ? 1.f : 0.8f) : 0.f;
 	m_WindOpacity = FMath::Lerp(m_WindOpacity, Opacity, DeltaTime * 5.f);
-	float WindNoise = (AxisValue != 0.f ? (m_bIsPassedRing ? 10.f : 20.f): 40.f);
+	float WindNoise = (AxisValue != 0.f ? (m_bIsPassedRing ? 8.f : 18.f): 40.f);
 	m_WindNoise = FMath::Lerp(m_WindNoise, WindNoise, DeltaTime * 5.f);
 	float effectScale = FMath::Lerp(5.f, 3.f, AxisValue);
 	float effectLocationX = FMath::Lerp(-40.f, 0.f, AxisValue);
@@ -480,13 +480,13 @@ bool ADroneBase::IsOverHeightMax()
 	{
 		for (const FHitResult& HitResult : OutHits)
 		{
-			if (HitResult.GetActor())
+			if (AActor* pHitActor = HitResult.GetActor())
 			{
-				if (HitResult.GetActor()->ActorHasTag(TEXT("Ground")))
+				if (pHitActor->ActorHasTag(TEXT("Ground")))
 				{
 					OverHeightMax = false;
 					//地面からの高さを計測
-					m_HeightFromGround = FVector::Dist(GetActorLocation(), HitResult.Location);
+					m_HeightFromGround = HitResult.Distance;
 					break;
 				}
 			}
@@ -531,16 +531,29 @@ void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* 
 {
 	if (m_pBodyMesh && OtherActor && OtherActor != this)
 	{
+		//ドローンの向きを取得
 		FQuat Quat = FRotator(0.f, m_pBodyMesh->GetComponentRotation().Yaw + 90.f, 0.f).Quaternion();
-		//入力軸を取得
-		FVector AxisAccle = m_AxisAccel;
-		//ワールド座標に変換
-		FVector WorldDir = Quat.RotateVector(AxisAccle);
-		//反射ベクトルを求める
-		FVector ReflectVector = WorldDir - Hit.Normal * (2.f * (WorldDir | Hit.Normal));
-		//求めた反射ベクトルを入力軸の座標に変換
-		FVector LocalReflectVector = Quat.Inverse().RotateVector(ReflectVector);
-		//反射ベクトルを進行方向に設定
-		m_AxisAccel = FVector4(LocalReflectVector * m_Attenuation, m_AxisAccel.W);
+
+		//衝突したアクターが電車の場合は外側にはじかれるようにする
+		if (OtherActor->ActorHasTag(TEXT("Train")))
+		{
+			FVector LocalReflectVector = Quat.Inverse().RotateVector(Hit.Normal);
+			//反射ベクトルを進行方向に設定
+			m_AxisAccel = FVector4(LocalReflectVector, m_AxisAccel.W);
+		}
+		//電車以外は跳ね返りの処理を行う
+		else
+		{
+			//入力軸を取得
+			FVector AxisAccle = m_AxisAccel;
+			//ワールド座標に変換
+			FVector WorldDir = Quat.RotateVector(AxisAccle);
+			//反射ベクトルを求める
+			FVector ReflectVector = WorldDir - Hit.Normal * (2.f * (WorldDir | Hit.Normal));
+			//求めた反射ベクトルを入力軸の座標に変換
+			FVector LocalReflectVector = Quat.Inverse().RotateVector(ReflectVector);
+			//反射ベクトルを進行方向に設定
+			m_AxisAccel = FVector4(LocalReflectVector * m_Attenuation, m_AxisAccel.W);
+		}
 	}
 }
