@@ -16,7 +16,7 @@ class AIRFORCE_API ACourseSelect : public APawn
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this pawn's properties
+	//コンストラクタ
 	ACourseSelect();
 
 protected:
@@ -30,6 +30,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	//選択中のコース番号取得
 	UFUNCTION(BlueprintCallable)
 		int GetSelectCourseNumber()const { return m_CourseNumber; }
 
@@ -58,25 +59,25 @@ private:
 
 private:
 	UPROPERTY(VisibleAnywhere)
-		USceneComponent* m_pDummyComponent;
+		USceneComponent* m_pDummyComponent;					//3Dミニマップの回転の中心にするダミーオブジェクト
 	UPROPERTY(VisibleAnywhere)
-		int m_CourseNumber;
+		int m_CourseNumber;															//コース番号
 	UPROPERTY(VisibleAnywhere)
-		int m_CourseTotal;
+		int m_CourseTotal;																//コース数
 	UPROPERTY(VisibleAnywhere)
-		bool m_bInputEnable;
+		bool m_bInputEnable;															//入力可能フラグ
 	UPROPERTY(VisibleAnywhere)
 		float m_CurrentRotation;
 	UPROPERTY(VisibleAnywhere)
 		float m_TargetRotation;
 	UPROPERTY(EditAnywhere)
-		float m_TargetRotationSpeed;
+		float m_TargetRotationSpeed;												//ダミーオブジェクトの回転速度
 	UPROPERTY(EditAnywhere)
-		UDataTable* m_pLevelDataTable;
+		UDataTable* m_pLevelDataTable;										//シーンのデータテーブル
 	UPROPERTY(EditAnywhere)
-		TArray<UStaticMeshComponent*> m_pMinimapMeshes;
+		TArray<UStaticMeshComponent*> m_pMinimapMeshes;	//3Dのミニマップメッシュ
 	UPROPERTY(EditAnywhere)
-		UStaticMesh* m_pMinimapDefaultMesh;
+		UStaticMesh* m_pMinimapDefaultMesh;							//3Dのデフォルトミニマップメッシュ
 	UPROPERTY(EditAnywhere)
-		TArray<UMaterialInterface*> m_pMinimapMaterials;
+		TArray<UMaterialInterface*> m_pMinimapMaterials;			//3Dのミニマップのマテリアル
 };

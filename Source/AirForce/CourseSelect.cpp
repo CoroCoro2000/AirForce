@@ -98,12 +98,14 @@ void ACourseSelect::InitializeMesh()
 	if (m_CourseTotal <= 0) { return; }
 	if (!m_pDummyComponent) { return; }
 
+	//メッシュの初期設定
 	float Radius = 1000.f;
 	FVector Center = m_pDummyComponent->GetComponentLocation();
 	FVector Start = Center + m_pDummyComponent->GetForwardVector() * Radius;
 	FRotator direction = FRotator(0.f, 360.f / m_CourseTotal, 0.f);
 	FTransform NewTransform(FRotator(0.f, 180.f, 45.f), Start, FVector(3.f, 6.f, 1.f));
 
+	//選択コースの数だけメッシュを生成
 	for (int i = 0; i < m_CourseTotal; ++i)
 	{
 		UStaticMeshComponent* pMesh = NewObject<UStaticMeshComponent>(this);
@@ -169,9 +171,10 @@ void ACourseSelect::Input_Right()
 	{
 		m_bInputEnable = false;
 		m_CourseNumber = (m_CourseNumber + 1) % m_CourseTotal;
-
 		m_TargetRotation -= 360.f / m_CourseTotal;
 	}
+	//入力があったら選択コースの3Dミニマップを正面に向ける
+	m_pMinimapMeshes[m_CourseNumber]->SetWorldRotation(FRotator(0.f, 0.f, 45.f));
 	m_bInputEnable = true;
 }
  
@@ -183,6 +186,8 @@ void ACourseSelect::Input_Left()
 		m_CourseNumber = (m_CourseNumber + m_CourseTotal - 1) % m_CourseTotal;
 		m_TargetRotation += 360.f / m_CourseTotal;
 	}
+	//入力があったら選択コースの3Dミニマップを正面に向ける
+	m_pMinimapMeshes[m_CourseNumber]->SetWorldRotation(FRotator(0.f, 0.f, 45.f));
 	m_bInputEnable = true;
 }
 
