@@ -37,6 +37,9 @@ public:
 	//入力可能フラグ設定
 	UFUNCTION(BlueprintCallable)
 		void SetInputEnable(const bool _bInputEnable) { m_bInputEnable = _bInputEnable; }
+	//入力可能フラグ取得
+	UFUNCTION(BlueprintCallable)
+		bool GetInputEnable() const { return m_bInputEnable; }
 
 	//選択中のコース名取得
 	UFUNCTION(BlueprintCallable)

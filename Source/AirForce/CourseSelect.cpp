@@ -100,9 +100,10 @@ void ACourseSelect::InitializeMesh()
 
 	//メッシュの初期設定
 	float Radius = 1000.f;
-	FVector Center = m_pDummyComponent->GetComponentLocation();
-	FVector Start = Center + m_pDummyComponent->GetForwardVector() * Radius;
-	FRotator direction = FRotator(0.f, 360.f / m_CourseTotal, 0.f);
+	FVector Center = GetActorLocation();
+	FVector Dir = GetActorForwardVector() * Radius;
+	FVector Start = Center + Dir;
+	FRotator Rotation = FRotator(0.f, 360.f / m_CourseTotal, 0.f);
 	FTransform NewTransform(FRotator(0.f, 180.f, 45.f), Start, FVector(3.f, 6.f, 1.f));
 
 	//選択コースの数だけメッシュを生成
@@ -120,7 +121,9 @@ void ACourseSelect::InitializeMesh()
 			pMesh->SetWorldTransform(NewTransform);
 			m_pMinimapMeshes.Add(pMesh);
 
-			NewTransform.SetLocation(direction.RotateVector(NewTransform.GetLocation()));
+			//生成軸を回転
+			Dir = Rotation.RotateVector(Dir);
+			NewTransform.SetLocation(Center + Dir);
 		}
 	}
 }
@@ -141,15 +144,18 @@ void ACourseSelect::UpdateMeshRotation(const float& DeltaTime)
 void ACourseSelect::UpdateLocation(const float& DeltaTime)
 {
 	if (m_CourseTotal <= 0) { return; }
-	if (!m_pDummyComponent) { return; }
 
-	m_CurrentRotation = CGameUtility::SetDecimalTruncation(m_CurrentRotation, 2);
 	float difference = FMath::Abs(FMath::Abs(m_CurrentRotation) - FMath::Abs(m_TargetRotation));
-
 	if (difference > 0.05f)
 	{
-		m_CurrentRotation = FMath::Lerp(m_CurrentRotation, m_TargetRotation, DeltaTime * m_TargetRotationSpeed);
+		m_CurrentRotation = FMath::Lerp(m_CurrentRotation, m_TargetRotation, FMath::Clamp(DeltaTime * m_TargetRotationSpeed, 0.f, 1.f));
 		SetActorRotation(FRotator(0.f, m_CurrentRotation, 0.f));
+	}
+	else
+	{
+		float Rotation = GetActorRotation().Yaw;
+		m_CurrentRotation = Rotation;
+		m_TargetRotation = Rotation;
 	}
 }
 
@@ -171,7 +177,8 @@ void ACourseSelect::Input_Right()
 	{
 		m_bInputEnable = false;
 		m_CourseNumber = (m_CourseNumber + 1) % m_CourseTotal;
-		m_TargetRotation -= 360.f / m_CourseTotal;
+		m_TargetRotation -= 360.f / (float)m_CourseTotal;
+
 	}
 	//入力があったら選択コースの3Dミニマップを正面に向ける
 	m_pMinimapMeshes[m_CourseNumber]->SetWorldRotation(FRotator(0.f, 0.f, 45.f));
@@ -184,7 +191,7 @@ void ACourseSelect::Input_Left()
 	{
 		m_bInputEnable = false;
 		m_CourseNumber = (m_CourseNumber + m_CourseTotal - 1) % m_CourseTotal;
-		m_TargetRotation += 360.f / m_CourseTotal;
+		m_TargetRotation += 360.f / (float)m_CourseTotal;
 	}
 	//入力があったら選択コースの3Dミニマップを正面に向ける
 	m_pMinimapMeshes[m_CourseNumber]->SetWorldRotation(FRotator(0.f, 0.f, 45.f));
