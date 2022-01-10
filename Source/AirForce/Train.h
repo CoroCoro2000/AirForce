@@ -7,8 +7,8 @@
 #include "Train.generated.h"
 
 //前方宣言
-class USkeletalMeshComponent;
-class UPoseableMeshComponent;
+class UStaticMesh;
+class UStaticMeshComponent;
 class ASplineActor;
 
 UCLASS()
@@ -29,6 +29,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
+	//メッシュの初期化
+	void InitializeMesh();
 	//速度更新処理
 	void UpdateSpeed(const float& DeltaTime);
 	//移動更新処理
@@ -38,9 +40,9 @@ private:
 
 private:
 	UPROPERTY(EditAnywhere)
-		USkeletalMeshComponent* m_pTrain;
-	UPROPERTY(EditAnywhere)
-		UPoseableMeshComponent* m_pTrainMesh;								//電車のメッシュ
+		TArray<UStaticMesh*> m_pMeshes;										//電車のメッシュ
+	UPROPERTY(VisibleAnywhere)
+		TArray<UStaticMeshComponent*> m_pTrainMeshes;				//電車のメッシュ
 	UPROPERTY(EditAnywhere)
 		ASplineActor* m_pSplineActor;												//電車の移動に使うスプラインを持つアクター
 	UPROPERTY(EditAnywhere)
