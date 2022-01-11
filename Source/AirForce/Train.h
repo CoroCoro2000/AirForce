@@ -41,6 +41,8 @@ private:
 private:
 	UPROPERTY(EditAnywhere)
 		TArray<UStaticMesh*> m_pMeshes;										//電車のメッシュ
+	UPROPERTY(EditAnywhere)
+		UStaticMeshComponent* m_pFrontTrainMesh;
 	UPROPERTY(VisibleAnywhere)
 		TArray<UStaticMeshComponent*> m_pTrainMeshes;				//電車のメッシュ
 	UPROPERTY(EditAnywhere)

@@ -8,7 +8,8 @@
 
 // Sets default values
 ATrain::ATrain()
-	: m_pSplineActor(NULL)
+	: m_pFrontTrainMesh(CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Front")))
+	, m_pSplineActor(NULL)
 	, m_MaxSpeed(500.f)
 	, m_CurrentSpeed(0.f)
 	, m_Acceleration(3.f)
@@ -21,6 +22,13 @@ ATrain::ATrain()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	if (m_pFrontTrainMesh)
+	{
+		RootComponent = m_pFrontTrainMesh;
+	}
+
+	m_pTrainMeshes.Empty();
 
 	//タグの追加
 	Tags.Add(TEXT("Train"));
@@ -53,35 +61,29 @@ void ATrain::Tick(float DeltaTime)
 //メッシュの初期化
 void ATrain::InitializeMesh()
 {
-	//メッシュコンポーネント生成
-	for (UStaticMesh* pMesh : m_pMeshes)
+	for (int32 index = 0; index < m_pMeshes.Num(); ++index)
 	{
-		if (pMesh)
+		//メッシュコンポーネント生成
+		UStaticMeshComponent* pTrainMesh = NewObject<UStaticMeshComponent>(this);
+		if (pTrainMesh)
 		{
-			if (UStaticMeshComponent* pTrainMesh = NewObject<UStaticMeshComponent>())
+			pTrainMesh->RegisterComponent();
+			m_pTrainMeshes.Add(pTrainMesh);
+
+			if (m_pMeshes.IsValidIndex(index))
 			{
-				pTrainMesh->SetStaticMesh(pMesh);
-				pTrainMesh->RegisterComponent();
-				m_pTrainMeshes.Add(pTrainMesh);
+				pTrainMesh->SetStaticMesh(m_pMeshes[index]);
 			}
-		}
-	}
-	//車両のアタッチ
-	for (int32 index = 0; index < m_pTrainMeshes.Num(); ++index)
-	{
-		if (m_pTrainMeshes.IsValidIndex(index))
-		{
-			if (index == 0)
+
+			//車両のアタッチ
+			const int32 PrevIndex = index - 1;
+			if (m_pTrainMeshes.IsValidIndex(PrevIndex))
 			{
-				RootComponent = m_pTrainMeshes[index];
+				m_pTrainMeshes[index]->AttachToComponent(m_pTrainMeshes[PrevIndex], FAttachmentTransformRules::KeepRelativeTransform, TEXT("Coupler"));
 			}
 			else
 			{
-				int32 PrevIndex = index - 1;
-				if (m_pTrainMeshes.IsValidIndex(PrevIndex))
-				{
-					m_pTrainMeshes[index]->AttachToComponent(m_pTrainMeshes[PrevIndex], FAttachmentTransformRules::KeepRelativeTransform, TEXT("Coupler"));
-				}
+				m_pTrainMeshes[index]->AttachToComponent(m_pFrontTrainMesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("Coupler"));
 			}
 		}
 	}
@@ -90,6 +92,9 @@ void ATrain::InitializeMesh()
 //速度の更新
 void ATrain::UpdateSpeed(const float& DeltaTime)
 {
+	if (!m_pSplineActor) { return; }
+	if (m_pTrainMeshes.Num() == 0) { return; }
+
 	m_CurrentSpeed = FMath::Lerp(m_CurrentSpeed, m_MaxSpeed, DeltaTime * m_Acceleration);
 }
 
@@ -97,6 +102,7 @@ void ATrain::UpdateSpeed(const float& DeltaTime)
 void ATrain::UpdateMove(const float& DeltaTime)
 {
 	if (!m_pSplineActor) { return; }
+	if (m_pTrainMeshes.Num() == 0) { return; }
 
 	//進んだ距離を更新
 	float Speed = m_CurrentSpeed * DeltaTime;
@@ -123,5 +129,18 @@ void ATrain::UpdateMove(const float& DeltaTime)
 void ATrain::UpdateRotation(const float& DeltaTime)
 {
 	if (!m_pSplineActor) { return; }
+	if (m_pTrainMeshes.Num() == 0) { return; }
 	
+	TArray<UStaticMeshComponent*> pTrainMeshes = m_pTrainMeshes;
+	pTrainMeshes.Insert(m_pFrontTrainMesh, 0);
+
+	for (UStaticMeshComponent* pTrainMesh : pTrainMeshes)
+	{
+		if (pTrainMesh)
+		{
+			FRotator NewRotation = m_pSplineActor->GetSpline()->FindDirectionClosestToWorldLocation(pTrainMesh->GetComponentLocation(), ESplineCoordinateSpace::World).ToOrientationRotator();
+			NewRotation.Yaw += 90.f;
+			pTrainMesh->SetWorldRotation(NewRotation, true);
+		}
+	}
 }
