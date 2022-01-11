@@ -16,6 +16,7 @@ ATrain::ATrain()
 	, m_Deceleration(5.f)
 	, m_MoveDistance(0.f)
 	, m_bLoop(true)
+	, m_bCanMove(true)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -92,7 +93,9 @@ void ATrain::UpdateSpeed(const float& DeltaTime)
 	if (!m_pSplineActor) { return; }
 	if (m_pTrainMeshes.Num() == 0) { return; }
 
-	m_CurrentSpeed = FMath::Lerp(m_CurrentSpeed, m_MaxSpeed, DeltaTime * m_Acceleration);
+	m_CurrentSpeed = m_bCanMove ?
+		FMath::Lerp(m_CurrentSpeed, m_MaxSpeed, FMath::Clamp(DeltaTime * m_Acceleration, 0.f, 1.f)) :
+		FMath::Lerp(m_CurrentSpeed, 0.f, FMath::Clamp(DeltaTime * m_Deceleration, 0.f, 1.f));
 }
 
 //移動の更新
@@ -105,20 +108,12 @@ void ATrain::UpdateMove(const float& DeltaTime)
 	float Speed = m_CurrentSpeed * DeltaTime;
 	m_MoveDistance += Speed;
 
-	if (m_bLoop)
-	{
-		if (m_pSplineActor->GetSpline()->GetSplineLength() <= m_MoveDistance)
-		{
-			m_MoveDistance = 0.f;
-			//始点座標に移動
-			FVector StartLocation = m_pSplineActor->GetCurrentLocation(m_MoveDistance, false);
-			SetActorLocation(StartLocation, true);
-		}
-	}
+	//移動距離がスプラインの長さを越えていないか確認する
+	CheckMoveDistance();
 
 	//スプラインの座標を取得
 	FVector NewLocation = m_pSplineActor->GetCurrentLocation(m_MoveDistance, false);
-	//座標に移動
+	//座標を更新
 	SetActorLocation(NewLocation, true);
 }
 
@@ -132,7 +127,7 @@ void ATrain::UpdateRotation(const float& DeltaTime)
 	TArray<UStaticMeshComponent*> pTrainMeshes = m_pTrainMeshes;
 	pTrainMeshes.Insert(m_pFrontTrainMesh, 0);
 	float RotationSpeed = FMath::Clamp(DeltaTime * 5.f, 0.f, 1.f);
-	FRotator TempRotation = FRotator::ZeroRotator;
+	FRotator PrevRotation = FRotator::ZeroRotator;
 	FRotator RotatorCorrection = FRotator::ZeroRotator;
 
 	for (UStaticMeshComponent* pTrainMesh : pTrainMeshes)
@@ -142,18 +137,42 @@ void ATrain::UpdateRotation(const float& DeltaTime)
 			//各車両をスプラインの向きに合わせる
 			FRotator NewWorldRotation = m_pSplineActor->GetSpline()->FindRotationClosestToWorldLocation(pTrainMesh->GetComponentLocation(), ESplineCoordinateSpace::World);
 			//子の車両が親の回転量の影響を受けないように補正する
-			if (TempRotation.IsZero())
+			if (PrevRotation.IsZero())
 			{
-				TempRotation = NewWorldRotation;
+				PrevRotation = NewWorldRotation;
 			}
 			else
 			{
-				RotatorCorrection += (TempRotation - RotatorCorrection) - NewWorldRotation;
+				RotatorCorrection += (PrevRotation - RotatorCorrection) - NewWorldRotation;
 				NewWorldRotation -= RotatorCorrection;
-				TempRotation = NewWorldRotation;
+				PrevRotation = NewWorldRotation;
 			}
 
+			//回転の更新
 			pTrainMesh->SetWorldRotation(FQuat::FastLerp(pTrainMesh->GetComponentQuat(), NewWorldRotation.Quaternion(), RotationSpeed), true);
+		}
+	}
+}
+
+//スプラインの終点に到着しているか確認する処理
+void ATrain::CheckMoveDistance()
+{
+	if (!m_pSplineActor) { return; }
+
+	//移動した距離がスプラインの長さを越えたら
+	if (m_pSplineActor->GetSpline()->GetSplineLength() <= m_MoveDistance)
+	{
+		//ループフラグが立っていたら開始地点に移動させる
+		if (m_bLoop)
+		{
+			m_MoveDistance = 0.f;
+			FVector StartLocation = m_pSplineActor->GetCurrentLocation(m_MoveDistance, false);
+			SetActorLocation(StartLocation, true);
+		}
+		//ループフラグが下りている場合は削除する
+		else
+		{
+			Destroy();
 		}
 	}
 }

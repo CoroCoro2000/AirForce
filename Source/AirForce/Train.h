@@ -37,6 +37,8 @@ private:
 	void UpdateMove(const float& DeltaTime);
 	//回転更新処理
 	void UpdateRotation(const float& DeltaTime);
+	//スプラインの終点に到着しているか確認する処理
+	void CheckMoveDistance();
 
 private:
 	UPROPERTY(EditAnywhere)
@@ -59,4 +61,6 @@ private:
 		float m_MoveDistance;															//電車がスプラインの開始点から進んだ距離
 	UPROPERTY(EditAnywhere)
 		bool m_bLoop;																		//スプラインの終点に到着したら始点からループするかどうか
+	UPROPERTY(EditAnywhere)
+		bool m_bCanMove;																	//移動可能フラグ
 };

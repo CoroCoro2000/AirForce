@@ -149,6 +149,9 @@ void APlayerDrone::Tick(float DeltaTime)
 
 	//風のエフェクト更新処理
 	UpdateWindEffect(DeltaTime);
+
+	//砂煙のエフェクトの更新処理
+	UpdateCloudOfDustEffect();
 }
 
 //カメラの初期設定

@@ -226,12 +226,13 @@ protected:
 	//風のエフェクト更新処理
 	virtual void UpdateWindEffect(const float& DeltaTime);
 
-
 	//進行軸と入力軸が逆向きか確認
 	bool IsReverseInput(const float& _movingAxis, const float& _axisValue)const { return (_movingAxis < 0.f && 0.f < _axisValue) || (_movingAxis > 0.f && 0.f > _axisValue); }
-
 	//高度の上限をを超えているか確認
 	bool IsOverHeightMax();
+
+	//砂埃のエフェクトの表示切替
+	void UpdateCloudOfDustEffect();
 
 protected:
 	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "GameMode")
@@ -355,4 +356,10 @@ protected:
 		USpotLightComponent* m_pRightSpotLight;
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		UNiagaraSystem* m_pRingHitEffect;
+	UPROPERTY(EditAnywhere, Category = "Effect")
+		UNiagaraSystem* m_pCloudOfDustEffect;
+	UPROPERTY(EditAnywhere, Category = "Effect")
+		UNiagaraComponent* m_pCloudOfDustEmitter;		//砂煙のエフェクト
+	UPROPERTY(EditAnywhere, Category = "Effect")
+		float m_ShowCloudOfDustDistance;						//砂煙を表示させる距離
 };

@@ -67,6 +67,9 @@ ADroneBase::ADroneBase()
 	, m_pLeftSpotLight(NULL)
 	, m_pRightSpotLight(NULL)
 	, m_pRingHitEffect(NULL)
+	, m_pCloudOfDustEffect(NULL)
+	, m_pCloudOfDustEmitter(NULL)
+	, m_ShowCloudOfDustDistance(50.f)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -380,20 +383,6 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 			Propulsion.Y += Direction.Y * Centrifugal;
 		}
 
-#ifdef DEGUG_ACCEL
-		UE_LOG(LogTemp, Warning, TEXT("Propulsion:%s"), *Propulsion.ToString());
-#endif
-		////重力を抜いた移動量を保持する
-		//m_Velocity = Propulsion;
-		////重力を加算
-		//Propulsion.Z += UpdateGravity(DeltaTime);
-
-		////移動処理
-		//AddActorWorldOffset(Propulsion * MOVE_CORRECTION, true);
-
-#ifdef DEGUG_ACCEL
-		UE_LOG(LogTemp, Warning, TEXT("Move:%s"), *Propulsion.ToString());
-#endif
 	}
 
 }
@@ -421,11 +410,6 @@ float ADroneBase::UpdateGravity(const float& DeltaTime)
 		m_DescentTime = 0.f;
 		newGravity *= -1.f;
 	}
-
-#ifdef DEBUG_GRAVITY
-	UE_LOG(LogTemp, Warning, TEXT("newGravity%f"), newGravity);
-#endif // DEBUG_GRAVITY
-
 	return newGravity;
 }
 
@@ -499,6 +483,50 @@ bool ADroneBase::IsOverHeightMax()
 #endif // DEBUG_IsOverHeightMax
 
 	return OverHeightMax;
+}
+
+//砂埃のエフェクトの表示切替
+void ADroneBase::UpdateCloudOfDustEffect()
+{
+	if (!m_pCloudOfDustEffect) { return; }
+
+	FVector Start = GetActorLocation();
+	FVector End = Start;
+	End.Z -= m_ShowCloudOfDustDistance;
+	//ヒット結果を格納する配列
+	FHitResult OutHit;
+	//トレースする対象(自身は対象から外す)
+	FCollisionQueryParams CollisionParam;
+	CollisionParam.AddIgnoredActor(this);
+	//レイを飛ばし、WorldStaticのコリジョンチャンネルを持つオブジェクトのヒット判定を取得する
+	bool isHit = GetWorld()->LineTraceSingleByObjectType(OutHit, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+
+	//地面にレイが当たっていたらエフェクトを表示
+	if (isHit && m_isControl)
+	{
+		if (!m_pCloudOfDustEmitter)
+		{
+			m_pCloudOfDustEmitter = UNiagaraFunctionLibrary::SpawnSystemAttached(m_pCloudOfDustEffect, m_pDroneCollision, NAME_None, FVector(0.f, 0.f, -m_HeightFromGround), FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, false);
+		}
+		else
+		{
+			m_pCloudOfDustEmitter->Activate();
+		}
+	}
+	//地面との距離が離れたら砂煙を非表示にする
+	else
+	{
+		if (m_pCloudOfDustEmitter)
+		{
+			m_pCloudOfDustEmitter->Deactivate();
+		}
+	}
+
+#if 0
+	//上限を越えたら黄色、越えていないなら青
+	FColor LineColor = isHit ? FColor::Yellow : FColor::Blue;
+	DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.f);
+#endif // WITH_EDITOR
 }
 
 //オーバーラップ開始時に呼ばれる処理
