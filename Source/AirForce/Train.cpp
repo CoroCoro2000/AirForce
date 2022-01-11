@@ -16,9 +16,6 @@ ATrain::ATrain()
 	, m_Deceleration(5.f)
 	, m_MoveDistance(0.f)
 	, m_bLoop(true)
-	, m_FrontBoneRotation(FRotator::ZeroRotator)
-	, m_Joint1BoneRotation(FRotator::ZeroRotator)
-	, m_Joint2BoneRotation(FRotator::ZeroRotator)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -131,16 +128,32 @@ void ATrain::UpdateRotation(const float& DeltaTime)
 	if (!m_pSplineActor) { return; }
 	if (m_pTrainMeshes.Num() == 0) { return; }
 	
+	//先頭のメッシュを含めた車両のメッシュの配列を作成
 	TArray<UStaticMeshComponent*> pTrainMeshes = m_pTrainMeshes;
 	pTrainMeshes.Insert(m_pFrontTrainMesh, 0);
+	float RotationSpeed = FMath::Clamp(DeltaTime * 5.f, 0.f, 1.f);
+	FRotator TempRotation = FRotator::ZeroRotator;
+	FRotator RotatorCorrection = FRotator::ZeroRotator;
 
 	for (UStaticMeshComponent* pTrainMesh : pTrainMeshes)
 	{
 		if (pTrainMesh)
 		{
-			FRotator NewRotation = m_pSplineActor->GetSpline()->FindDirectionClosestToWorldLocation(pTrainMesh->GetComponentLocation(), ESplineCoordinateSpace::World).ToOrientationRotator();
-			NewRotation.Yaw += 90.f;
-			pTrainMesh->SetWorldRotation(NewRotation, true);
+			//各車両をスプラインの向きに合わせる
+			FRotator NewWorldRotation = m_pSplineActor->GetSpline()->FindRotationClosestToWorldLocation(pTrainMesh->GetComponentLocation(), ESplineCoordinateSpace::World);
+			//子の車両が親の回転量の影響を受けないように補正する
+			if (TempRotation.IsZero())
+			{
+				TempRotation = NewWorldRotation;
+			}
+			else
+			{
+				RotatorCorrection += (TempRotation - RotatorCorrection) - NewWorldRotation;
+				NewWorldRotation -= RotatorCorrection;
+				TempRotation = NewWorldRotation;
+			}
+
+			pTrainMesh->SetWorldRotation(FQuat::FastLerp(pTrainMesh->GetComponentQuat(), NewWorldRotation.Quaternion(), RotationSpeed), true);
 		}
 	}
 }
