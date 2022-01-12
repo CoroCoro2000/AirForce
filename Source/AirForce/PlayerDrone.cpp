@@ -46,6 +46,7 @@ APlayerDrone::APlayerDrone()
 	, m_StartQuaternion(FQuat::Identity)
 	, m_CameraRotationYaw(0.f)
 	, m_bIsOutCourse(false)
+	, m_BodyOpacity(1.f)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -54,39 +55,27 @@ APlayerDrone::APlayerDrone()
 
 	if (m_pBodyMesh)
 	{
-		m_pBodyMesh->SetupAttachment(m_pDroneCollision);
+		m_pBodyMesh->AttachToComponent(m_pDroneCollision,FAttachmentTransformRules::KeepRelativeTransform);
 	}
 
 	//スプリングアーム生成
 	m_pSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	if (m_pSpringArm && m_pBodyMesh)
 	{
-		m_pSpringArm->SetupAttachment(m_pDroneCollision);
+		m_pSpringArm->AttachToComponent(m_pDroneCollision, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 
 	//カメラ生成
 	m_pCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("m_pCamera"));
 	if (m_pCamera && m_pSpringArm)
 	{
-		m_pCamera->SetupAttachment(m_pSpringArm);
+		m_pCamera->AttachToComponent(m_pSpringArm, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 
+	//エフェクトの初期設定
+	InitializeEmitter();
 	//カメラの初期設定
 	InitializeCamera();
-
-	//ドローン用ラインエフェクト生成
-	ConstructorHelpers::FObjectFinder<UNiagaraSystem> LineEffect(TEXT("/Game/Effect/LightLine/E_LightLine_System.E_LightLine_System"));
-	if (LineEffect.Succeeded())
-	{
-		m_pLightlineEffect = LineEffect.Object;
-	}
-
-	//チェックポイントを指す矢印生成
-	m_pWindEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("WindEffect"));
-	if (m_pWindEffect)
-	{
-		m_pWindEffect->SetupAttachment(m_pCamera);
-	}
 
 	//デフォルトプレイヤーとして設定
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
@@ -110,8 +99,6 @@ void APlayerDrone::BeginPlay()
 	//初期位置とメッシュの回転を保存
 	m_StartLocation = this->GetActorLocation();
 	m_StartQuaternion = m_pBodyMesh->GetComponentQuat();
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *(m_StartLocation.ToString()));
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *(m_StartQuaternion.ToString()));
 }
 
 //毎フレーム処理
@@ -142,16 +129,24 @@ void APlayerDrone::Tick(float DeltaTime)
 	UpdateCamera(DeltaTime);
 
 	//カメラとの遮蔽物のコリジョン判定
-	UpdateCameraCollsion();
-
-	//視点の切り替え
-	//SwitchViewPort();
+	UpdateCameraCollsion(DeltaTime);
 
 	//風のエフェクト更新処理
 	UpdateWindEffect(DeltaTime);
 
 	//砂煙のエフェクトの更新処理
 	UpdateCloudOfDustEffect();
+}
+
+//エフェクトの初期設定
+void APlayerDrone::InitializeEmitter()
+{
+	//風のエフェクト生成
+	m_pWindEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("WindEffect"));
+	if (m_pWindEffect)
+	{
+		m_pWindEffect->AttachToComponent(m_pCamera, FAttachmentTransformRules::KeepRelativeTransform);
+	}
 }
 
 //カメラの初期設定
@@ -168,7 +163,7 @@ void APlayerDrone::InitializeCamera()
 
 	//カメラのコリジョンテストを行わないようにする
 	m_pSpringArm->bDoCollisionTest = false;
-
+	m_pSpringArm->TargetOffset.Z = 20.f;
 	//カメラの視野角の設定
 	m_pCamera->SetFieldOfView(m_FieldOfView);
 }
@@ -244,9 +239,12 @@ void APlayerDrone::UpdateWingAccle(const float& DeltaTime)
 	//入力がなければ終了
 	if ((RightAxis.IsZero() && LeftAxis.IsZero()) || !m_isControl)
 	{
-		for (FWing& wing : m_Wings)
+		for (TSharedPtr<FWing> pWing : m_pWings)
 		{
-			wing.AccelState = 0.f;
+			if (pWing.IsValid())
+			{
+				pWing->AccelState = 0.f;
+			}
 		}
 		return;
 	}
@@ -254,10 +252,13 @@ void APlayerDrone::UpdateWingAccle(const float& DeltaTime)
 	//両方の入力がある場合
 	if (!RightAxis.IsZero() && !LeftAxis.IsZero())
 	{
-		for (FWing& wing : m_Wings)
+		for (TSharedPtr<FWing> pWing : m_pWings)
 		{
-			//羽の回転量の合成
-			wing.AccelState = RightInputValueToWingAcceleration(wing.GetWingNumber()) + LeftInputValueToWingAcceleration(wing.GetWingNumber());
+			if (pWing.IsValid())
+			{
+				//羽の回転量の合成
+				pWing->AccelState = RightInputValueToWingAcceleration(pWing->GetWingNumber()) + LeftInputValueToWingAcceleration(pWing->GetWingNumber());
+			}
 		}
 		return;
 	}
@@ -265,17 +266,17 @@ void APlayerDrone::UpdateWingAccle(const float& DeltaTime)
 	//右スティックのみの場合
 	if (!RightAxis.IsZero())
 	{
-		for (FWing& wing : m_Wings)
+		for (TSharedPtr<FWing> pWing : m_pWings)
 		{
-			wing.AccelState = RightInputValueToWingAcceleration(wing.GetWingNumber());
+			pWing->AccelState = RightInputValueToWingAcceleration(pWing->GetWingNumber());
 		}
 	}
 	//左スティックのみの場合
 	else if (!LeftAxis.IsZero())
 	{
-		for (FWing& wing : m_Wings)
+		for (TSharedPtr<FWing> pWing : m_pWings)
 		{
-			wing.AccelState = LeftInputValueToWingAcceleration(wing.GetWingNumber());
+			pWing->AccelState = LeftInputValueToWingAcceleration(pWing->GetWingNumber());
 		}
 	}
 }
@@ -425,12 +426,6 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 	AddActorWorldOffset(m_Velocity * MOVE_CORRECTION, true);
 }
 
-//ステート更新処理
-void APlayerDrone::UpdateState()
-{
-
-}
-
 //カメラ更新処理
 void APlayerDrone::UpdateCamera(const float& DeltaTime)
 {
@@ -467,7 +462,6 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 				if (pHitActor->ActorHasTag(TEXT("Slope")))
 				{
 					isClimbingSlope = true;
-
 					//傾斜との距離を測定する
 					m_DistanceToSlope = HitResult.Distance;
 					break;
@@ -493,7 +487,6 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 		FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Yaw, 0.f, 1.f),
 		FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Roll, 0.f, 1.f));
 
-	//指定の角度まで補間しながら回転させる
 	//斜面を登っているときは見上げるような角度にする
 	if (isClimbingSlope)
 	{
@@ -559,15 +552,75 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 		m_pCamera->PostProcessSettings.MotionBlurMax = FMath::Lerp(m_pCamera->PostProcessSettings.MotionBlurMax, MotionBlurMax, FOVAttenRate);
 		m_pCamera->PostProcessSettings.MotionBlurTargetFPS = MotionBlurTargetFPS;
 	}
-
-
 }
 		
 
 //カメラとの遮蔽物のコリジョン判定
-void  APlayerDrone::UpdateCameraCollsion()
+void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
 {
+	if (!m_pCamera) { return; }
+	if (!m_pBodyMesh) { return; }
 
+	FVector Start = GetActorLocation();
+	FVector End = m_pCamera->GetComponentLocation();
+	FVector UpEnd = Start;
+	float HeightLenght = 100.f;
+	//Start.Z += HeightLenght;
+
+	//ヒット結果を格納する配列
+	FHitResult OutHit;
+	//トレースする対象(自身は対象から外す)
+	FCollisionQueryParams CollisionParam;
+	CollisionParam.AddIgnoredActor(this);
+	//レイを飛ばし、WorldStaticのコリジョンチャンネルを持つオブジェクトのヒット判定を取得する
+	bool isHit = GetWorld()->LineTraceSingleByObjectType(OutHit, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+	float Atten = FMath::Clamp(DeltaTime * 7.f, 0.f, 1.f);
+
+	if (isHit)
+	{
+		FVector HitLocation = OutHit.Location;
+		////地面にヒットしていたらの高さを天井と地面の中間にする
+		//if (isCeilingHit)
+		//{
+		//	float GroundHeight = End.Z - m_HeightFromGround;
+		//	HitLocation.Z = (GroundHeight + CeilingHeight) * 0.5f;
+		//}
+
+		FVector CameraLocation = FMath::Lerp(End, HitLocation, Atten);
+
+		//壁を抜けないようにカメラを移動させる
+		m_pCamera->SetWorldLocation(CameraLocation);
+	}
+	else
+	{
+		FVector TargetLocation = /*(isCeilingHit) ? FVector(0.f, 0.f, m_HeightFromGround - HeightformCeiling) : */FVector::ZeroVector;
+		FVector CameraLocation = FMath::Lerp(m_pCamera->GetRelativeLocation(), TargetLocation, Atten);
+		bool IsNearlyZero_CameraLocation = CameraLocation.IsNearlyZero(1.f);
+
+		m_pCamera->SetRelativeLocation(IsNearlyZero_CameraLocation ? TargetLocation : CameraLocation);
+	}
+
+	//不透明度の更新
+	m_BodyOpacity = FMath::Lerp(
+		m_BodyOpacity,
+		(isHit ? 0.2f : 1.f),
+		Atten);
+
+	if (m_BodyOpacity > 0.98f)
+	{
+		m_BodyOpacity = 1.f;
+	}
+	for (TSharedPtr<FWing> pWing : m_pWings)
+	{
+		if (pWing.IsValid())
+		{
+			if (UStaticMeshComponent* pMesh = pWing->GetWingMesh())
+			{
+				pMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), m_BodyOpacity);
+			}
+		}
+	}
+	m_pBodyMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), m_BodyOpacity);
 }
 
 //風のエフェクトの更新処理
@@ -674,27 +727,6 @@ void APlayerDrone::Input_Throttle(float _axisValue)
 	{
 		m_AxisValue.Z = 0.f;
 	}
-		
-	//入力された値が正なら
-	if (m_AxisValue.Z > 0.f)
-	{
-		//上昇移動フラグを立てる
-		m_MoveDirectionFlag.sFlag.Up = true;
-		m_MoveDirectionFlag.sFlag.Down = false;
-	}
-	//入力された値が負なら
-	else if (m_AxisValue.Z < 0.f)
-	{
-		//下降移動フラグを立てる
-		m_MoveDirectionFlag.sFlag.Up = false;
-		m_MoveDirectionFlag.sFlag.Down = true;
-	}
-	//値が入力されていないなら
-	else
-	{
-		m_MoveDirectionFlag.sFlag.Up = false;
-		m_MoveDirectionFlag.sFlag.Down = false;
-	}
 }
 
 //【入力バインド】エレベーター(前後)の入力があった場合呼び出される関数
@@ -708,26 +740,6 @@ void APlayerDrone::Input_Elevator(float _axisValue)
 	else
 	{
 		m_AxisValue.Y = 0.f;
-	}
-		
-	//入力された値が正なら
-	if (m_AxisValue.Y > 0.f)
-	{
-		//前方移動フラグを立てる
-		m_MoveDirectionFlag.sFlag.Forward = true;
-		m_MoveDirectionFlag.sFlag.Backward = false;
-	}
-	//入力された値が負なら
-	else if (m_AxisValue.Y < 0.f)
-	{
-		//後方移動フラグを立てる
-		m_MoveDirectionFlag.sFlag.Forward = false;
-		m_MoveDirectionFlag.sFlag.Backward = true;
-	}
-	else
-	{
-		m_MoveDirectionFlag.sFlag.Forward = false;
-		m_MoveDirectionFlag.sFlag.Backward = false;
 	}
 }
 
@@ -743,27 +755,6 @@ void APlayerDrone::Input_Aileron(float _axisValue)
 	{
 		m_AxisValue.X = 0.f;
 	}
-
-	//入力された値が正なら
-	if (m_AxisValue.X > 0.f)
-	{
-		//右移動フラグを立てる
-		m_MoveDirectionFlag.sFlag.Right = true;
-		m_MoveDirectionFlag.sFlag.Left = false;
-	}
-	//入力された値が負なら
-	else if (m_AxisValue.X < 0.f)
-	{
-		//左移動フラグを立てる
-		m_MoveDirectionFlag.sFlag.Right = false;
-		m_MoveDirectionFlag.sFlag.Left = true;
-	}
-	//値が入力されていないなら
-	else
-	{
-		m_MoveDirectionFlag.sFlag.Right = false;
-		m_MoveDirectionFlag.sFlag.Left = false;
-	}
 }
 
 //【入力バインド】ラダー(旋回)の入力があった場合呼び出される関数
@@ -777,26 +768,5 @@ void APlayerDrone::Input_Ladder(float _axisValue)
 	else
 	{
 		m_AxisValue.W = 0.f;
-	}
-		
-	//入力された値が正なら
-	if (m_AxisValue.W > 0.f)
-	{
-		//右旋回フラグを立てる
-		m_MoveDirectionFlag.sFlag.RightTurning = true;
-		m_MoveDirectionFlag.sFlag.LeftTurning = false;
-	}
-	//入力された値が負なら
-	else if (m_AxisValue.W < 0.f)
-	{
-		//左旋回フラグを立てる
-		m_MoveDirectionFlag.sFlag.RightTurning = false;
-		m_MoveDirectionFlag.sFlag.LeftTurning = true;
-	}
-	//値が入力されていないなら
-	else
-	{
-		m_MoveDirectionFlag.sFlag.RightTurning = false;
-		m_MoveDirectionFlag.sFlag.LeftTurning = false;
 	}
 }

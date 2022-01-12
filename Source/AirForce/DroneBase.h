@@ -23,48 +23,6 @@ class UNiagaraComponent;
 class USoundBase;
 class USpotLightComponent;
 
-//移動用ビットフィールド
-struct FMoveDirectionFlag
-{
-	//すべてのフラグに対して設定を行う関数
-	void SetAllFlag(const bool& _isUp, const bool& _isDown, const bool& _isForward, const bool& _isBackward, const bool& _isRight, const bool& _isLeft, const bool& _isRightTurning, const bool& _isLeftTurning)
-	{
-
-	}
-
-		uint8 Up					 : 1;		//上昇			0
-		uint8 Down				 : 1;		//下降			1
-		uint8 Forward			 : 1;		//前方移動	2
-		uint8 Backward			: 1;		//後方移動	3
-		uint8 Right			 		 : 1;		//右移動		4
-		uint8 Left					 : 1;		//左移動		5
-		uint8 RightTurning		: 1;		//右回転		6
-		uint8 LeftTurning		 : 1;		//左回転		7
-};
-
-//移動用共用体
-union MoveDirection
-{
-	uint8 iBits : 8;		//一括管理(0 ~ 255の値で管理)
-	FMoveDirectionFlag sFlag;	//個別管理
-};
-
-//状態ビットフィールド
-struct FStateFlag
-{
-		uint8 Wait			: 1;		//地面待機						0
-		uint8 Hovering	: 1;		//ホバリング(空中待機)		1
-		uint8 Move			: 1;		//移動中							2
-		uint8 Crash		: 1;		//墜落							3
-};
-
-//状態用共用体
-union State
-{
-	uint8 iBits : 4;								//一括管理(0 ~ 15の値で管理)
-	FStateFlag sFlag;							//個別管理
-};
-
 //羽の番号の列挙
 UENUM(BlueprintType)
 namespace EWING
@@ -80,37 +38,26 @@ namespace EWING
 }
 
 //羽の情報を管理する構造体
-USTRUCT(BlueprintType)
 struct FWing
 {
-	GENERATED_USTRUCT_BODY()
-
-		//コンストラクタ
-		FWing()
-		: WingNumber(0)
-		, pWingMesh(NULL)
-		, AccelState(0.f)
-	{}
-
-	FWing(const uint8 wingNum, UStaticMeshComponent* wingMesh)
+public:
+	//コンストラクタ
+	FWing(const uint32 wingNum, UStaticMeshComponent* wingMesh)
 		: WingNumber(wingNum)
 		, pWingMesh(wingMesh)
 		, AccelState(0.f)
 	{}
 
 public:
-	uint8 GetWingNumber()const { return WingNumber; }							//羽番号取得
-	UStaticMeshComponent* GetWingMesh()const { return pWingMesh; }	//羽のメッシュ取得
+	uint32 GetWingNumber()const { return WingNumber; }							//羽番号取得
+	UStaticMeshComponent* GetWingMesh()const { return pWingMesh; }		//羽のメッシュ取得
 
 private:
-	UPROPERTY(EditAnywhere, DisplayName = "WingNumber")
-		uint8 WingNumber;																//識別番号(1:左前、2:右前、3:左後ろ、4:右後ろ)
-	UPROPERTY(EditAnywhere, DisplayName = "WingMesh")
-		UStaticMeshComponent* pWingMesh;										//メッシュ
+	uint32 WingNumber;																				//識別番号(1:左前、2:右前、3:左後ろ、4:右後ろ)
+	UStaticMeshComponent* pWingMesh;														//メッシュ
 
 public:
-	UPROPERTY(EditAnywhere, DisplayName = "AcceleState")
-		float AccelState;																		//加速度の段階(-1:最小の加速度、0:加速度なし、1:加速度あり、2:最大の加速度)
+	float AccelState;																						//加速度の段階(-1:最小の加速度、0:加速度なし、1:加速度あり、2:最大の加速度)
 };
 
 //	視点切り替え
@@ -211,10 +158,19 @@ public:
 	//ローカル軸を取得
 	FVector GetLocalAxis()const { return m_LocalAxis; }
 protected:
+	//メッシュアセットのセットアップ
+	virtual void MeshAssetSetup();
+	//コリジョンの初期設定
+	virtual void InitializeCollision();
+	//メッシュの初期設定
+	virtual void InitializeMesh();
+	//エフェクトの初期設定
+	virtual void InitializeEmitter();
+	//ライトの初期設定
+	virtual void InitializeLight();
+
 	//羽の加速度更新処理
 	virtual void UpdateWingAccle(const float& DeltaTime);
-	//ステート更新処理
-	virtual void UpdateState();
 	//回転処理
 	virtual void UpdateRotation(const float& DeltaTime);
 	//速度更新処理
@@ -243,13 +199,16 @@ protected:
 	//-------------------------------------------------------------------------------------------------------
 	//BODY
 	UPROPERTY(EditAnywhere, Category = "Mesh|Body")
+		UStaticMesh* m_BodyMesh;													//機体のメッシュ
+	UPROPERTY(EditAnywhere, Category = "Mesh|Body")
 		UStaticMeshComponent* m_pBodyMesh;
 	//ドローンのコリジョン
 	UPROPERTY(EditAnywhere, Category = "Collision")
 		USphereComponent* m_pDroneCollision;
-	//WING
-	UPROPERTY(EditAnywhere, Category = "Wing")
-		FWing m_Wings[EWING::NUM];								
+	//羽
+	UPROPERTY(EditAnywhere, EditFixedSize, Category = "Mesh|Wing")
+		TArray<UStaticMesh*> m_WingMesh;													//羽のメッシュ
+	TArray<TSharedPtr<FWing>>  m_pWings;												//羽を管理する構造体
 	//1秒間の羽の最大回転数
 	UPROPERTY(EditAnywhere, Category = "Wing")
 		float m_RPSMax;
@@ -262,10 +221,6 @@ protected:
 	//最大の加速度の倍率
 	UPROPERTY(EditAnywhere, Category = "Wing")
 		float m_WingAccelMax;
-	//移動フラグ管理
-	MoveDirection m_MoveDirectionFlag;
-	//ステートフラグ管理
-	State m_StateFlag;
 
 	UPROPERTY(EditAnywhere, Category = "Physical")
 		float m_TiltLimit;									//傾きの上限
@@ -354,10 +309,6 @@ protected:
 		USpotLightComponent* m_pLeftSpotLight;
 	UPROPERTY(EditAnywhere, Category = "Light")
 		USpotLightComponent* m_pRightSpotLight;
-	UPROPERTY(EditAnywhere, Category = "Effect")
-		UNiagaraSystem* m_pRingHitEffect;
-	UPROPERTY(EditAnywhere, Category = "Effect")
-		UNiagaraSystem* m_pCloudOfDustEffect;
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		UNiagaraComponent* m_pCloudOfDustEmitter;		//砂煙のエフェクト
 	UPROPERTY(EditAnywhere, Category = "Effect")

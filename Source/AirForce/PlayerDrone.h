@@ -123,6 +123,9 @@ private:
 	UFUNCTION(BlueprintCallable, Category = "InputAxis")
 		float GetInputValue(const TEnumAsByte<EINPUT_AXIS::Type> _Axis)const { return m_AxisValue[_Axis]; }
 
+	//エフェクトの初期設定
+	void InitializeEmitter()override;
+
 	//カメラの初期設定
 	void InitializeCamera();
 
@@ -139,9 +142,6 @@ private:
 	//入力の加速度更新処理
 	virtual void UpdateAxisAcceleration(const float& DeltaTime);
 
-	//ステート更新処理
-	virtual void UpdateState()override;
-
 	//回転処理
 	void UpdateRotation(const float& DeltaTime);
 
@@ -149,7 +149,7 @@ private:
 	void UpdateSpeed(const float& DeltaTime)override;
 
 	//カメラとの遮蔽物のコリジョン判定
-	void UpdateCameraCollsion();
+	void UpdateCameraCollsion(const float& DeltaTime);
 
 	//風のエフェクトの更新処理
 	void UpdateWindEffect(const float& DeltaTime);
@@ -202,4 +202,7 @@ private:
 	float m_CameraRotationYaw;
 
 	bool m_bIsOutCourse;
+
+	UPROPERTY(EditAnywhere, Category = "Camera")
+		float m_BodyOpacity;
 };

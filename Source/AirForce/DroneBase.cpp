@@ -26,13 +26,10 @@ ADroneBase::ADroneBase()
 	, m_DroneMode(EDRONEMODE::DRONEMODE_AUTOMATICK)
 	, m_pBodyMesh(NULL)
 	, m_pDroneCollision(NULL)
-	, m_Wings{}
 	, m_RPSMax(10.f)
 	, m_WingAccele(0.f)
 	, m_WingAccelMin(0.75f)
 	, m_WingAccelMax(1.5f)
-	, m_MoveDirectionFlag()
-	, m_StateFlag()
 	, m_TiltLimit(45.f)
 	, m_Speed(7.f)
 	, m_SpeedPerSecondMax(50.f)
@@ -66,97 +63,23 @@ ADroneBase::ADroneBase()
 	, m_OverAccelerator(1.5f)
 	, m_pLeftSpotLight(NULL)
 	, m_pRightSpotLight(NULL)
-	, m_pRingHitEffect(NULL)
-	, m_pCloudOfDustEffect(NULL)
 	, m_pCloudOfDustEmitter(NULL)
 	, m_ShowCloudOfDustDistance(50.f)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
 
-	//ドローンの当たり判定生成
-	m_pDroneCollision = CreateDefaultSubobject<USphereComponent>(TEXT("DroneCollision"));
-	if (m_pDroneCollision)
-	{
-		RootComponent = m_pDroneCollision;
-		m_pDroneCollision->SetSphereRadius(8.f);
-		//タグを追加
-		m_pDroneCollision->ComponentTags.Add(TEXT("Drone"));
-	}
-
-	//ボディのメッシュアセットを探索
-	FSoftObjectPath BodyMeshPath = TEXT("/Game/Model/Drone/NewDrone/Drone.Drone");
-	UStaticMesh* pBodyMesh = TSoftObjectPtr<UStaticMesh>(BodyMeshPath).LoadSynchronous();
-	//ボディメッシュ生成
-	m_pBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
-
-	//ボディメッシュの検索、生成に成功したら
-	if (m_pBodyMesh && pBodyMesh)
-	{
-		//メッシュのセットアップ
-		m_pBodyMesh->SetupAttachment(m_pDroneCollision);
-		m_pBodyMesh->SetStaticMesh(pBodyMesh);
-	}
-
-	//羽のメッシュアセットを探索
-	//右ねじと左ねじの羽を取得する
-	FSoftObjectPath LeftTwistWingPath = TEXT("/Game/Model/Drone/Drone_Mesh/CGAXR_2021_07_31/Wing/CGAXR_FAN_LEFT_TWIST.CGAXR_FAN_LEFT_TWIST");
-	FSoftObjectPath RightTwistWingPath = TEXT("/Game/Model/Drone/Drone_Mesh/CGAXR_2021_07_31/Wing/CGAXR_FAN_RIGHT_TWIST.CGAXR_FAN_RIGHT_TWIST");
-	UStaticMesh* pLeftTwistWing = TSoftObjectPtr<UStaticMesh>(LeftTwistWingPath).LoadSynchronous();
-	UStaticMesh* pRightTwistWing = TSoftObjectPtr<UStaticMesh>(RightTwistWingPath).LoadSynchronous();
+	//メッシュアセットのセットアップ
+	MeshAssetSetup();
+	//コリジョン初期設定
+	InitializeCollision();
+	//メッシュの初期設定
+	InitializeMesh();
+	//エフェクトの初期設定
+	InitializeEmitter();
+	//ライトの初期設定
+	InitializeLight();
 	
-	//羽のメッシュ検索に成功したら羽の生成処理
-	if (pRightTwistWing && pLeftTwistWing)
-	{
-		for (int index = 0; index < EWING::NUM; ++index)
-		{
-			//右回りの羽を調べる
-			const bool isRightTrun = (index == 0 || index == 3);
-
-			const FName WingName = isRightTrun ?
-				(index + 1 < 3) ? TEXT("LF_Wing") : TEXT("RB_Wing") :
-				(index + 1 > 2) ? TEXT("LB_Wing") : TEXT("RF_Wing");
-			FRotator InitRotaion = FRotator::ZeroRotator;
-			InitRotaion.Yaw = (index < 2) ?
-				(index == 0) ? -45.f : 45.f :
-				(index == 2) ? 45.f : -45.f;
-
-			//配列の追加(識別番号、羽のメッシュ)
-			m_Wings[index] = FWing(FWing(index, CreateDefaultSubobject<UStaticMeshComponent>(WingName)));
-
-			if (m_Wings[index].GetWingMesh())
-			{
-				//羽のメッシュを設定
-				m_Wings[index].GetWingMesh()->SetStaticMesh((isRightTrun ? pLeftTwistWing : pRightTwistWing));
-				//ボディにアタッチする
-				m_Wings[index].GetWingMesh()->SetupAttachment(m_pBodyMesh);
-				//羽のメッシュコリジョンを無効にする
-				m_Wings[index].GetWingMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-				//ソケットの位置に羽をアタッチ
-				m_Wings[index].GetWingMesh()->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, WingName);
-				m_Wings[index].GetWingMesh()->SetRelativeRotation(InitRotaion);
-			}
-		}
-	}
-
-	//ライトコンポーネント生成
-	m_pLeftSpotLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("LeftLight"));
-	m_pRightSpotLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("RightLight"));
-
-	if (m_pLeftSpotLight && m_pRightSpotLight && m_pBodyMesh)
-	{
-		m_pLeftSpotLight->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("LeftSpotLight"));
-		m_pRightSpotLight->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("RightSpotLight"));
-		m_pLeftSpotLight->SetOuterConeAngle(20.f);
-		m_pRightSpotLight->SetOuterConeAngle(20.f);
-		m_pLeftSpotLight->Intensity = 2500.f;
-		m_pRightSpotLight->Intensity = 2500.f;
-		m_pLeftSpotLight->LightColor = FColor(51, 153, 204);
-		m_pRightSpotLight->LightColor = FColor(51, 153, 204);
-		m_pLeftSpotLight->SetRelativeRotation(FRotator(0.f, -20.f, 0.f));
-		m_pRightSpotLight->SetRelativeRotation(FRotator(0.f, 20.f, 0.f));
-	}
-
 	//タグを追加
 	Tags.Add(TEXT("Drone"));
 }
@@ -182,10 +105,6 @@ void ADroneBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-
-	//ステート更新処理
-	//UpdateState();
-	// 
 	//羽の加速度更新処理
 	UpdateWingAccle(DeltaTime);
 
@@ -205,10 +124,109 @@ void ADroneBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-//ステート更新処理
-void ADroneBase::UpdateState()
+//メッシュアセットのセットアップ
+void ADroneBase::MeshAssetSetup()
 {
+	m_BodyMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/Model/Drone/NewDrone/Drone.Drone"))).LoadSynchronous();
 
+	m_WingMesh.Add(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/Model/Drone/Drone_Mesh/CGAXR_2021_07_31/Wing/CGAXR_FAN_LEFT_TWIST.CGAXR_FAN_LEFT_TWIST"))).LoadSynchronous());
+	m_WingMesh.Add(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/Model/Drone/Drone_Mesh/CGAXR_2021_07_31/Wing/CGAXR_FAN_RIGHT_TWIST.CGAXR_FAN_RIGHT_TWIST"))).LoadSynchronous());
+}
+
+//コリジョンの初期設定
+void ADroneBase::InitializeCollision()
+{
+	//ドローンの当たり判定生成
+	m_pDroneCollision = CreateDefaultSubobject<USphereComponent>(TEXT("DroneCollision"));
+	if (m_pDroneCollision)
+	{
+		RootComponent = m_pDroneCollision;
+		m_pDroneCollision->SetSphereRadius(8.f);
+	}
+}
+
+//メッシュの初期設定
+void ADroneBase::InitializeMesh()
+{
+	if (!m_pDroneCollision) { return; }
+
+	//ボディメッシュ生成
+	m_pBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
+
+	if (m_pBodyMesh && m_BodyMesh)
+	{
+		//メッシュのアタッチ
+		m_pBodyMesh->AttachToComponent(m_pDroneCollision, FAttachmentTransformRules::KeepRelativeTransform);
+		m_pBodyMesh->SetStaticMesh(m_BodyMesh);
+
+		//羽のメッシュコンポーネント生成
+		for (int index = 0; index < EWING::NUM; ++index)
+		{
+			//右回りの羽を調べる
+			const bool isRightTrun = (index == 0 || index == 3);
+			//羽の名前を設定
+			const FName WingName = isRightTrun ?
+				(index + 1 < 3) ? TEXT("LF_Wing") : TEXT("RB_Wing") :
+				(index + 1 > 2) ? TEXT("LB_Wing") : TEXT("RF_Wing");
+			FRotator InitRotaion = FRotator::ZeroRotator;
+			InitRotaion.Yaw = (index < 2) ?
+				(index == 0) ? -45.f : 45.f :
+				(index == 2) ? 45.f : -45.f;
+
+			//配列の追加(識別番号、羽のメッシュ)
+			m_pWings.Add(MakeShareable(new FWing(index, CreateDefaultSubobject<UStaticMeshComponent>(WingName))));
+
+			if (m_pWings.IsValidIndex(index))
+			{
+				if (UStaticMeshComponent* pWingMesh = m_pWings[index]->GetWingMesh())
+				{
+					if (m_WingMesh.IsValidIndex(0) && m_WingMesh.IsValidIndex(1))
+					{
+						//羽のメッシュを設定
+						pWingMesh->SetStaticMesh(m_WingMesh[isRightTrun]);
+						//羽のメッシュコリジョンを無効にする
+						pWingMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+						//ソケットの位置に羽をアタッチ
+						pWingMesh->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, WingName);
+						pWingMesh->SetRelativeRotation(InitRotaion);
+					}
+				}
+			}
+		}
+	}
+}
+
+//エフェクトの初期設定
+void ADroneBase::InitializeEmitter()
+{
+	m_pCloudOfDustEmitter = CreateDefaultSubobject<UNiagaraComponent>(TEXT("CloudOfDustEmitter"));
+	if (m_pCloudOfDustEmitter)
+	{
+		m_pCloudOfDustEmitter->AttachToComponent(m_pDroneCollision, FAttachmentTransformRules::KeepRelativeTransform);
+		m_pCloudOfDustEmitter->Deactivate();
+	}
+}
+
+//ライトの初期設定
+void ADroneBase::InitializeLight()
+{
+	//ライトコンポーネント生成
+	m_pLeftSpotLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("LeftLight"));
+	m_pRightSpotLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("RightLight"));
+
+	if (m_pLeftSpotLight && m_pRightSpotLight && m_pBodyMesh)
+	{
+		m_pLeftSpotLight->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("LeftSpotLight"));
+		m_pRightSpotLight->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("RightSpotLight"));
+		m_pLeftSpotLight->SetOuterConeAngle(20.f);
+		m_pRightSpotLight->SetOuterConeAngle(20.f);
+		m_pLeftSpotLight->Intensity = 2500.f;
+		m_pRightSpotLight->Intensity = 2500.f;
+		m_pLeftSpotLight->LightColor = FColor(51, 153, 204);
+		m_pRightSpotLight->LightColor = FColor(51, 153, 204);
+		m_pLeftSpotLight->SetRelativeRotation(FRotator(0.f, -20.f, 0.f));
+		m_pRightSpotLight->SetRelativeRotation(FRotator(0.f, 20.f, 0.f));
+	}
 }
 
 //羽の加速度更新処理
@@ -226,28 +244,30 @@ void ADroneBase::UpdateWingRotation(const float& DeltaTime)
 		0.f, 1.f);
 
 	//毎秒m_rpsMax * WingAccel回分回転するために毎フレーム羽を回す角度を求める
-	for (FWing& wing : m_Wings)
+	for (TSharedPtr<FWing> pWing : m_pWings)
 	{
-		if (wing.GetWingMesh())
+		if (pWing.IsValid())
 		{
-			//羽の加速度を0から1の範囲に修正し、正規化する
-			const float NormalizeAccelSize = FMath::Clamp((wing.AccelState + 1.f) / 3.f, 0.f, 1.f);
-			//正規化した加速度を使って羽の加速の割合を補間する
-			const float WingAccel = FMath::Lerp(m_WingAccelMin
-				, m_WingAccelMax, NormalizeAccelSize);
-			//右回りの羽か判別する(左前と右後ろの羽が右回りに回転する)
-			const bool isTurnRight = (wing.GetWingNumber() == EWING::LEFT_FORWARD || wing.GetWingNumber() == EWING::RIGHT_BACKWARD ? true : false);
-			//1フレームに回転する角度を求める
-			const float angularVelocity = m_RPSMax * 360.f * DeltaTime * WingAccel * (isTurnRight ? 1.f : -1.f) * MOVE_CORRECTION;
+			if (pWing->GetWingMesh())
+			{
+				//羽の加速度を0から1の範囲に修正し、正規化する
+				const float NormalizeAccelSize = FMath::Clamp((pWing->AccelState + 1.f) / 3.f, 0.f, 1.f);
+				//正規化した加速度を使って羽の加速の割合を補間する
+				const float WingAccel = FMath::Lerp(m_WingAccelMin, m_WingAccelMax, NormalizeAccelSize);
+				//右回りの羽か判別する(左前と右後ろの羽が右回りに回転する)
+				const bool isTurnRight = (pWing->GetWingNumber() == EWING::LEFT_FORWARD || pWing->GetWingNumber() == EWING::RIGHT_BACKWARD ? true : false);
+				//1フレームに回転する角度を求める
+				const float angularVelocity = m_RPSMax * 360.f * DeltaTime * WingAccel * (isTurnRight ? 1.f : -1.f) * MOVE_CORRECTION;
 
-			//羽を回転させる
-			wing.GetWingMesh()->AddLocalRotation(FRotator(0.f, angularVelocity, 0.f));
+				//羽を回転させる
+				pWing->GetWingMesh()->AddLocalRotation(FRotator(0.f, angularVelocity, 0.f));
 
 #ifdef DEBUG_WING
-			//*デバッグ用*速度に応じて羽の色変更				
-			const FVector WingColor = FVector(FLinearColor::LerpUsingHSV(FColor::Blue, FColor::Yellow, NormalizeAccelSize));
-			wing.GetWingMesh()->SetVectorParameterValueOnMaterials(TEXT("WingColor"), WingColor);
+				//*デバッグ用*速度に応じて羽の色変更				
+				const FVector WingColor = FVector(FLinearColor::LerpUsingHSV(FColor::Blue, FColor::Yellow, NormalizeAccelSize));
+				wing.GetWingMesh()->SetVectorParameterValueOnMaterials(TEXT("WingColor"), WingColor);
 #endif // DEBUG_WING
+			}
 		}
 	}
 }
@@ -260,9 +280,9 @@ void ADroneBase::UpdateRotation(const float& DeltaTime)
 
 	//羽の回転量からドローンの角速度の最大値を設定
 	m_AngularVelocity = FVector(
-		(m_Wings[EWING::LEFT_FORWARD].AccelState + m_Wings[EWING::LEFT_BACKWARD].AccelState) - (m_Wings[EWING::RIGHT_FORWARD].AccelState + m_Wings[EWING::RIGHT_BACKWARD].AccelState),
-		(m_Wings[EWING::LEFT_BACKWARD].AccelState + m_Wings[EWING::RIGHT_BACKWARD].AccelState) - (m_Wings[EWING::LEFT_FORWARD].AccelState + m_Wings[EWING::RIGHT_FORWARD].AccelState),
-		(m_Wings[EWING::RIGHT_FORWARD].AccelState + m_Wings[EWING::LEFT_BACKWARD].AccelState) - (m_Wings[EWING::LEFT_FORWARD].AccelState + m_Wings[EWING::RIGHT_BACKWARD].AccelState));
+		(m_pWings[EWING::LEFT_FORWARD]->AccelState + m_pWings[EWING::LEFT_BACKWARD]->AccelState) - (m_pWings[EWING::RIGHT_FORWARD]->AccelState + m_pWings[EWING::RIGHT_BACKWARD]->AccelState),
+		(m_pWings[EWING::LEFT_BACKWARD]->AccelState + m_pWings[EWING::RIGHT_BACKWARD]->AccelState) - (m_pWings[EWING::LEFT_FORWARD]->AccelState + m_pWings[EWING::RIGHT_FORWARD]->AccelState),
+		(m_pWings[EWING::RIGHT_FORWARD]->AccelState + m_pWings[EWING::LEFT_BACKWARD]->AccelState) - (m_pWings[EWING::LEFT_FORWARD]->AccelState + m_pWings[EWING::RIGHT_BACKWARD]->AccelState));
 	m_AngularVelocity.Z = FMath::Abs(m_AngularVelocity.Z) * m_AxisAccel.W;
 
 	FRotator BodyRotation = m_pBodyMesh->GetRelativeRotation();
@@ -340,9 +360,12 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 		const FVector Direction = m_pBodyMesh->GetUpVector();
 		//浮力の大きさを測る
 		float Buoyancy = 0.f;
-		for (const FWing& wing : m_Wings)
+		for (TSharedPtr<FWing> pWing : m_pWings)
 		{
-			Buoyancy += wing.AccelState;
+			if (pWing.IsValid())
+			{
+				Buoyancy += pWing->AccelState;
+			}
 		}
 		Buoyancy /= (float)EWING::NUM;
 
@@ -488,7 +511,7 @@ bool ADroneBase::IsOverHeightMax()
 //砂埃のエフェクトの表示切替
 void ADroneBase::UpdateCloudOfDustEffect()
 {
-	if (!m_pCloudOfDustEffect) { return; }
+	if (!m_pCloudOfDustEmitter) { return; }
 
 	FVector Start = GetActorLocation();
 	FVector End = Start;
@@ -504,22 +527,16 @@ void ADroneBase::UpdateCloudOfDustEffect()
 	//地面にレイが当たっていたらエフェクトを表示
 	if (isHit && m_isControl)
 	{
-		if (!m_pCloudOfDustEmitter)
-		{
-			m_pCloudOfDustEmitter = UNiagaraFunctionLibrary::SpawnSystemAttached(m_pCloudOfDustEffect, m_pDroneCollision, NAME_None, FVector(0.f, 0.f, -m_HeightFromGround), FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, false);
-		}
-		else
-		{
-			m_pCloudOfDustEmitter->Activate();
-		}
+		FVector EmitterLocation = m_pCloudOfDustEmitter->GetRelativeLocation();
+		EmitterLocation.Z = -OutHit.Distance;
+		m_pCloudOfDustEmitter->SetRelativeLocation(EmitterLocation);
+
+		m_pCloudOfDustEmitter->Activate();
 	}
 	//地面との距離が離れたら砂煙を非表示にする
 	else
 	{
-		if (m_pCloudOfDustEmitter)
-		{
-			m_pCloudOfDustEmitter->Deactivate();
-		}
+		m_pCloudOfDustEmitter->Deactivate();
 	}
 
 #if 0
@@ -539,11 +556,6 @@ void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedCom
 		{
 			//加速フラグを立てる
 			m_bIsPassedRing = true;
-			//リングのヒットエフェクトをスポーン
-			if (m_pRingHitEffect && m_pBodyMesh)
-			{
-				UNiagaraFunctionLibrary::SpawnSystemAttached(m_pRingHitEffect, m_pBodyMesh, TEXT("BodyCenter"), FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTargetIncludingScale, true);
-			}
 
 			//加速計測カウンターをリセット
 			m_SincePassageCount = 0.f;
