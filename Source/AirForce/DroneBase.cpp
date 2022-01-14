@@ -54,6 +54,7 @@ ADroneBase::ADroneBase()
 	, m_AxisValuePerFrame(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_LocalAxis(FVector::ZeroVector)
 	, m_pWindEffect(NULL)
+	, m_pWindEmitter(NULL)
 	, m_WindRotationSpeed(5.f)
 	, m_WindOpacity(0.f)
 	, m_WindNoise(15.f)
@@ -64,7 +65,8 @@ ADroneBase::ADroneBase()
 	, m_pLeftSpotLight(NULL)
 	, m_pRightSpotLight(NULL)
 	, m_pCloudOfDustEmitter(NULL)
-	, m_ShowCloudOfDustDistance(50.f)
+	, m_ShowEffectDistance(50.f)
+	, m_GroundMaterialName(TEXT(""))
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -75,20 +77,31 @@ ADroneBase::ADroneBase()
 	InitializeCollision();
 	//メッシュの初期設定
 	InitializeMesh();
-	//エフェクトの初期設定
-	InitializeEmitter();
-	//ライトの初期設定
-	InitializeLight();
 	
 	//タグを追加
 	Tags.Add(TEXT("Drone"));
+}
+
+//デストラクタ
+ADroneBase::~ADroneBase()
+{
+	for (int32 index = m_pWings.Num() - 1; index >= 0; --index)
+	{
+		if (m_pWings.IsValidIndex(index))
+		{
+			m_pWings[index].Reset();
+		}
+	}
 }
 
 //ゲーム開始時に1度だけ処理
 void ADroneBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	//ライトの初期設定
+	InitializeLight();
+
 	if (m_pDroneCollision)
 	{
 		//オーバーラップ、ヒット時のイベント関数をバインド
@@ -196,26 +209,17 @@ void ADroneBase::InitializeMesh()
 	}
 }
 
-//エフェクトの初期設定
-void ADroneBase::InitializeEmitter()
-{
-	m_pCloudOfDustEmitter = CreateDefaultSubobject<UNiagaraComponent>(TEXT("CloudOfDustEmitter"));
-	if (m_pCloudOfDustEmitter)
-	{
-		m_pCloudOfDustEmitter->AttachToComponent(m_pDroneCollision, FAttachmentTransformRules::KeepRelativeTransform);
-		m_pCloudOfDustEmitter->Deactivate();
-	}
-}
-
 //ライトの初期設定
 void ADroneBase::InitializeLight()
 {
 	//ライトコンポーネント生成
-	m_pLeftSpotLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("LeftLight"));
-	m_pRightSpotLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("RightLight"));
+	m_pLeftSpotLight = NewObject<USpotLightComponent>(this);
+	m_pRightSpotLight = NewObject<USpotLightComponent>(this);
 
 	if (m_pLeftSpotLight && m_pRightSpotLight && m_pBodyMesh)
 	{
+		m_pLeftSpotLight->RegisterComponent();
+		m_pRightSpotLight->RegisterComponent();
 		m_pLeftSpotLight->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("LeftSpotLight"));
 		m_pRightSpotLight->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("RightSpotLight"));
 		m_pLeftSpotLight->SetOuterConeAngle(20.f);
@@ -439,10 +443,10 @@ float ADroneBase::UpdateGravity(const float& DeltaTime)
 //風のエフェクト更新処理
 void ADroneBase::UpdateWindEffect(const float& DeltaTime)
 {
-	if (!m_pWindEffect || !m_pBodyMesh) { return; }
+	if (!m_pWindEmitter || !m_pBodyMesh) { return; }
 
 	//エフェクトとドローンの座標を取得
-	FVector EffectLocation = m_pWindEffect->GetComponentLocation();
+	FVector EffectLocation = m_pWindEmitter->GetComponentLocation();
 	FVector  DroneLocation = m_pBodyMesh->GetComponentLocation();
 	//エフェクトが進行方向へ向くようにする
 	FRotator LookAtRotation = FRotationMatrix::MakeFromX(DroneLocation - EffectLocation).Rotator();
@@ -457,12 +461,12 @@ void ADroneBase::UpdateWindEffect(const float& DeltaTime)
 	float effectScale = FMath::Lerp(5.f, 3.f, AxisValue);
 	float effectLocationX = FMath::Lerp(-40.f, 0.f, AxisValue);
 
-	m_pWindEffect->SetRelativeScale3D(FVector(effectScale));
-	m_pWindEffect->SetWorldRotation(LookAtRotation.Quaternion());
-	m_pWindEffect->SetRelativeLocation(FVector(effectLocationX, 0.f, 0.f));
+	m_pWindEmitter->SetRelativeScale3D(FVector(effectScale));
+	m_pWindEmitter->SetWorldRotation(LookAtRotation.Quaternion());
+	m_pWindEmitter->SetRelativeLocation(FVector(effectLocationX, 0.f, 0.f));
 	//エフェクトの不透明度を変更
-	m_pWindEffect->SetVariableFloat(TEXT("User.Mask"), m_WindNoise);
-	m_pWindEffect->SetVariableFloat(TEXT("User.WindOpacity"), m_WindOpacity);
+	m_pWindEmitter->SetVariableFloat(TEXT("User.Mask"), m_WindNoise);
+	m_pWindEmitter->SetVariableFloat(TEXT("User.WindOpacity"), m_WindOpacity);
 }
 
 //高度の上限をを超えているか確認
@@ -494,6 +498,23 @@ bool ADroneBase::IsOverHeightMax()
 					OverHeightMax = false;
 					//地面からの高さを計測
 					m_HeightFromGround = HitResult.Distance;
+
+					if(pHitActor->ActorHasTag(TEXT("LandScape")))
+					{
+						m_GroundMaterialName = TEXT("LandScape");
+					}
+					else
+					{
+						//ヒットしたアクターのマテリアル名を取得
+						if (UPrimitiveComponent* pHitComp = HitResult.GetComponent())
+						{
+							if (UMaterialInterface* pMaterial = pHitComp->GetMaterial(0))
+							{
+								m_GroundMaterialName = pMaterial->GetName();
+							}
+						}
+					}
+
 					break;
 				}
 			}
@@ -511,39 +532,61 @@ bool ADroneBase::IsOverHeightMax()
 //砂埃のエフェクトの表示切替
 void ADroneBase::UpdateCloudOfDustEffect()
 {
-	if (!m_pCloudOfDustEmitter) { return; }
+	if (!m_isControl) { return; }
+	if (!m_pBodyMesh) { return; }
 
-	FVector Start = GetActorLocation();
-	FVector End = Start;
-	End.Z -= m_ShowCloudOfDustDistance;
-	//ヒット結果を格納する配列
-	FHitResult OutHit;
-	//トレースする対象(自身は対象から外す)
-	FCollisionQueryParams CollisionParam;
-	CollisionParam.AddIgnoredActor(this);
-	//レイを飛ばし、WorldStaticのコリジョンチャンネルを持つオブジェクトのヒット判定を取得する
-	bool isHit = GetWorld()->LineTraceSingleByObjectType(OutHit, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
-
-	//地面にレイが当たっていたらエフェクトを表示
-	if (isHit && m_isControl)
+	//地面との距離が近くなったらエフェクトを表示
+	if (m_HeightFromGround <= m_ShowEffectDistance)
 	{
-		FVector EmitterLocation = m_pCloudOfDustEmitter->GetRelativeLocation();
-		EmitterLocation.Z = -OutHit.Distance;
-		m_pCloudOfDustEmitter->SetRelativeLocation(EmitterLocation);
+		//エフェクトを地面の高さに調整する
+		FVector EmitterLocation = m_pBodyMesh->GetUpVector() * (-m_HeightFromGround);
 
-		m_pCloudOfDustEmitter->Activate();
+		if (m_pCloudOfDustEmitter)
+		{
+			//地面のマテリアル名に一致するエフェクトを設定
+			if (UNiagaraSystem* pNiagaraSystem = m_pDroneEffects.FindRef(m_GroundMaterialName))
+			{
+				//設定されているエフェクトが違う場合は差し替える
+				if (m_pCloudOfDustEmitter->GetAsset() != pNiagaraSystem)
+				{
+					m_pCloudOfDustEmitter = UNiagaraFunctionLibrary::SpawnSystemAttached(pNiagaraSystem, m_pDroneCollision, NAME_None, EmitterLocation, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, false);
+				}
+				//同じエフェクトなら位置調整のみ行う
+				else
+				{
+					m_pCloudOfDustEmitter->SetRelativeLocation(EmitterLocation);
+					m_pCloudOfDustEmitter->Activate();
+				}
+			}
+			//エフェクトを発生させないマテリアルの場合はエフェクトを非表示にする
+			else
+			{
+				if (m_pCloudOfDustEmitter->IsActive())
+				{
+					m_pCloudOfDustEmitter->Deactivate();
+				}
+			}
+		}
+		else
+		{
+			//地面についているタグ名と一致するエフェクトを設定
+			if (UNiagaraSystem* pNiagaraSystem = m_pDroneEffects.FindRef(m_GroundMaterialName))
+			{
+				m_pCloudOfDustEmitter = UNiagaraFunctionLibrary::SpawnSystemAttached(pNiagaraSystem, m_pDroneCollision, NAME_None, EmitterLocation, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, false);
+			}
+		}
 	}
 	//地面との距離が離れたら砂煙を非表示にする
 	else
 	{
-		m_pCloudOfDustEmitter->Deactivate();
+		if (m_pCloudOfDustEmitter)
+		{
+			if (m_pCloudOfDustEmitter->IsActive())
+			{
+				m_pCloudOfDustEmitter->Deactivate();
+			}
+		}
 	}
-
-#if 0
-	//上限を越えたら黄色、越えていないなら青
-	FColor LineColor = isHit ? FColor::Yellow : FColor::Blue;
-	DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.f);
-#endif // WITH_EDITOR
 }
 
 //オーバーラップ開始時に呼ばれる処理

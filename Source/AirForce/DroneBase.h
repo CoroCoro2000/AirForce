@@ -22,6 +22,7 @@ class UNiagaraSystem;
 class UNiagaraComponent;
 class USoundBase;
 class USpotLightComponent;
+class FName;
 
 //羽の番号の列挙
 UENUM(BlueprintType)
@@ -47,6 +48,8 @@ public:
 		, pWingMesh(wingMesh)
 		, AccelState(0.f)
 	{}
+	//デストラクタ
+	~FWing() {}
 
 public:
 	uint32 GetWingNumber()const { return WingNumber; }							//羽番号取得
@@ -110,6 +113,9 @@ class AIRFORCE_API ADroneBase : public APawn
 public:
 	//コンストラクタ
 	ADroneBase();
+	//デストラクタ
+	virtual ~ADroneBase();
+
 protected:
 	//ゲーム開始時に1度だけ処理
 	virtual void BeginPlay() override;
@@ -164,8 +170,6 @@ protected:
 	virtual void InitializeCollision();
 	//メッシュの初期設定
 	virtual void InitializeMesh();
-	//エフェクトの初期設定
-	virtual void InitializeEmitter();
 	//ライトの初期設定
 	virtual void InitializeLight();
 
@@ -272,7 +276,9 @@ protected:
 
 	FVector m_LocalAxis;																//ドローンのローカル軸
 	UPROPERTY(EditAnywhere, Category = "Effect")
-		UNiagaraComponent* m_pWindEffect;									//風のエフェクト
+		UNiagaraSystem* m_pWindEffect;									//風のエフェクト
+	UPROPERTY(EditAnywhere, Category = "Effect")
+		UNiagaraComponent* m_pWindEmitter;									//風のエフェクト
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		float m_WindRotationSpeed;											//風のエフェクトの回転速度
 	UPROPERTY(EditAnywhere, Category = "Effect")
@@ -301,16 +307,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Ring")
 		float m_SincePassageCount;													//リングをくぐってからの経過時間
 	UPROPERTY(EditAnywhere, Category = "Ring")
-		float m_CountLimitTime;													//リングをくぐってから数える時間の上限	
+		float m_CountLimitTime;															//リングをくぐってから数える時間の上限	
 	UPROPERTY(EditAnywhere, Category = "Ring")
-		float m_OverAccelerator;												//リングをくぐったときの加速倍率
+		float m_OverAccelerator;														//リングをくぐったときの加速倍率
 
 	UPROPERTY(EditAnywhere, Category = "Light")
 		USpotLightComponent* m_pLeftSpotLight;
 	UPROPERTY(EditAnywhere, Category = "Light")
 		USpotLightComponent* m_pRightSpotLight;
 	UPROPERTY(EditAnywhere, Category = "Effect")
-		UNiagaraComponent* m_pCloudOfDustEmitter;		//砂煙のエフェクト
+		TMap<FString, UNiagaraSystem*> m_pDroneEffects;				//ドローンのエフェクトを格納する配列
 	UPROPERTY(EditAnywhere, Category = "Effect")
-		float m_ShowCloudOfDustDistance;						//砂煙を表示させる距離
+		UNiagaraComponent* m_pCloudOfDustEmitter;								//砂煙のエフェクト
+	UPROPERTY(EditAnywhere, Category = "Effect")
+		float m_ShowEffectDistance;															//エフェクトを表示する距離
+	UPROPERTY(EditAnywhere, Category = "Effect")
+		FString m_GroundMaterialName;														//レイがヒットした地面のマテリアル名
 };

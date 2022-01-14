@@ -40,7 +40,6 @@ APlayerDrone::APlayerDrone()
 	, m_MotionBlurAmount(1.5f)
 	, m_MotionBlurMax(15.f)
 	, m_MotionBlurTargetFPS(8)
-	, m_pLightlineEffect(NULL)
 	, m_AxisValue(FVector4(0.f, 0.f, 0.f, 0.f))
 	, m_StartLocation(FVector::ZeroVector)
 	, m_StartQuaternion(FQuat::Identity)
@@ -72,8 +71,6 @@ APlayerDrone::APlayerDrone()
 		m_pCamera->AttachToComponent(m_pSpringArm, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 
-	//エフェクトの初期設定
-	InitializeEmitter();
 	//カメラの初期設定
 	InitializeCamera();
 
@@ -89,6 +86,9 @@ APlayerDrone::APlayerDrone()
 void APlayerDrone::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//エフェクトの初期設定
+	InitializeEmitter();
 
 	//軸の数だけ配列を用意する
 	m_SaveQuatText.Empty();
@@ -141,12 +141,10 @@ void APlayerDrone::Tick(float DeltaTime)
 //エフェクトの初期設定
 void APlayerDrone::InitializeEmitter()
 {
+	if (!m_pCamera) { return; }
+
 	//風のエフェクト生成
-	m_pWindEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("WindEffect"));
-	if (m_pWindEffect)
-	{
-		m_pWindEffect->AttachToComponent(m_pCamera, FAttachmentTransformRules::KeepRelativeTransform);
-	}
+	m_pWindEmitter = UNiagaraFunctionLibrary::SpawnSystemAttached(m_pWindEffect, m_pCamera, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, false);
 }
 
 //カメラの初期設定
@@ -553,7 +551,6 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 		m_pCamera->PostProcessSettings.MotionBlurTargetFPS = MotionBlurTargetFPS;
 	}
 }
-		
 
 //カメラとの遮蔽物のコリジョン判定
 void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
@@ -563,9 +560,6 @@ void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
 
 	FVector Start = GetActorLocation();
 	FVector End = m_pCamera->GetComponentLocation();
-	FVector UpEnd = Start;
-	float HeightLenght = 100.f;
-	//Start.Z += HeightLenght;
 
 	//ヒット結果を格納する配列
 	FHitResult OutHit;
