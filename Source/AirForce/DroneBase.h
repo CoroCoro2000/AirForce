@@ -189,7 +189,7 @@ protected:
 	//進行軸と入力軸が逆向きか確認
 	bool IsReverseInput(const float& _movingAxis, const float& _axisValue)const { return (_movingAxis < 0.f && 0.f < _axisValue) || (_movingAxis > 0.f && 0.f > _axisValue); }
 	//高度の上限をを超えているか確認
-	bool IsOverHeightMax();
+	void UpdateAltitudeCheck();
 
 	//砂埃のエフェクトの表示切替
 	void UpdateCloudOfDustEffect();
@@ -276,7 +276,7 @@ protected:
 
 	FVector m_LocalAxis;																//ドローンのローカル軸
 	UPROPERTY(EditAnywhere, Category = "Effect")
-		UNiagaraSystem* m_pWindEffect;									//風のエフェクト
+		UNiagaraSystem* m_pWindEffect;										//風のエフェクト
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		UNiagaraComponent* m_pWindEmitter;									//風のエフェクト
 	UPROPERTY(EditAnywhere, Category = "Effect")

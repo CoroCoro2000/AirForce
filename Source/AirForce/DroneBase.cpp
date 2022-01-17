@@ -352,7 +352,7 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 		//上限でクランプ
 		m_Velocity = CGameUtility::SetDecimalTruncation(m_Velocity, 3);
 		//高度上限を超えていたら自動的に高度を下げる
-		if (IsOverHeightMax())
+		if (m_HeightFromGround >= m_HeightMax)
 		{
 			m_Velocity.Z = -3.f;
 		}
@@ -470,7 +470,7 @@ void ADroneBase::UpdateWindEffect(const float& DeltaTime)
 }
 
 //高度の上限をを超えているか確認
-bool ADroneBase::IsOverHeightMax()
+void ADroneBase::UpdateAltitudeCheck()
 {
 	//レイの開始点と終点を設定(ドローンの座標から高度の上限の長さ)
 	FVector Start = GetActorLocation();
@@ -485,6 +485,8 @@ bool ADroneBase::IsOverHeightMax()
 	//レイを飛ばし、WorldStaticのコリジョンチャンネルを持つオブジェクトのヒット判定を取得する
 	bool isHit = GetWorld()->LineTraceMultiByObjectType(OutHits, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
 	bool OverHeightMax = true;
+
+	m_HeightFromGround = m_HeightMax;
 
 	//レイがヒットしたらアクターのタグを確認し、Groundのタグを持つアクターがあれば高度上限を越えていないのでフラグを降ろす
 	if (isHit)
@@ -514,19 +516,11 @@ bool ADroneBase::IsOverHeightMax()
 							}
 						}
 					}
-
 					break;
 				}
 			}
 		}
 	}
-#ifdef DEBUG_IsOverHeightMax
-	//上限を越えたら黄色、越えていないなら青
-	FColor LineColor = OverHeightMax ? FColor::Yellow : FColor::Blue;
-	DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.f);
-#endif // DEBUG_IsOverHeightMax
-
-	return OverHeightMax;
 }
 
 //砂埃のエフェクトの表示切替
@@ -569,7 +563,7 @@ void ADroneBase::UpdateCloudOfDustEffect()
 		}
 		else
 		{
-			//地面についているタグ名と一致するエフェクトを設定
+			//地面のマテリアル名と一致するエフェクトを設定
 			if (UNiagaraSystem* pNiagaraSystem = m_pDroneEffects.FindRef(m_GroundMaterialName))
 			{
 				m_pCloudOfDustEmitter = UNiagaraFunctionLibrary::SpawnSystemAttached(pNiagaraSystem, m_pDroneCollision, NAME_None, EmitterLocation, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, false);

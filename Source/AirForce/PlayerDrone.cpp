@@ -122,6 +122,9 @@ void APlayerDrone::Tick(float DeltaTime)
 	//移動処理
 	UpdateSpeed(DeltaTime);
 
+	//高度チェック
+	UpdateAltitudeCheck();
+
 	//リプレイ更新処理
 	UpdateReplay(DeltaTime);
 
@@ -556,49 +559,84 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
 {
 	if (!m_pCamera) { return; }
+	if (!m_pSpringArm) { return; }
 	if (!m_pBodyMesh) { return; }
 
-	FVector Start = GetActorLocation();
-	FVector End = m_pCamera->GetComponentLocation();
-
+	//レイの始点と終点を設定(ドローンからカメラまでの距離)
+	FVector DroneLocation = GetActorLocation();
+	FVector CameraLocation = m_pCamera->GetComponentLocation();
+	//カメラの左右の座標
+	float Len = m_pSpringArm->TargetArmLength;
+	FVector CameraRightVec = m_pCamera->GetRightVector();
+	FVector CameraUp = CameraLocation + (m_pCamera->GetUpVector() * Len);
+	FVector CameraLeft = CameraLocation - (CameraRightVec * Len);
+	FVector CameraRight = CameraLocation + (CameraRightVec * Len);
+	
 	//ヒット結果を格納する配列
-	FHitResult OutHit;
+	FHitResult OutSpringArmHit;
+	TArray<FHitResult> OutCameraWidthHits;
+	TArray<FHitResult> OutCameraVerticalHits;
+
 	//トレースする対象(自身は対象から外す)
 	FCollisionQueryParams CollisionParam;
 	CollisionParam.AddIgnoredActor(this);
 	//レイを飛ばし、WorldStaticのコリジョンチャンネルを持つオブジェクトのヒット判定を取得する
-	bool isHit = GetWorld()->LineTraceSingleByObjectType(OutHit, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+	bool isSpringArmHit = GetWorld()->LineTraceSingleByObjectType(OutSpringArmHit, DroneLocation, CameraLocation, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+	bool isCameraWidthHit = GetWorld()->LineTraceMultiByObjectType(OutCameraWidthHits, CameraLeft, CameraRight, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+	bool isCameraVerticalHit = GetWorld()->LineTraceMultiByObjectType(OutCameraVerticalHits, CameraLocation, CameraUp, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+
 	float Atten = FMath::Clamp(DeltaTime * 7.f, 0.f, 1.f);
 
-	if (isHit)
-	{
-		FVector HitLocation = OutHit.Location;
-		////地面にヒットしていたらの高さを天井と地面の中間にする
-		//if (isCeilingHit)
-		//{
-		//	float GroundHeight = End.Z - m_HeightFromGround;
-		//	HitLocation.Z = (GroundHeight + CeilingHeight) * 0.5f;
-		//}
+	FVector TargetOffset = FVector(0.f, 0.f, 20.f);
 
-		FVector CameraLocation = FMath::Lerp(End, HitLocation, Atten);
-
-		//壁を抜けないようにカメラを移動させる
-		m_pCamera->SetWorldLocation(CameraLocation);
+	//カメラの横判定
+	if (isCameraWidthHit)
+	{		
+		//カメラに重なったオブジェクトを確認
+		if (OutCameraWidthHits.Num() > 0)
+		{
+			for (const FHitResult& hitResult : OutCameraWidthHits)
+			{
+				if (AActor* pHitActor = hitResult.GetActor())
+				{
+					//カメラをブロックするオブジェクトがある場合はオフセット位置を調整する
+					if (pHitActor->ActorHasTag(TEXT("CameraBlocking")))
+					{
+					
+						break;
+					}
+				}
+			}
+		}
 	}
-	else
-	{
-		FVector TargetLocation = /*(isCeilingHit) ? FVector(0.f, 0.f, m_HeightFromGround - HeightformCeiling) : */FVector::ZeroVector;
-		FVector CameraLocation = FMath::Lerp(m_pCamera->GetRelativeLocation(), TargetLocation, Atten);
-		bool IsNearlyZero_CameraLocation = CameraLocation.IsNearlyZero(1.f);
 
-		m_pCamera->SetRelativeLocation(IsNearlyZero_CameraLocation ? TargetLocation : CameraLocation);
+	//カメラの縦判定
+	if (isCameraVerticalHit)
+	{
+		//カメラに重なったオブジェクトを確認
+		if (OutCameraVerticalHits.Num() > 0)
+		{
+			for (const FHitResult& hitResult : OutCameraVerticalHits)
+			{
+				if (AActor* pHitActor = hitResult.GetActor())
+				{
+					//カメラをブロックするオブジェクトがある場合はオフセット位置を調整する
+					if (pHitActor->ActorHasTag(TEXT("CameraBlocking")))
+					{
+						TargetOffset.Z = FMath::Lerp(-30.f, 20.f, FMath::Clamp(hitResult.Distance / Len, 0.f, 1.f));
+						break;
+					}
+				}
+			}
+		}
 	}
+
+	//カメラのオフセットを変更
+	FVector NewCameraOffset = FMath::Lerp(m_pSpringArm->TargetOffset, TargetOffset, Atten * 0.5f);
+	m_pSpringArm->TargetOffset = (NewCameraOffset - TargetOffset).IsNearlyZero(0.3f) ? TargetOffset : NewCameraOffset;
 
 	//不透明度の更新
-	m_BodyOpacity = FMath::Lerp(
-		m_BodyOpacity,
-		(isHit ? 0.2f : 1.f),
-		Atten);
+	m_BodyOpacity = FMath::Lerp(m_BodyOpacity, (isSpringArmHit ? 0.3f : 1.f), Atten);
 
 	if (m_BodyOpacity > 0.98f)
 	{
