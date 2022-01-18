@@ -40,10 +40,20 @@ public:
 	//入力可能フラグ取得
 	UFUNCTION(BlueprintCallable)
 		bool GetInputEnable() const { return m_bInputEnable; }
+	//入力可能フラグ設定
+	UFUNCTION(BlueprintCallable)
+		void SetCourseSelectCompleted(const bool _bCourseSelectCompletedEnable) { m_bCourseSelectCompleted = _bCourseSelectCompletedEnable; }
+	//コース選択終了フラグ取得
+	UFUNCTION(BlueprintCallable)
+		bool GetCourseSelectCompleted() const { return m_bCourseSelectCompleted; }
 
 	//選択中のコース名取得
 	UFUNCTION(BlueprintCallable)
-		FText GetSelectCourseName()const;
+		FName GetSelectCourseName()const;
+
+	//選択中のコース名取得
+	UFUNCTION(BlueprintCallable)
+		FString GetSelectCourseBestTime(int _CourseNumber)const;
 
 private:
 	//【入力バインド】各スティックの入力
@@ -59,28 +69,34 @@ private:
 	void UpdateMeshRotation(const float& DeltaTime);
 	//メッシュの座標移動
 	void UpdateLocation(const float& DeltaTime);
+	//コース別ベストタイム読み込み
+	void InitializeCourseBestTimeText();
 
 private:
 	UPROPERTY(VisibleAnywhere)
 		USceneComponent* m_pDummyComponent;					//3Dミニマップの回転の中心にするダミーオブジェクト
 	UPROPERTY(VisibleAnywhere)
-		int m_CourseNumber;															//コース番号
+		int m_CourseNumber;									//コース番号
 	UPROPERTY(VisibleAnywhere)
-		int m_CourseTotal;																//コース数
+		int m_CourseTotal;									//コース数
 	UPROPERTY(VisibleAnywhere)
-		bool m_bInputEnable;															//入力可能フラグ
+		bool m_bInputEnable;								//入力可能フラグ
+	UPROPERTY(VisibleAnywhere)
+		bool m_bCourseSelectCompleted;						//コース選択終了フラグ
 	UPROPERTY(VisibleAnywhere)
 		float m_CurrentRotation;
 	UPROPERTY(VisibleAnywhere)
 		float m_TargetRotation;
 	UPROPERTY(EditAnywhere)
-		float m_TargetRotationSpeed;												//ダミーオブジェクトの回転速度
+		float m_TargetRotationSpeed;						//ダミーオブジェクトの回転速度
 	UPROPERTY(EditAnywhere)
-		UDataTable* m_pLevelDataTable;										//シーンのデータテーブル
+		UDataTable* m_pLevelDataTable;						//シーンのデータテーブル
 	UPROPERTY(EditAnywhere)
-		TArray<UStaticMeshComponent*> m_pMinimapMeshes;	//3Dのミニマップメッシュ
+		TArray<UStaticMeshComponent*> m_pMinimapMeshes;		//3Dのミニマップメッシュ
 	UPROPERTY(EditAnywhere)
-		UStaticMesh* m_pMinimapDefaultMesh;							//3Dのデフォルトミニマップメッシュ
+		UStaticMesh* m_pMinimapDefaultMesh;					//3Dのデフォルトミニマップメッシュ
 	UPROPERTY(EditAnywhere)
-		TArray<UMaterialInterface*> m_pMinimapMaterials;			//3Dのミニマップのマテリアル
+		TArray<UMaterialInterface*> m_pMinimapMaterials;	//3Dのミニマップのマテリアル
+	UPROPERTY(EditAnywhere)
+		TArray<FString> m_pCourseBestTimeText;				//コース別ベストタイムテキスト
 };
