@@ -107,6 +107,15 @@ public:
 		void InitializeReplay();
 	UFUNCTION(BlueprintCallable, Category = "Replay")
 		bool GetisReplay()const { return m_isReplay; }
+
+	//ドローンの現在地取得(マルチ用)
+	UFUNCTION(BlueprintCallable, Category = "Replay")
+		FVector GetDroneLocation() const{ return GetActorLocation(); }
+	//ドローンの現在回転量取得(マルチ用)
+	UFUNCTION(BlueprintCallable, Category = "Replay")
+		FRotator GetDroneRotation() const{ return m_pBodyMesh->GetRelativeRotation(); }
+	UFUNCTION(BlueprintCallable, Category = "Replay")
+		void SetDroneRotation(FRotator _Rotation) const { return m_pBodyMesh->SetWorldRotation(_Rotation); }
 private:
 	//【入力バインド】各スティックの入力
 	void Input_Throttle(float _axisValue);

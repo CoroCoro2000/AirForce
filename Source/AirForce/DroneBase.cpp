@@ -118,17 +118,17 @@ void ADroneBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//羽の加速度更新処理
-	UpdateWingAccle(DeltaTime);
+	////羽の加速度更新処理
+	//UpdateWingAccle(DeltaTime);
 
-	//羽の回転更新処理
-	UpdateWingRotation(DeltaTime);
+	////羽の回転更新処理
+	//UpdateWingRotation(DeltaTime);
 
-	//回転処理
-	UpdateRotation(DeltaTime);
+	////回転処理
+	//UpdateRotation(DeltaTime);
 
-	//速度更新処理
-	UpdateSpeed(DeltaTime);
+	////速度更新処理
+	//UpdateSpeed(DeltaTime);
 }
 
 //【入力バインド】コントローラー入力設定
