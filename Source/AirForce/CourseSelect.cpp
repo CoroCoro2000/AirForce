@@ -167,7 +167,7 @@ FName ACourseSelect::GetSelectCourseName()const
 //選択中のコース名取得
 FString ACourseSelect::GetSelectCourseBestTime(int _CourseNumber)const
 {
-	return m_pCourseBestTimeText.IsValidIndex(_CourseNumber)? m_pCourseBestTimeText[_CourseNumber]:TEXT("--------------");
+	return m_pCourseBestTimeText[_CourseNumber] != TEXT("") ? m_pCourseBestTimeText[_CourseNumber]:TEXT("--------------");
 }
 
 //コース別ベストタイムの初期化
@@ -187,6 +187,10 @@ void ACourseSelect::InitializeCourseBestTimeText()
 		if (BestTimeText.IsValidIndex(0))
 		{
 			m_pCourseBestTimeText.Add(BestTimeText[0]);
+		}
+		else
+		{
+			m_pCourseBestTimeText.Add("");
 		}
 
 	}

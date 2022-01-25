@@ -115,7 +115,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Replay")
 		FRotator GetDroneRotation() const{ return m_pBodyMesh->GetRelativeRotation(); }
 	UFUNCTION(BlueprintCallable, Category = "Replay")
-		void SetDroneRotation(FRotator _Rotation) const { return m_pBodyMesh->SetWorldRotation(_Rotation); }
+		void SetDroneRotation(FRotator _Rotation) { m_pBodyMesh->SetRelativeRotation(_Rotation.Quaternion()*0.2, true); }
 private:
 	//【入力バインド】各スティックの入力
 	void Input_Throttle(float _axisValue);

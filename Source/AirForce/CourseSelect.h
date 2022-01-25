@@ -51,7 +51,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 		FName GetSelectCourseName()const;
 
-	//選択中のコース名取得
+	//選択中のコースベストタイム取得
 	UFUNCTION(BlueprintCallable)
 		FString GetSelectCourseBestTime(int _CourseNumber)const;
 
