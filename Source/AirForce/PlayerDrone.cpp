@@ -634,25 +634,6 @@ void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
 	//カメラのオフセットを変更
 	FVector NewCameraOffset = FMath::Lerp(m_pSpringArm->TargetOffset, TargetOffset, Atten * 0.5f);
 	m_pSpringArm->TargetOffset = (NewCameraOffset - TargetOffset).IsNearlyZero(0.3f) ? TargetOffset : NewCameraOffset;
-
-	//不透明度の更新
-	m_BodyOpacity = FMath::Lerp(m_BodyOpacity, (isSpringArmHit ? 0.3f : 1.f), Atten);
-
-	if (m_BodyOpacity > 0.98f)
-	{
-		m_BodyOpacity = 1.f;
-	}
-	for (TSharedPtr<FWing> pWing : m_pWings)
-	{
-		if (pWing.IsValid())
-		{
-			if (UStaticMeshComponent* pMesh = pWing->GetWingMesh())
-			{
-				pMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), m_BodyOpacity);
-			}
-		}
-	}
-	m_pBodyMesh->SetScalarParameterValueOnMaterials(TEXT("Opacity"), m_BodyOpacity);
 }
 
 //風のエフェクトの更新処理
