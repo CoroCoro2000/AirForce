@@ -570,7 +570,7 @@ void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
 	//カメラの左右の座標
 	float Len = m_pSpringArm->TargetArmLength;
 	FVector CameraRightVec = m_pCamera->GetRightVector();
-	FVector CameraUp = CameraLocation + (m_pCamera->GetUpVector() * Len);
+	FVector CameraUp = DroneLocation + (GetActorUpVector() * Len);
 	FVector CameraLeft = CameraLocation - (CameraRightVec * Len);
 	FVector CameraRight = CameraLocation + (CameraRightVec * Len);
 	
@@ -585,7 +585,7 @@ void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
 	//レイを飛ばし、WorldStaticのコリジョンチャンネルを持つオブジェクトのヒット判定を取得する
 	bool isSpringArmHit = GetWorld()->LineTraceSingleByObjectType(OutSpringArmHit, DroneLocation, CameraLocation, ECollisionChannel::ECC_WorldStatic, CollisionParam);
 	bool isCameraWidthHit = GetWorld()->LineTraceMultiByObjectType(OutCameraWidthHits, CameraLeft, CameraRight, ECollisionChannel::ECC_WorldStatic, CollisionParam);
-	bool isCameraVerticalHit = GetWorld()->LineTraceMultiByObjectType(OutCameraVerticalHits, CameraLocation, CameraUp, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+	bool isCameraVerticalHit = GetWorld()->LineTraceMultiByObjectType(OutCameraVerticalHits, DroneLocation, CameraUp, ECollisionChannel::ECC_WorldStatic, CollisionParam);
 
 	float Atten = FMath::Clamp(DeltaTime * 7.f, 0.f, 1.f);
 
