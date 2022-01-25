@@ -104,6 +104,8 @@ void APlayerDrone::BeginPlay()
 //毎フレーム処理
 void APlayerDrone::Tick(float DeltaTime)
 {
+	Super::Tick(DeltaTime);
+
 	//入力量をフレームに同期
 	m_AxisValuePerFrame = m_AxisValue;
 	
