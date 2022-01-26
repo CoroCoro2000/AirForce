@@ -569,48 +569,72 @@ void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
 	FVector CameraLocation = m_pCamera->GetComponentLocation();
 	//カメラの左右の座標
 	float Len = m_pSpringArm->TargetArmLength;
-	FVector CameraRightVec = m_pCamera->GetRightVector();
+	//FVector CameraRightVec = GetActorRightVector();
 	FVector CameraUp = DroneLocation + (GetActorUpVector() * Len);
-	FVector CameraLeft = CameraLocation - (CameraRightVec * Len);
-	FVector CameraRight = CameraLocation + (CameraRightVec * Len);
+	//FVector CameraLeft = DroneLocation - (CameraRightVec * Len);
+	//FVector CameraRight = DroneLocation + (CameraRightVec * Len);
 	
 	//ヒット結果を格納する配列
-	FHitResult OutSpringArmHit;
-	TArray<FHitResult> OutCameraWidthHits;
+	//FHitResult OutSpringArmHit;
+	//TArray<FHitResult> OutCameraWidthHits;
 	TArray<FHitResult> OutCameraVerticalHits;
 
 	//トレースする対象(自身は対象から外す)
 	FCollisionQueryParams CollisionParam;
 	CollisionParam.AddIgnoredActor(this);
 	//レイを飛ばし、WorldStaticのコリジョンチャンネルを持つオブジェクトのヒット判定を取得する
-	bool isSpringArmHit = GetWorld()->LineTraceSingleByObjectType(OutSpringArmHit, DroneLocation, CameraLocation, ECollisionChannel::ECC_WorldStatic, CollisionParam);
-	bool isCameraWidthHit = GetWorld()->LineTraceMultiByObjectType(OutCameraWidthHits, CameraLeft, CameraRight, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+	//bool isSpringArmHit = GetWorld()->LineTraceSingleByObjectType(OutSpringArmHit, DroneLocation, CameraLocation, ECollisionChannel::ECC_WorldStatic, CollisionParam);
+	//bool isCameraWidthHit = GetWorld()->LineTraceMultiByObjectType(OutCameraWidthHits, CameraLeft, CameraRight, ECollisionChannel::ECC_WorldStatic, CollisionParam);
 	bool isCameraVerticalHit = GetWorld()->LineTraceMultiByObjectType(OutCameraVerticalHits, DroneLocation, CameraUp, ECollisionChannel::ECC_WorldStatic, CollisionParam);
 
 	float Atten = FMath::Clamp(DeltaTime * 7.f, 0.f, 1.f);
+	const float OFFSET_MAX = 30.f;
 
-	FVector TargetOffset = FVector(0.f, 0.f, 20.f);
+	float ZOffset = 20.f;
+	//FVector2D TargetOffset2D = FVector2D(0.f, 0.f);
+	//FRotator DroneRotation = GetActorRotation();
+	//DroneRotation.Yaw += 90.f;
 
-	//カメラの横判定
-	if (isCameraWidthHit)
-	{		
-		//カメラに重なったオブジェクトを確認
-		if (OutCameraWidthHits.Num() > 0)
-		{
-			for (const FHitResult& hitResult : OutCameraWidthHits)
-			{
-				if (AActor* pHitActor = hitResult.GetActor())
-				{
-					//カメラをブロックするオブジェクトがある場合はオフセット位置を調整する
-					if (pHitActor->ActorHasTag(TEXT("CameraBlocking")))
-					{
-					
-						break;
-					}
-				}
-			}
-		}
-	}
+	////スプリングアームのオーバーラップ判定
+	//if (isSpringArmHit)
+	//{
+	//	if (AActor* pHitActor = OutSpringArmHit.GetActor())
+	//	{
+	//		//カメラをブロックするオブジェクトがある場合はオフセット位置を調整する
+	//		if (pHitActor->ActorHasTag(TEXT("CameraBlocking")))
+	//		{
+	//			TargetOffset2D.Y = -OutSpringArmHit.Distance;
+	//		}
+	//	}
+	//}
+
+	////カメラの横判定
+	//if (isCameraWidthHit)
+	//{		
+	//	//カメラに重なったオブジェクトを確認
+	//	if (OutCameraWidthHits.Num() > 0)
+	//	{
+	//		for (const FHitResult& hitResult : OutCameraWidthHits)
+	//		{
+	//			if (AActor* pHitActor = hitResult.GetActor())
+	//			{
+	//				//カメラをブロックするオブジェクトがある場合はオフセット位置を調整する
+	//				if (pHitActor->ActorHasTag(TEXT("CameraBlocking")))
+	//				{
+	//					float LeftDist = FVector::Dist2D(CameraLeft, hitResult.Location);
+	//					float RightDist = FVector::Dist2D(CameraRight, hitResult.Location);
+
+	//					TargetOffset2D.X = FMath::Lerp(
+	//						(LeftDist > RightDist) ? -OFFSET_MAX : OFFSET_MAX,
+	//						0.f,
+	//						FMath::Clamp(hitResult.Distance / Len, 0.f, 1.f));
+
+	//					break;
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
 
 	//カメラの縦判定
 	if (isCameraVerticalHit)
@@ -625,7 +649,7 @@ void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
 					//カメラをブロックするオブジェクトがある場合はオフセット位置を調整する
 					if (pHitActor->ActorHasTag(TEXT("CameraBlocking")))
 					{
-						TargetOffset.Z = FMath::Lerp(-30.f, 20.f, FMath::Clamp(hitResult.Distance / Len, 0.f, 1.f));
+						ZOffset = FMath::Lerp(-OFFSET_MAX, 20.f, FMath::Clamp(hitResult.Distance / Len, 0.f, 1.f));
 						break;
 					}
 				}
@@ -634,6 +658,7 @@ void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
 	}
 
 	//カメラのオフセットを変更
+	FVector TargetOffset = FVector(0.f, 0.f, ZOffset);
 	FVector NewCameraOffset = FMath::Lerp(m_pSpringArm->TargetOffset, TargetOffset, Atten * 0.5f);
 	m_pSpringArm->TargetOffset = (NewCameraOffset - TargetOffset).IsNearlyZero(0.3f) ? TargetOffset : NewCameraOffset;
 }
