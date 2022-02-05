@@ -176,3 +176,10 @@ void ATrain::CheckMoveDistance()
 		}
 	}
 }
+
+//‰Šú‰»
+void ATrain::Init()
+{
+	m_CurrentSpeed = 0.f;
+	m_MoveDistance = 0.f;
+}

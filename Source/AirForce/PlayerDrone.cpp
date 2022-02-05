@@ -23,7 +23,12 @@
 #include "NiagaraFunctionLibrary.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Misc/FileHelper.h"
+#include "Train.h"
+
+#if WITH_EDITOR
 #include "DrawDebugHelpers.h"
+#endif // WITH_EDITOR
+
 
 //#define DEBUG_CAMERA
 
@@ -676,6 +681,12 @@ void APlayerDrone::InitializeReplay()
 	m_pBodyMesh->SetWorldRotation(m_StartQuaternion);
 	m_PlaybackFlame = 0;
 	m_isReplay = true;
+
+	//電車を初期位置に配置
+	if (ATrain* pTrain = Cast<ATrain>(CGameUtility::GetActorFromTag(this, TEXT("Train"))))
+	{
+		pTrain->Init();
+	}
 }
 //リプレイ更新処理
 void APlayerDrone::UpdateReplay(const float& DeltaTime)

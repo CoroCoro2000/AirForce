@@ -40,6 +40,10 @@ private:
 	//スプラインの終点に到着しているか確認する処理
 	void CheckMoveDistance();
 
+public:
+	//初期化
+	void Init();
+
 private:
 	UPROPERTY(EditAnywhere)
 		TArray<UStaticMesh*> m_pMeshes;										//電車のメッシュ
