@@ -10,6 +10,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "NiagaraComponentPool.h"
 #include "Ring.generated.h"
 
 //前方宣言
@@ -17,27 +18,36 @@ class UStaticMeshComponent;
 class UNiagaraComponent;
 class UNiagaraSystem;
 class ADroneBase;
+class USoundBase;
+class UCurveLinearColor;
 
+//紐付けされたドローンとエフェクトを格納する構造体
 USTRUCT(BlueprintType)
-struct FFollowingEffectDronePair
+struct FFollowingDroneAndEffect
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
+public:
+	//コンストラクタ
+	FFollowingDroneAndEffect();
+	FFollowingDroneAndEffect(ADroneBase* pDrone, UNiagaraComponent* pNiagaraEffect = (UNiagaraComponent*)nullptr);
+	//デストラクタ
+	~FFollowingDroneAndEffect();
+	//ドローン取得
+	ADroneBase* GetDrone()const { return m_pDrone.Get(); }
+	//エフェクト取得
+	UNiagaraComponent* GetEffect()const { return m_pNiagaraEffect.Get(); }
+	//エフェクトが生成済みかどうか
+	bool IsEffectSpawned() const { return m_bIsEffectSpawned; }
+	//エフェクトを生成
+	void SpawnEffectAtLocation(const UObject* WorldContextObject, UNiagaraSystem* SystemTemplate, FVector SpawnLocation, FRotator SpawnRotation = FRotator::ZeroRotator, FVector Scale = FVector(1.F), bool bAutoDestroy = true, bool bAutoActivate = true, ENCPoolMethod PoolingMethod = ENCPoolMethod::None);
 
 public:
-	UPROPERTY(EditAnywhere, Category = FollowingEffectDronePair)
-		ADroneBase* pDrone;
-	UPROPERTY(EditAnywhere, Category = FollowingEffectDronePair)
-		UNiagaraComponent* pFollowingEffect;
-
-	//コンストラクタ
-	FFollowingEffectDronePair()
-		: pDrone(nullptr)
-		, pFollowingEffect(nullptr)
-	{}
-	FFollowingEffectDronePair(ADroneBase* Drone, UNiagaraComponent* FollowingEffect)
-		: pDrone(Drone)
-		, pFollowingEffect(FollowingEffect)
-	{}
+	UPROPERTY(VisibleAnywhere)
+		TWeakObjectPtr<ADroneBase> m_pDrone;
+	UPROPERTY(VisibleAnywhere)
+		TWeakObjectPtr<UNiagaraComponent> m_pNiagaraEffect;
+	UPROPERTY(VisibleAnywhere)
+		bool m_bIsEffectSpawned;
 };
 
 UCLASS()
@@ -64,7 +74,7 @@ protected:
 
 public:
 	//通過されているかのフラグ取得
-	FORCEINLINE bool GetIsPassed()const { return m_bIsPassed; }
+	bool GetIsPassed()const { return m_bIsPassed; }
 	//メッシュ取得
 	UStaticMeshComponent* GetMesh()const { return m_pRingMesh; }
 
@@ -82,11 +92,15 @@ protected:
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* m_pRingMesh;														//リングのメッシュ
 	UPROPERTY(EditAnywhere)
-		TArray<struct FFollowingEffectDronePair> m_pFollowingEffectDronePairs;		//通過したドローンと追従エフェクトのペア
+		TArray<struct FFollowingDroneAndEffect> m_pFollowingDroneAndEffect;			//通過したドローン
 	UPROPERTY(EditAnywhere)
 		UNiagaraSystem* m_pEffect;																		//通過時に出すエフェクト
 	UPROPERTY(VisibleAnywhere)
 		bool m_bIsPassed;																						//このリングが通過されたか判定
+	UPROPERTY(VisibleAnywhere)
+		float m_PassedTime;																					//通過後の時間を計測
+	UPROPERTY(VisibleAnywhere)
+		float m_ResetTime;																					//通過後の時間を計測
 	UPROPERTY(EditAnywhere)
 		float m_SineWidth;																						//サイン波の間隔
 	UPROPERTY(EditAnywhere)
@@ -98,7 +112,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 		float m_RingScale;																						//リングのスケール
 	UPROPERTY(EditAnywhere)
+		float m_RingMaxScale;																				//リングの最大スケール
+	UPROPERTY(EditAnywhere)
 		FLinearColor m_HSV;																					//リングの色
 	UPROPERTY(EditAnywhere, Category = "Sound")
-		USoundBase* m_RingHitSE;																		//リング衝突SE
+		USoundBase* m_pRingHitSE;																		//リング衝突SE
 };

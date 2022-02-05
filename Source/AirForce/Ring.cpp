@@ -11,21 +11,54 @@
 #include "DroneBase.h"
 #include "Components/StaticMeshComponent.h"
 #include "NiagaraComponent.h"
+#include "NiagaraComponentPool.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
+//struct FFollowingDroneAndEffect----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//コンストラクタ
+FFollowingDroneAndEffect::FFollowingDroneAndEffect()
+	: m_pDrone(nullptr)
+	, m_pNiagaraEffect(nullptr)
+	, m_bIsEffectSpawned(false)
+{
+
+}
+FFollowingDroneAndEffect::FFollowingDroneAndEffect(ADroneBase* pDrone, UNiagaraComponent* pNiagaraEffect)
+	: m_pDrone(MakeWeakObjectPtr<ADroneBase>(pDrone))
+	, m_pNiagaraEffect(MakeWeakObjectPtr<UNiagaraComponent>(pNiagaraEffect))
+	, m_bIsEffectSpawned(m_pNiagaraEffect.IsValid())
+{
+
+}
+//デストラクタ
+FFollowingDroneAndEffect::~FFollowingDroneAndEffect()
+{
+
+}
+//エフェクトを生成
+void FFollowingDroneAndEffect::SpawnEffectAtLocation(const UObject* WorldContextObject, UNiagaraSystem* SystemTemplate, FVector SpawnLocation, FRotator SpawnRotation, FVector Scale, bool bAutoDestroy, bool bAutoActivate, ENCPoolMethod PoolingMethod)
+{
+	m_pNiagaraEffect = MakeWeakObjectPtr<UNiagaraComponent>(UNiagaraFunctionLibrary::SpawnSystemAtLocation(WorldContextObject, SystemTemplate, SpawnLocation, SpawnRotation, Scale, bAutoDestroy, bAutoActivate, PoolingMethod));
+	m_bIsEffectSpawned = true;
+}
+
+//ARing----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //コンストラクタ
 ARing::ARing()
 	: m_pRingMesh(NULL)
-	, m_pFollowingEffectDronePairs()
 	, m_pEffect(NULL)
+	, m_bIsPassed(false)
+	, m_PassedTime(0.f)
+	, m_ResetTime(1.f)
 	, m_SineWidth(10.f)
 	, m_SineScaleMin(0.8f)
 	, m_SineScaleMax(1.05f)
 	, m_SineCurveValue(0.f)
 	, m_RingScale(1.f)
+	, m_RingMaxScale(m_RingScale * 1.8f)
 	, m_HSV(30.f, 40.f, 30.f)
-	, m_RingHitSE(NULL)
+	, m_pRingHitSE(NULL)
 {
 	//毎フレームTickを呼び出すかどうかのフラグ
 	PrimaryActorTick.bCanEverTick = true;
@@ -89,19 +122,31 @@ void ARing::UpdateSineCurve(const float& DeltaTime)
 //リングのサイズ更新
 void ARing::UpdateScale(const float& DeltaTime)
 {
+	float NewScale = m_RingScale;
+
 	//通過フラグが立っているならリングを拡大する
 	if (m_bIsPassed)
 	{
+		if (m_PassedTime < m_ResetTime)
+		{
+			m_PassedTime += DeltaTime;
+		}
+		else
+		{
+			m_bIsPassed = false;
+		}
 
+		NewScale = FMath::InterpExpoOut(m_RingScale, m_RingMaxScale, FMath::Clamp(m_PassedTime / m_ResetTime, 0.f, 1.f));
 	}
 	//通過フラグが立っていないときはSin波の間隔で拡大縮小を繰り返す
 	else
 	{
 		//サイン波の値でリングの大きさを変える
 		float ScaleMultiplier = FMath::Lerp(m_SineScaleMin, m_SineScaleMax, m_SineCurveValue);
-		//新しいスケールを適用
-		SetActorScale3D(FVector(m_RingScale * ScaleMultiplier));
+		NewScale *= ScaleMultiplier;
 	}
+	float Speed = m_bIsPassed ? DeltaTime * 10.f : DeltaTime * 8.f;
+	SetActorScale3D(FMath::Lerp(GetActorScale3D(), FVector(NewScale), Speed));
 }
 
 //リングのマテリアル更新
@@ -111,42 +156,58 @@ void ARing::UpdateMaterial(const float& DeltaTime)
 
 	if (m_bIsPassed)
 	{
-
+		//マテリアルの回転速度を下げる
+		float ScrollSpeed = 1.5f;
+		m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
 	}
 	//通過フラグが立っていない間はメッシュの拡縮に合わせてリングの色を変える
 	else
 	{
-		m_HSV.R = FMath::Lerp(50.f, 30.f, m_SineCurveValue);
-		m_HSV.B = FMath::Lerp(30.f, 50.f, m_SineCurveValue);
-		m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("BlendColor"), FVector(m_HSV.HSVToLinearRGB()));
+		//マテリアルの回転速度を上げる
+		float ScrollSpeed = 0.5f;
+		m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
 	}
+
+	m_HSV.R = FMath::Lerp(50.f, 30.f, m_SineCurveValue);
+	m_HSV.B = FMath::Lerp(30.f, 50.f, m_SineCurveValue);
+	m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("BlendColor"), FVector(m_HSV.HSVToLinearRGB()));
 }
 
 //リングのエフェクト更新
 void ARing::UpdateEffect(const float& DeltaTime)
 {
-	if (m_pFollowingEffectDronePairs.Num() <= 0) { return; }
+	if (m_pFollowingDroneAndEffect.Num() <= 0) { return; }
 
 	//エフェクトが消えていたら配列から削除するため、逆順にfor文を回す
-	for (int32 index = m_pFollowingEffectDronePairs.Num() - 1; index >= 0; --index)
+	for (int32 index = m_pFollowingDroneAndEffect.Num() - 1; index >= 0; --index)
 	{
-		if (m_pFollowingEffectDronePairs.IsValidIndex(index))
+		if (m_pFollowingDroneAndEffect.IsValidIndex(index))
 		{
-			if (const FFollowingEffectDronePair* EffectDronePair = &m_pFollowingEffectDronePairs[index])
+			FFollowingDroneAndEffect& DroneAndEffect = m_pFollowingDroneAndEffect[index];
+
+			//生成済みのエフェクトが無効になっていたら
+			if (DroneAndEffect.IsEffectSpawned() && (!DroneAndEffect.m_pNiagaraEffect.IsValid()))
 			{
-				//エフェクトをドローンに追従させる
-				if (IsValid(EffectDronePair->pFollowingEffect))
+				//配列から取り除く
+				m_pFollowingDroneAndEffect.RemoveAt(index);
+			}
+			//エフェクトがスポーンされていない場合はリングの拡大が終わっていたらスポーンさせる
+			else if (!DroneAndEffect.IsEffectSpawned())
+			{
+				FVector scaleSubtract = FVector(m_RingMaxScale) - GetActorScale3D();
+				if (scaleSubtract.IsNearlyZero(0.2f))
 				{
-					if (EffectDronePair->pDrone)
+					if (m_pEffect)
 					{
-						FVector DroneLocation = EffectDronePair->pDrone->GetActorLocation();
-						EffectDronePair->pFollowingEffect->SetVariableVec3(TEXT("User.Aim_position"), DroneLocation);
+						DroneAndEffect.SpawnEffectAtLocation(this, m_pEffect, GetActorLocation(), GetActorRotation(), GetActorScale3D());
+						if (DroneAndEffect.m_pNiagaraEffect.IsValid())
+						{
+							int32 randomColor = FMath::RandRange(0, 2);
+							FLinearColor particleColor = (randomColor == 0) ? FLinearColor::Red : (randomColor == 1) ? FLinearColor::Green : FLinearColor::Blue;
+							particleColor *= 30.f;
+							DroneAndEffect.m_pNiagaraEffect->SetVariableLinearColor(TEXT("User.Color"), particleColor);
+						}
 					}
-				}
-				//エフェクトが消えたら配列から削除する
-				else
-				{
-					m_pFollowingEffectDronePairs.RemoveAt(index);
 				}
 			}
 		}
@@ -161,21 +222,31 @@ void ARing::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AA
 		//タグがPlayerだった場合
 		if (OtherActor->ActorHasTag(TEXT("Drone")))
 		{
-			if (m_pEffect)
+			if (ADroneBase* pDrone = Cast<ADroneBase>(OtherActor))
 			{
-				if (ADroneBase* pDrone = Cast<ADroneBase>(OtherActor))
+				//通過済みのドローンか確認
+				bool isPassed = false;
+				for (const FFollowingDroneAndEffect& FollowingDroneAndEffect : m_pFollowingDroneAndEffect)
 				{
-					//ヒットしたドローンとエフェクトを配列に格納する
-					m_pFollowingEffectDronePairs.Add(FFollowingEffectDronePair(pDrone, UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, m_pEffect, GetActorLocation(), GetActorRotation())));
-
-					//マテリアルの回転速度を上げる
-					float ScrollSpeed = 1.f;
-					m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
-
-					//SEの再生
-					if (pDrone->GetisControl())
+					if (pDrone == FollowingDroneAndEffect.m_pDrone)
 					{
-						UGameplayStatics::PlaySound2D(GetWorld(), m_RingHitSE);
+						isPassed = true;
+						break;
+					}
+				}
+
+				if (!isPassed)
+				{
+					m_bIsPassed = true;
+					m_PassedTime = 0.f;
+
+					//ヒットしたドローンを配列に格納する
+					m_pFollowingDroneAndEffect.Add(FFollowingDroneAndEffect(pDrone));
+
+					//ヒットしたドローンが自身の操作するドローンの時のみSEを再生
+					if (pDrone->GetisControl() && pDrone->IsPlayerControlled())
+					{
+						UGameplayStatics::PlaySound2D(GetWorld(), m_pRingHitSE);
 					}
 				}
 			}

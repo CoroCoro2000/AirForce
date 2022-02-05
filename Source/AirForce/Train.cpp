@@ -126,7 +126,7 @@ void ATrain::UpdateRotation(const float& DeltaTime)
 	//先頭のメッシュを含めた車両のメッシュの配列を作成
 	TArray<UStaticMeshComponent*> pTrainMeshes = m_pTrainMeshes;
 	pTrainMeshes.Insert(m_pFrontTrainMesh, 0);
-	float RotationSpeed = FMath::Clamp(DeltaTime * 5.f, 0.f, 1.f);
+	float RotationSpeed = FMath::Clamp(DeltaTime * 10.f, 0.f, 1.f);
 	FRotator PrevRotation = FRotator::ZeroRotator;
 	FRotator RotatorCorrection = FRotator::ZeroRotator;
 
