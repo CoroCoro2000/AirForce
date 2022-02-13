@@ -119,36 +119,39 @@ float FLoadingScreenSystem::GetLoadingProgress()
 
 	if (PersistentLevelPackage)
 	{
-		UWorld* World = UWorld::FindWorldInPackage(PersistentLevelPackage);
-		TArray<FName>	PackageNames;
-		PackageNames.Reserve(World->GetStreamingLevels().Num());
-		for (ULevelStreaming* LevelStreaming : World->GetStreamingLevels())
+		if (UWorld* World = UWorld::FindWorldInPackage(PersistentLevelPackage))
 		{
-			if (LevelStreaming)
+			TArray<FName>	PackageNames;
+			PackageNames.Reserve(World->GetStreamingLevels().Num());
+			for (ULevelStreaming* LevelStreaming : World->GetStreamingLevels())
 			{
-				if (!LevelStreaming->GetWorldAsset().IsNull()
-					&& LevelStreaming->GetWorldAsset() != World
-					&& LevelStreaming->HasLoadRequestPending())
+				if (LevelStreaming)
 				{
-					PackageNames.Add(LevelStreaming->GetWorldAssetPackageFName());
+					if (!LevelStreaming->GetWorldAsset().IsNull()
+						&& LevelStreaming->GetWorldAsset() != World
+						&& LevelStreaming->HasLoadRequestPending())
+					{
+						PackageNames.Add(LevelStreaming->GetWorldAssetPackageFName());
+					}
 				}
 			}
-		}
-		for (FName& LevelName : PackageNames)
-		{
-			PackageNum++;
-			UPackage* LevelPackage = FindObjectFast<UPackage>(NULL, LevelName);
-
-			if (LevelPackage && (LevelPackage->GetLoadTime() > 0))
+			for (FName& LevelName : PackageNames)
 			{
-				Sum += 100.0f;
-			}
-			else
-			{
-				const float LevelLoadPercentage = GetAsyncLoadPercentage(LevelName);
-				if (LevelLoadPercentage >= 0.0f)
+				PackageNum++;
+				if (UPackage* LevelPackage = FindObjectFast<UPackage>(NULL, LevelName))
 				{
-					Sum += 100.0f;
+					if (LevelPackage->GetLoadTime() > 0)
+					{
+						Sum += 100.0f;
+					}
+					else
+					{
+						const float LevelLoadPercentage = GetAsyncLoadPercentage(LevelName);
+						if (LevelLoadPercentage >= 0.0f)
+						{
+							Sum += 100.0f;
+						}
+					}
 				}
 			}
 		}
