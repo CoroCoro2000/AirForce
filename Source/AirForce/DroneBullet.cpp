@@ -39,9 +39,6 @@ ADroneBullet::ADroneBullet()
 	if (m_pBulletMesh)
 		m_pBulletMesh->SetupAttachment(RootComponent);
 
-	//デバッグ確認用
-	FString str = this->GetName();
-	UE_LOG(LogTemp, Warning, TEXT("%s: Generated"), *str);
 }
 
 //ゲーム開始時に1度だけ処理
