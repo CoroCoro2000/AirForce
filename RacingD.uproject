@@ -79,10 +79,6 @@
 			"Enabled": false
 		},
 		{
-			"Name": "Paper2D",
-			"Enabled": false
-		},
-		{
 			"Name": "AndroidMedia",
 			"Enabled": false
 		},
