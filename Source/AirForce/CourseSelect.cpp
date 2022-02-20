@@ -175,15 +175,22 @@ void ACourseSelect::InitializeCourseBestTimeText()
 {
 	TArray<FName> OutRowName;
 	UDataTableFunctionLibrary::GetDataTableRowNames(m_pLevelDataTable, OutRowName);
+	OutRowName.RemoveAt(0);
+
 	TArray<FString> BestTimeText;
 	//ステージの数だけ繰り返す
-	for (int i = 1; i < OutRowName.Num(); i++)
+	for (int i = 0; i < OutRowName.Num(); i++)
 	{
 		//ファイル読み込み
-		bool b= FFileHelper::LoadFileToStringArray(BestTimeText, *(FPaths::ProjectDir() + "Record/" + OutRowName[i].ToString() + "/Record.txt"));
-		UE_LOG(LogTemp, Warning, TEXT("%d"), b);
-		UE_LOG(LogTemp, Warning, TEXT("path[%s]"), *(FPaths::ProjectDir() + "Record/" + OutRowName[i].ToString() + "/Record.txt"));
+		bool b = FFileHelper::LoadFileToStringArray(BestTimeText, *(FPaths::ProjectDir() + "Record/" + OutRowName[i].ToString() + "/Record.txt"));
 
+#if WITH_EDITOR
+		FString path = TEXT("Path::") + (FPaths::ProjectDir() + "Record/" + OutRowName[i].ToString() + "/Record.txt");
+		FString str = b ? (FPaths::ProjectDir() + "Record/" + OutRowName[i].ToString() + "/Record.txt") : (TEXT("No best times found for ") + OutRowName[i].ToString());
+		UKismetSystemLibrary::PrintString(this, str, true, false);
+#endif // WITH_EDITOR
+
+		//1位のタイムだけ取り出す
 		if (BestTimeText.IsValidIndex(0))
 		{
 			m_pCourseBestTimeText.Add(BestTimeText[0]);

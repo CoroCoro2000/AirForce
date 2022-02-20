@@ -128,4 +128,5 @@ void ALevelManager::InputA()
 
 	//‘I‘ğ‚µ‚½ƒŒƒxƒ‹‚ğ“Ç‚İ‚Ş
 	UGameplayStatics::OpenLevel(GetWorld(), m_LevelName[m_LevelIndex]);
+	m_isInputEnable = false;
 }

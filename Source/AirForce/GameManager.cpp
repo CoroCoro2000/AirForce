@@ -231,11 +231,18 @@ void AGameManager::NextSceneUp()
 {
 	if (!m_isSceneTransition) { return; }
 		
-	m_NextScene--;
-	if ((int)m_NextScene.GetNextScene() < 0)
+	if ((int)m_NextScene.GetNextScene() == 0)
 	{
 		m_NextScene = 1;
 	}
+	else
+	{
+		m_NextScene--;
+	}
+
+#if WITH_EDITOR
+	UKismetSystemLibrary::PrintString(this, FString::FromInt((int32)m_NextScene.GetNextScene()), true, false);
+#endif // WITH_EDITOR
 }
 
 //
@@ -248,6 +255,9 @@ void AGameManager::NextSceneDown()
 	{
 		m_NextScene = 0;
 	}
+#if WITH_EDITOR
+	UKismetSystemLibrary::PrintString(this, FString::FromInt((int32)m_NextScene.GetNextScene()), true, false);
+#endif // WITH_EDITOR
 }
 
 //ラップタイム並び替え
