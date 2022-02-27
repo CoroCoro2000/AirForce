@@ -32,7 +32,7 @@ namespace EINPUT_AXIS
 	{
 		THROTTLE				UMETA(DisplayName = "THROTTLE"),//上下
 		ELEVATOR				UMETA(DisplayName = "ELEVATOR"),//前後
-		AILERON					UMETA(DisplayName = "AILERON"),	//左右
+		AILERON				UMETA(DisplayName = "AILERON"),	//左右
 		LADDER					UMETA(DisplayName = "LADDER"),	//旋回
 		NUM						UMETA(Hidden)
 	};
@@ -43,15 +43,10 @@ namespace EPATH_DRONE
 	enum Type
 	{
 		REPLAY					UMETA(DisplayName = "REPLAY"),	//リプレイ
-		BEST					UMETA(DisplayName = "BEST"),	//ベストタイム
+		BEST						UMETA(DisplayName = "BEST"),	//ベストタイム
 		NUM						UMETA(Hidden)
 	};
 }
-
-//--------------------------------------------------------------------
-//#define DEBUG_UpdateCamera			//カメラのデバッグ
-//#define DEBUG_IsOverHeightMax
-//--------------------------------------------------------------------
 
 UCLASS()
 class AIRFORCE_API APlayerDrone : public ADroneBase
@@ -96,12 +91,6 @@ public:
 	//1位のレースのクオータニオンファイル書き込み
 	UFUNCTION(BlueprintCallable, Category = "SaveRecord")
 		void WritingBestRaceQuaternion();
-
-	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
-		void SetIsOutCourse(const bool _isOutCourse) { m_bIsOutCourse = _isOutCourse; }
-	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
-		bool GetIsOutCourse()const { return m_bIsOutCourse; }
-
 	//リプレイの初期設定
 	UFUNCTION(BlueprintCallable, Category = "Replay")
 		void InitializeReplay();
@@ -177,7 +166,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
 		float m_CameraTargetLength;											//プレイヤーとカメラの距離
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
-		float m_FieldOfView;												//カメラの視野角
+		float m_FieldOfView;														//カメラの視野角
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
 		FVector m_CameraSocketOffset;										//カメラの位置
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
@@ -198,20 +187,12 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
 		FVector4 m_AxisValue;												//各軸の入力値(0:AILERON、1:ELEVATOR、2:THROTTLE、3:LADDER)
-
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
 		TArray<FString> m_SaveTypeFolderPath;
-
 	UPROPERTY(EditAnywhere, Category = "Ghost")
 		bool m_isReplay;
-
 	FVector m_StartLocation;
 	FQuat m_StartQuaternion;
 
 	float m_CameraRotationYaw;
-
-	bool m_bIsOutCourse;
-
-	UPROPERTY(EditAnywhere, Category = "Camera")
-		float m_BodyOpacity;
 };

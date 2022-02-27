@@ -347,10 +347,9 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 		m_LocalAxis += BodyQuat.GetForwardVector() * -m_AxisAccel.Y;
 		m_LocalAxis += BodyQuat.GetUpVector() * m_AxisAccel.Z;
 
-		m_Velocity = m_LocalAxis * m_Speed;
+		//ドローンにかかる力の設定
+		m_Velocity = CGameUtility::SetDecimalTruncation(m_LocalAxis * m_Speed, 3);
 
-		//上限でクランプ
-		m_Velocity = CGameUtility::SetDecimalTruncation(m_Velocity, 3);
 		//高度上限を超えていたら自動的に高度を下げる
 		if (m_HeightFromGround >= m_HeightMax)
 		{

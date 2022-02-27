@@ -49,8 +49,6 @@ APlayerDrone::APlayerDrone()
 	, m_StartLocation(FVector::ZeroVector)
 	, m_StartQuaternion(FQuat::Identity)
 	, m_CameraRotationYaw(0.f)
-	, m_bIsOutCourse(false)
-	, m_BodyOpacity(1.f)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -84,6 +82,9 @@ APlayerDrone::APlayerDrone()
 
 	//プレイヤータグを追加
 	Tags.Add(TEXT("Player"));
+
+	//レプリケートを有効化
+	bReplicates = true;
 }
 
 

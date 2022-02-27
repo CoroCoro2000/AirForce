@@ -95,15 +95,6 @@ namespace EDRONEMODE
 #define SPEED_MAX 10.5f
 #define VECTOR3_COMPONENT_NUM 3
 #define VECTOR4_COMPONENT_NUM 4
-//--------------------------------------------------------------------
-//#define DEGUG_ACCEL					//加速度のデバッグ
-//#define DEBUG_GRAVITY				//重力のデバッグ
-//#define DEBUG_WING					//羽のデバッグ
-//#define DEBUG_COLLISION_WINDRANGE		//風の範囲の当たり判定のデバッグ表示
-//#define DEBUG_COLLISION_WINDRANGE_OVERLAPDETA	//風の範囲の当たり判定にオーバーラップしているアクターの数
-//#define DEBUG_WindRangeOverlap_Begin		//オーバーラップ開始時のデバッグ
-//#define DEBUG_WindRangeOverlap_End		//オーバーラップ開始時のデバッグ
-//--------------------------------------------------------------------
 
 UCLASS()
 class AIRFORCE_API ADroneBase : public APawn
@@ -145,7 +136,7 @@ public:
 
 	//ボディメッシュの回転量取得
 	UFUNCTION(BlueprintCallable, Category = "Drone")
-		FRotator GetBodyMeshRotation() { return m_pBodyMesh->GetComponentRotation(); }
+		FRotator GetBodyMeshRotation()const { return m_pBodyMesh->GetComponentRotation(); }
 
 	//重力加速度の取得
 	float GetGravitationalAcceleration()const { return m_GravityScale * m_DescentTime * m_DescentTime / 2.f; }
