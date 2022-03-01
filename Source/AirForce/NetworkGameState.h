@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------
 // ファイル名		:ANetworkGameState.h
-// 概要				:サーバー　⇔　クライアント間のやり取りを管理するゲームステート
+// 概要				:サーバー　⇔　クライアント間のやり取りを管理する　サーバーとクライアント全体で1つを共有する。
 // 作成日			:2022/02/28
 // 作成者			:19CU0105 池村凌太
 // 更新内容			:
@@ -31,20 +31,13 @@ protected:
 	virtual void BeginPlay()override;
 	//毎フレーム実行される関数
 	virtual void Tick(float DeltaTime)override;
-	//レプリケートするプロパティを更新する
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
-	//ローカルで操作しているプレイヤーを取得
-	UFUNCTION(BlueprintCallable)
-		APlayerDrone* GetLocalPlayerDrone()const;
+	//ゲームステート取得
+	static ANetworkGameState* Get();
 
-	UFUNCTION()
-		void OnRep_CurrentDrone();
 
-protected:
+private:
 	UPROPERTY(EditAnywhere)
-		uint8 m_PlayerIndex;													//ローカルプレイヤーの識別番号
-	UPROPERTY(EditAnywhere, Replicated, ReplicatedUsing = OnRep_CurrentDrone)
-		TArray<APlayerDrone*> m_pPlayerDrones;					//セッションに参加しているプレイヤーの座標
+		TArray<APlayerDrone*> m_pPlayerDrones;
 };

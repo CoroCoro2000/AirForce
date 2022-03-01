@@ -13,6 +13,8 @@
 //インクルード
 #include "PlayerDrone.h"
 #include "GameUtility.h"
+#include "Net/UnrealNetwork.h"
+#include "NetworkGameState.h"
 #include "Components/InputComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -27,6 +29,7 @@
 
 #if WITH_EDITOR
 #include "DrawDebugHelpers.h"
+#include "Kismet/KismetSystemLibrary.h"
 #endif // WITH_EDITOR
 
 
@@ -83,10 +86,13 @@ APlayerDrone::APlayerDrone()
 	//プレイヤータグを追加
 	Tags.Add(TEXT("Player"));
 
-	//レプリケートを有効化
+	//プレイヤーが持つコントロール権
+	Role = ROLE_Authority;
+	//同期対象フラグ
 	bReplicates = true;
+	//所有権を持つクライアントのみに同期する
+	bOnlyRelevantToOwner = false;
 }
-
 
 //ゲーム開始時に1度だけ処理
 void APlayerDrone::BeginPlay()
@@ -105,6 +111,14 @@ void APlayerDrone::BeginPlay()
 	//初期位置とメッシュの回転を保存
 	m_StartLocation = this->GetActorLocation();
 	m_StartQuaternion = m_pBodyMesh->GetComponentQuat();
+}
+
+//レプリケートを登録
+void APlayerDrone::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+
 }
 
 //毎フレーム処理
@@ -175,12 +189,6 @@ void APlayerDrone::InitializeCamera()
 	m_pSpringArm->TargetOffset.Z = 20.f;
 	//カメラの視野角の設定
 	m_pCamera->SetFieldOfView(m_FieldOfView);
-}
-
-//	視点の切り替え
-void APlayerDrone::SwitchViewPort()
-{
-
 }
 
 //右のスティック入力から羽の加速度に変換する処理
@@ -339,6 +347,7 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 //ドローンの回転処理
 void APlayerDrone::UpdateRotation(const float& DeltaTime)
 {
+	if (!IsLocallyControlled()) { return; }
 	if (!m_pBodyMesh) { return; }
 
 	if (m_isReplay && !IsEndPlayBackReplay())
@@ -399,6 +408,7 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 //速度更新処理
 void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 {
+	if (!IsLocallyControlled()) { return; }
 	Super::UpdateSpeed(DeltaTime);
 
 	//コントロール可能なら移動量を保存する
@@ -754,6 +764,12 @@ void APlayerDrone::WritingReplayRaceQuaternion()
 		FFileHelper::SaveStringArrayToFile(SaveQuatText, *FliePath);
 		++index;
 	}
+}
+
+//ドローンの現在回転量取得(マルチ用)
+FRotator APlayerDrone::GetDroneRotation() const
+{
+	return m_pBodyMesh->GetComponentRotation();
 }
 
 //【入力バインド】コントローラー入力設定

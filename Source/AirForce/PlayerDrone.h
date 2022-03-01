@@ -62,6 +62,8 @@ public:
 protected:
 	//ゲーム開始時に1度だけ処理
 	virtual void BeginPlay() override;
+	//レプリケートを登録
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const override;
 
 public:
 	//毎フレーム処理
@@ -102,21 +104,14 @@ public:
 		FVector GetDroneLocation() const{ return GetActorLocation(); }
 	//ドローンの現在回転量取得(マルチ用)
 	UFUNCTION(BlueprintCallable, Category = "Replay")
-		FRotator GetDroneRotation() const{ return m_pBodyMesh->GetRelativeRotation(); }
-	UFUNCTION(BlueprintCallable, Category = "Replay")
-		void SetDroneRotation(FRotator _Rotation) { m_pBodyMesh->SetRelativeRotation(_Rotation.Quaternion()*0.2, true); }
+		FRotator GetDroneRotation() const;
+
 private:
 	//【入力バインド】各スティックの入力
 	void Input_Throttle(float _axisValue);
 	void Input_Elevator(float _axisValue);
 	void Input_Aileron(float _axisValue);
 	void Input_Ladder(float _axisValue);
-
-	UFUNCTION(BlueprintCallable, Category = "GameMode")
-		void SwitchGameMode(const TEnumAsByte<EGAMEMODE::Type> GameMode) { m_GameMode = (GameMode == EGAMEMODE::GAMEMODE_FPS ? EGAMEMODE::GAMEMODE_TPS : EGAMEMODE::GAMEMODE_FPS); }
-
-	UFUNCTION(BlueprintCallable, Category = "GameMode")
-		void SwitchViewPort();
 
 	UFUNCTION(BlueprintCallable, Category = "Target")
 		UCameraComponent* GetCamera() const { return m_pCamera; }	//カメラ取得

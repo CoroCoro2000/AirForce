@@ -10,6 +10,7 @@
 //コンストラクタ
 URacingD_GameInstance::URacingD_GameInstance()
 	: m_pLoadingScreenSystem(nullptr)
+	, m_PCName(TEXT("PC_1"))
 {
 
 }

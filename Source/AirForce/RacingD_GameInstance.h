@@ -34,4 +34,5 @@ public:
 
 private:
 	TSharedPtr<FLoadingScreenSystem> m_pLoadingScreenSystem;						//ロードスクリーンシステム
+	FString m_PCName;																						//PC名
 };

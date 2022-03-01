@@ -63,28 +63,6 @@ public:
 	float AccelState;																						//加速度の段階(-1:最小の加速度、0:加速度なし、1:加速度あり、2:最大の加速度)
 };
 
-//	視点切り替え
-UENUM(BlueprintType)
-namespace EGAMEMODE
-{
-	enum Type
-	{
-		GAMEMODE_FPS	UMETA(DisplayName = "FPS"),		//1人称
-		GAMEMODE_TPS	UMETA(DisplayName = "TPS"),		//3人称
-	};
-}
-
-//ドローンの操作状態列挙
-UENUM(BlueprintType)
-namespace EDRONEMODE
-{
-	enum Type
-	{
-		DRONEMODE_AUTOMATICK	UMETA(DisplayName = "AUTO"),	//オートマチック
-		DRONEMODE_MANUAL			UMETA(DisplayName = "MANUAL")	//マニュアル
-	};
-}
-
 //defineマクロ
 //現在のFPSを計測
 #define FPS (1.f / DeltaTime)
@@ -111,6 +89,8 @@ protected:
 	//ゲーム開始時に1度だけ処理
 	virtual void BeginPlay() override;
 
+	//レプリケートを登録
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const override;
 public:
 	//毎フレーム処理
 	virtual void Tick(float DeltaTime) override;
@@ -134,12 +114,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Drone")
 		bool GetisControl() { return  m_isControl; }
 
+	//ボディメッシュの回転設定
+	UFUNCTION(BlueprintCallable, Category = "Drone")
+		void SetBodyMeshRotation(const FRotator& NewRotator);
+	//ボディメッシュの回転設定
+	void SetBodyMeshRotation(const FQuat& NewRotator);
 	//ボディメッシュの回転量取得
 	UFUNCTION(BlueprintCallable, Category = "Drone")
-		FRotator GetBodyMeshRotation()const { return m_pBodyMesh->GetComponentRotation(); }
-
-	//重力加速度の取得
-	float GetGravitationalAcceleration()const { return m_GravityScale * m_DescentTime * m_DescentTime / 2.f; }
+		FRotator GetBodyMeshRotation()const;
 
 	//	ドローンの時速(kilometers per hour)取得
 	UFUNCTION(BlueprintCallable, Category = "Drone|Speed")
@@ -154,6 +136,14 @@ public:
 		void SetStagePath(FString _StagePath) { m_SaveStageFolderPath = _StagePath; }
 	//ローカル軸を取得
 	FVector GetLocalAxis()const { return m_LocalAxis; }
+
+	//入力値の設定
+	UFUNCTION(BlueprintCallable)
+		void SetAxisValue(const FVector4& NewAxisValue) { m_AxisValuePerFrame = NewAxisValue; }
+	//入力値の取得
+	UFUNCTION(BlueprintCallable)
+		FVector4 GetAxisValue()const { return m_AxisValuePerFrame; }
+
 protected:
 	//メッシュアセットのセットアップ
 	virtual void MeshAssetSetup();
@@ -161,8 +151,12 @@ protected:
 	virtual void InitializeCollision();
 	//メッシュの初期設定
 	virtual void InitializeMesh();
+	UFUNCTION(Client, Reliable)
+		virtual void Client_InitializeMesh();
 	//ライトの初期設定
 	virtual void InitializeLight();
+	UFUNCTION(Client, Reliable)
+		virtual void Client_InitializeLight();
 
 	//羽の加速度更新処理
 	virtual void UpdateWingAccle(const float& DeltaTime);
@@ -172,8 +166,6 @@ protected:
 	virtual void UpdateSpeed(const float& DeltaTime);
 	//羽の回転更新処理
 	virtual void UpdateWingRotation(const float& DeltaTime);
-	//重力更新処理
-	float UpdateGravity(const float& DeltaTime);
 	//風のエフェクト更新処理
 	virtual void UpdateWindEffect(const float& DeltaTime);
 
@@ -186,11 +178,6 @@ protected:
 	void UpdateCloudOfDustEffect();
 
 protected:
-	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "GameMode")
-		TEnumAsByte<EGAMEMODE::Type> m_GameMode;	//	視点切り替え
-
-	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "GameMode")
-		TEnumAsByte<EDRONEMODE::Type> m_DroneMode;	//	ドローン操作切り替え
 	//-------------------------------------------------------------------------------------------------------
 	//BODY
 	UPROPERTY(EditAnywhere, Category = "Mesh|Body")
@@ -238,16 +225,6 @@ protected:
 		float m_DroneWeight;							//ドローンの重量(kg)
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
 		FVector m_Velocity;								//このドローンにかかっている力の量
-	UPROPERTY(VisibleAnywhere, Category = "Physical")
-		FVector m_CentrifugalForce;						//遠心力
-	UPROPERTY(VisibleAnywhere, Category = "Physical")
-		FVector m_AngularVelocity;									//角速度(振動の角速度)
-	UPROPERTY(EditAnywhere, Category = "Physical|Gravity")
-		float m_GravityScale;							//重力係数
-	UPROPERTY(EditAnywhere, Category = "Physical")
-		FVector m_Gravity;								//重力
-	UPROPERTY(VisibleAnywhere, Category = "Physical|Gravity")
-		float m_DescentTime;							//落下している時間
 	UPROPERTY(EditAnywhere, Category = "Sound")
 		USoundBase* m_pWingRotationSE;			//羽の回転SE
 
@@ -258,10 +235,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Drone")
 		float m_DistanceToSlope;													//斜面までの距離
 
-	UPROPERTY(EditAnywhere, Category = "Drone")
+	UPROPERTY(EditAnywhere, Category = "Drone", Replicated/*, ReplicatedUsing = OnRep_m_isControl*/)
 		bool m_isControl;								//操作可能フラグ
-	UPROPERTY(EditAnywhere, Category = "Drone")
-		bool m_isFloating;								//滑空フラグ
+
 	UPROPERTY(EditAnywhere, Category = "Drone")
 		FVector4 m_AxisValuePerFrame;													//毎フレーム更新される入力の値
 
