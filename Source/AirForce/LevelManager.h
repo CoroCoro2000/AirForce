@@ -59,7 +59,7 @@ public:
 
 	//現在選択したレベル名取得
 	UFUNCTION(BlueprintCallable, Category = "Flag")
-		FName GetLevelName() const { return m_LevelName[m_LevelIndex]; }
+		FName GetLevelName() const { return m_LevelName.IsValidIndex(m_LevelIndex) ? m_LevelName[m_LevelIndex] : NAME_None; }
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
 		bool m_isInputEnable;						//入力可能フラグ

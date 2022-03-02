@@ -497,7 +497,7 @@ FRotator ADroneBase::GetBodyMeshRotation()const
 {
 	if (!m_pBodyMesh) { return FRotator::ZeroRotator; }
 
-	return m_pBodyMesh->GetRelativeRotation(); 
+	return m_pBodyMesh->GetComponentRotation(); 
 }
 
 
