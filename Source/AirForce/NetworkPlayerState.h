@@ -34,11 +34,13 @@ protected:
 
 public:
 	//　クライアント用　トランスフォームを設定
-	void SetPlayerTransform(const FTransform& NewTransform) { m_PlayerTransform = NewTransform; }
+	UFUNCTION(BlueprintCallable)
+		void SetPlayerTransform(const FTransform& NewTransform) { m_PlayerTransform = NewTransform; }
 	//　サーバー用　トランスフォームを取得
-	FTransform GetPlayerTransform()const { return m_PlayerTransform; }
+	UFUNCTION(BlueprintCallable)
+		FTransform GetPlayerTransform()const { return m_PlayerTransform; }
 
 private:
-	UPROPERTY(EditAnywhere, Replicated)
+	UPROPERTY(EditAnywhere)
 		FTransform m_PlayerTransform;								//プレイヤーのTransformを格納
 };

@@ -500,6 +500,13 @@ FRotator ADroneBase::GetBodyMeshRotation()const
 	return m_pBodyMesh->GetComponentRotation(); 
 }
 
+//ボディメッシュの回転量取得
+FRotator ADroneBase::GetBodyMeshRelativeRotation()const
+{
+	if (!m_pBodyMesh) { return FRotator::ZeroRotator; }
+
+	return m_pBodyMesh->GetRelativeRotation();
+}
 
 //オーバーラップ開始時に呼ばれる処理
 void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

@@ -13,6 +13,28 @@
 #include "NetworkPlayerController.generated.h"
 
 class APlayerDrone;
+class ANetworkGameState;
+
+//サーバーに送信するプレイヤーのTransformを格納する構造体
+USTRUCT(BlueprintType)
+struct FReplicatedPlayerTransform
+{
+	GENERATED_BODY()
+public:
+	FReplicatedPlayerTransform()
+		: Transform(FTransform::Identity)
+		, ControllerID(-1)
+	{}
+	FReplicatedPlayerTransform(const FTransform& InTransform, const int32& InPlayerControllerID)
+		: Transform(InTransform)
+		, ControllerID(InPlayerControllerID)
+	{}
+
+	UPROPERTY(EditAnywhere)
+		FTransform Transform;
+	UPROPERTY(EditAnywhere)
+		int32 ControllerID;
+};
 
 UCLASS()
 class AIRFORCE_API ANetworkPlayerController : public APlayerController
@@ -32,11 +54,11 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const override;
 
 	//サーバー用　Transform適用
-	UFUNCTION(Server, Unreliable)
-		void Server_ApplyTransform();
+	UFUNCTION(BlueprintCallable)
+		void Server_ApplyTransform(const FReplicatedPlayerTransform& ReplicatedPlayer);
 	//クライアント用　Transformを渡す
-	UFUNCTION(Client, Unreliable)
-		void Client_SetTransform();
+	UFUNCTION(BlueprintCallable)
+		FReplicatedPlayerTransform Client_TransformTransfer();
 
 	//プレイヤーのTransform同期
 	void SynchronizePlayerTransform();

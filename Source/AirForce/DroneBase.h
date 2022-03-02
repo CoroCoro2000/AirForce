@@ -122,6 +122,9 @@ public:
 	//ボディメッシュの回転量取得
 	UFUNCTION(BlueprintCallable, Category = "Drone")
 		FRotator GetBodyMeshRotation()const;
+	//ボディメッシュの回転量取得
+	UFUNCTION(BlueprintCallable, Category = "Drone")
+		FRotator GetBodyMeshRelativeRotation()const;
 
 	//	ドローンの時速(kilometers per hour)取得
 	UFUNCTION(BlueprintCallable, Category = "Drone|Speed")

@@ -26,6 +26,8 @@ ANetworkPlayerController::ANetworkPlayerController()
 	bReplicates = true;
 	//所有権を持つクライアントのみに同期する
 	bOnlyRelevantToOwner = true;
+	bAlwaysRelevant = true;
+	bReplicateMovement = true;
 }
 
 //ゲーム開始時に実行される関数
@@ -51,78 +53,50 @@ void ANetworkPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 }
 
 //サーバー用　Transform適用
-void ANetworkPlayerController::Server_ApplyTransform_Implementation()
+void ANetworkPlayerController::Server_ApplyTransform(const FReplicatedPlayerTransform& ReplicatedPlayer)
 {
-	//GameStateから各PlayerStateにアクセスし、クライアントが更新したTransformをサーバー上に反映する
-	if (ANetworkGameState* pGameState = ANetworkGameState::Get())
+	if (!IsLocalPlayerController())
 	{
-		for (APlayerState* pPlayerState : pGameState->PlayerArray)
+		if (APlayerDrone* pPlayerDrone = Cast<APlayerDrone>(UGameplayStatics::GetPlayerPawn(GetWorld(), ReplicatedPlayer.ControllerID)))
 		{
-			if (ANetworkPlayerState* pNetworkPlayerState = Cast<ANetworkPlayerState>(pPlayerState))
-			{
-				//自身のTransformは変更してはならないため、自分以外の所有するPlayerStateにアクセスする
-				if (ANetworkPlayerController* pPlayerController = Cast<ANetworkPlayerController>(pNetworkPlayerState->GetOwner()))
-				{
-					if (pPlayerController != this)
-					{
-						//Transformを適用
-						if (APlayerDrone* pClientDrone = pPlayerController->GetPawn<APlayerDrone>())
-						{
-							FTransform PlayerTransform = pNetworkPlayerState->GetPlayerTransform();
-
-							pClientDrone->SetActorLocation(PlayerTransform.GetLocation());
-							pClientDrone->SetBodyMeshRotation(PlayerTransform.GetRotation());
+			pPlayerDrone->SetActorLocation(ReplicatedPlayer.Transform.GetLocation());
+			pPlayerDrone->SetBodyMeshRotation(ReplicatedPlayer.Transform.GetRotation());
 
 #if WITH_EDITOR
-							FString str = TEXT("Server::") + GetName() + TEXT("::SynchronizePlayerTransform()");
-							UKismetSystemLibrary::PrintString(this, str, true, false);
+			FString str = TEXT("Server_ApplyTransform_Implementation::") + pPlayerDrone->GetName();
+			UKismetSystemLibrary::PrintString(this, str, true, false);
 #endif // WITH_EDITOR
-						}
-					}
-				}
-			}
 		}
 	}
 }
 
 //クライアント用　Transformを渡す
-void ANetworkPlayerController::Client_SetTransform_Implementation()
+FReplicatedPlayerTransform ANetworkPlayerController::Client_TransformTransfer()
 {
-	//GameStateから各PlayerStateにアクセスし、クライアントが更新したTransformをサーバー上に反映する
-	if (ANetworkGameState* pGameState = ANetworkGameState::Get())
+	if (IsLocalPlayerController())
 	{
-		for (APlayerState* pPlayerState : pGameState->PlayerArray)
+		if (APlayerDrone* pPlayerDrone = GetPawn<APlayerDrone>())
 		{
-			if (ANetworkPlayerState* pNetworkPlayerState = Cast<ANetworkPlayerState>(pPlayerState))
-			{
-				if (ANetworkPlayerController* pPlayerController = Cast<ANetworkPlayerController>(pNetworkPlayerState->GetOwner()))
-				{
-					if (pPlayerController == this)
-					{
-						//自分のプレイヤーステートにTransformを渡す
-						if (APlayerDrone* pClientDrone = pPlayerController->GetPawn<APlayerDrone>())
-						{
-							FTransform LocalTransform(pClientDrone->GetBodyMeshRotation(), pClientDrone->GetActorLocation());
-							pNetworkPlayerState->SetPlayerTransform(LocalTransform);
+			FReplicatedPlayerTransform ReplicatedPlayer(
+				FTransform(pPlayerDrone->GetBodyMeshRelativeRotation(), pPlayerDrone->GetActorLocation()),
+				UGameplayStatics::GetPlayerControllerID(this));
 
 #if WITH_EDITOR
-							FString str = TEXT("Client::") + GetName() + TEXT("::SynchronizePlayerTransform()");
-							UKismetSystemLibrary::PrintString(this, str, true, false);
+			FString str = TEXT("Client_TransformTransfer_Implementation::") + pPlayerDrone->GetName();
+			UKismetSystemLibrary::PrintString(this, str, true, false);
 #endif // WITH_EDITOR
-						}
-					}
-				}
-			}
+
+			return ReplicatedPlayer;
 		}
 	}
+
+	return FReplicatedPlayerTransform(FTransform::Identity, -1);
 }
 
 //プレイヤーのTransform同期
 void ANetworkPlayerController::SynchronizePlayerTransform()
 {
 	if (!m_bCanUpdate) { return; }
-
-	(GetRemoteRole() == ENetRole::ROLE_Authority) ? Server_ApplyTransform() : Client_SetTransform();
 
 	m_bCanUpdate = false;
 
