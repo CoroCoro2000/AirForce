@@ -18,16 +18,12 @@
 //コンストラクタ
 ANetworkPlayerController::ANetworkPlayerController()
 	: m_SynchronousInterval(0.25f)
-	, m_bCanUpdate(true)
 {
-	//プレイヤーが持つコントロール権
-	Role = ROLE_Authority;
 	//同期対象フラグ
 	bReplicates = true;
 	//所有権を持つクライアントのみに同期する
 	bOnlyRelevantToOwner = true;
 	bAlwaysRelevant = true;
-	bReplicateMovement = true;
 }
 
 //ゲーム開始時に実行される関数
@@ -49,71 +45,77 @@ void ANetworkPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ANetworkPlayerController, m_bCanUpdate);
 }
 
 //サーバー用　Transform適用
-void ANetworkPlayerController::Server_ApplyTransform(const FReplicatedPlayerTransform& ReplicatedPlayer)
+void ANetworkPlayerController::Server_ApplyTransform()
 {
-	if (!IsLocalPlayerController())
+	if (IsLocalPlayerController())
 	{
-		if (APlayerDrone* pPlayerDrone = Cast<APlayerDrone>(UGameplayStatics::GetPlayerPawn(GetWorld(), ReplicatedPlayer.ControllerID)))
+		if (ANetworkGameState* pGameState = GetWorld()->GetGameState<ANetworkGameState>())
 		{
-			pPlayerDrone->SetActorLocation(ReplicatedPlayer.Transform.GetLocation());
-			pPlayerDrone->SetBodyMeshRotation(ReplicatedPlayer.Transform.GetRotation());
+			for (ANetworkPlayerState* pPlayerState : pGameState->GetPlayerState())
+			{
+				if (pPlayerState)
+				{
+					//クライアントから送られてきたTransformでサーバー上にいるドローンを更新する
+					FReplicatedPlayerTransform ReplicatedPlayer = pPlayerState->GetPlayerTransform();
+
+					if (ANetworkPlayerController* pPlayerController = Cast<ANetworkPlayerController>(pPlayerState->GetOwner()))
+					{
+						if (APlayerDrone* pPlayerDrone = pPlayerController->GetPawn<APlayerDrone>())
+						{
+							//ローカルでコントロールされていない(クライアントの)ドローンのみ更新
+							if (!pPlayerDrone->IsLocallyControlled())
+							{
+								pPlayerDrone->SetActorLocation(ReplicatedPlayer.Transform.GetLocation());
+								pPlayerDrone->SetBodyMeshRotation(ReplicatedPlayer.Transform.GetRotation());
 
 #if WITH_EDITOR
-			FString str = TEXT("Server_ApplyTransform_Implementation::") + pPlayerDrone->GetName();
-			UKismetSystemLibrary::PrintString(this, str, true, false);
+								FString str = TEXT("Server_ApplyTransform_Implementation::") + pPlayerDrone->GetName();
+								UKismetSystemLibrary::PrintString(this, str, true, false);
 #endif // WITH_EDITOR
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }
 
 //クライアント用　Transformを渡す
-FReplicatedPlayerTransform ANetworkPlayerController::Client_TransformTransfer()
+void ANetworkPlayerController::Client_TransformTransfer()
 {
 	if (IsLocalPlayerController())
 	{
 		if (APlayerDrone* pPlayerDrone = GetPawn<APlayerDrone>())
 		{
-			FReplicatedPlayerTransform ReplicatedPlayer(
-				FTransform(pPlayerDrone->GetBodyMeshRelativeRotation(), pPlayerDrone->GetActorLocation()),
-				UGameplayStatics::GetPlayerControllerID(this));
+			if (ANetworkPlayerState* pPlayerState = GetPlayerState<ANetworkPlayerState>())
+			{
+				pPlayerState->SetPlayerTransform(FReplicatedPlayerTransform(
+					FTransform(pPlayerDrone->GetBodyMeshRelativeRotation(), pPlayerDrone->GetActorLocation()),
+					pPlayerState->PlayerId));
 
 #if WITH_EDITOR
-			FString str = TEXT("Client_TransformTransfer_Implementation::") + pPlayerDrone->GetName();
-			UKismetSystemLibrary::PrintString(this, str, true, false);
+				FString str = TEXT("Client_TransformTransfer_Implementation::") + pPlayerDrone->GetName();
+				UKismetSystemLibrary::PrintString(this, str, true, false);
 #endif // WITH_EDITOR
-
-			return ReplicatedPlayer;
+			}
 		}
 	}
-
-	return FReplicatedPlayerTransform(FTransform::Identity, -1);
 }
 
 //プレイヤーのTransform同期
 void ANetworkPlayerController::SynchronizePlayerTransform()
 {
-	if (!m_bCanUpdate) { return; }
 
-	m_bCanUpdate = false;
-
-	//指定秒後に更新可能フラグを立てる関数を呼び出すように登録
-	FLatentActionInfo LatentAction(0, 0, TEXT("ActivateUpdate"), this);
-	UKismetSystemLibrary::Delay(this, m_SynchronousInterval, LatentAction);
 }
 
 //プレイヤー情報の更新
 void ANetworkPlayerController::ActivateUpdate()
 {
-	m_bCanUpdate = true;
 
-#if WITH_EDITOR
-	FString str = GetName() + TEXT("::ActivateUpdate()");
-	UKismetSystemLibrary::PrintString(this, str, true, false);
-#endif // WITH_EDITOR
 }
 
 //ゲームコントローラー取得

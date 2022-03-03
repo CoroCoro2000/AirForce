@@ -9,8 +9,8 @@
 #include "NetworkGameState.h"
 #include "Engine/Engine.h"
 #include "Net/UnrealNetwork.h"
-#include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
+#include "NetworkPlayerState.h"
 #include "PlayerDrone.h"
 
 #if WITH_EDITOR
@@ -20,8 +20,6 @@
 //コンストラクタ
 ANetworkGameState::ANetworkGameState()
 {
-	//プレイヤーが持つコントロール権
-	Role = ROLE_Authority;
 	//同期対象フラグ
 	bReplicates = true;
 	//所有権を持つクライアントのみに同期する
@@ -54,4 +52,17 @@ ANetworkGameState* ANetworkGameState::Get()
 		}
 	}
 	return pGameState;
+}
+
+//PlayerStateの配列を取得
+TArray<ANetworkPlayerState*> ANetworkGameState::GetPlayerState()const
+{
+	TArray<ANetworkPlayerState*> pNetworkPlayerArray;
+
+	for (APlayerState* pPlayerState : PlayerArray)
+	{
+		pNetworkPlayerArray.Add(Cast<ANetworkPlayerState>(pPlayerState));
+	}
+
+	return pNetworkPlayerArray;
 }

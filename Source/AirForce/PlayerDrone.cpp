@@ -86,8 +86,6 @@ APlayerDrone::APlayerDrone()
 	//プレイヤータグを追加
 	Tags.Add(TEXT("Player"));
 
-	//プレイヤーが持つコントロール権
-	Role = ROLE_Authority;
 	//同期対象フラグ
 	bReplicates = true;
 	//所有権を持つクライアントのみに同期する

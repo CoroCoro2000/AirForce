@@ -53,12 +53,6 @@ protected:
 	//レプリケートを登録
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const override;
 
-	//サーバー用　Transform適用
-	UFUNCTION(BlueprintCallable)
-		void Server_ApplyTransform(const FReplicatedPlayerTransform& ReplicatedPlayer);
-	//クライアント用　Transformを渡す
-	UFUNCTION(BlueprintCallable)
-		FReplicatedPlayerTransform Client_TransformTransfer();
 
 	//プレイヤーのTransform同期
 	void SynchronizePlayerTransform();
@@ -70,9 +64,17 @@ public:
 	//ゲームコントローラー取得
 	static ANetworkPlayerController* Get();
 
+	//サーバー用　Transform適用
+	UFUNCTION(BlueprintCallable)
+		void Server_ApplyTransform();
+	//クライアント用　Transformを渡す
+	UFUNCTION(BlueprintCallable)
+		void Client_TransformTransfer();
+
+	UFUNCTION(BlueprintCallable)
+		float GetSynchronousInterval()const { return m_SynchronousInterval; }
+
 private:
 	UPROPERTY(EditAnywhere)
 		float m_SynchronousInterval;			//同期する間隔(秒単位)
-	UPROPERTY(EditAnywhere, Replicated)
-		bool m_bCanUpdate;						//更新可能フラグ
 };

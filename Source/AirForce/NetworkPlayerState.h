@@ -10,6 +10,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "NetworkPlayerController.h"
 #include "NetworkPlayerState.generated.h"
 
 /**
@@ -35,12 +36,14 @@ protected:
 public:
 	//　クライアント用　トランスフォームを設定
 	UFUNCTION(BlueprintCallable)
-		void SetPlayerTransform(const FTransform& NewTransform) { m_PlayerTransform = NewTransform; }
+		void SetPlayerTransform(const FReplicatedPlayerTransform& ReplicatedPlayer) { m_ReplicatedPlayer = ReplicatedPlayer; }
 	//　サーバー用　トランスフォームを取得
 	UFUNCTION(BlueprintCallable)
-		FTransform GetPlayerTransform()const { return m_PlayerTransform; }
+		FReplicatedPlayerTransform GetPlayerTransform()const { return m_ReplicatedPlayer; }
+	UFUNCTION()
+		void OnRep_m_ReplicatedPlayer();
 
 private:
-	UPROPERTY(EditAnywhere)
-		FTransform m_PlayerTransform;								//プレイヤーのTransformを格納
+	UPROPERTY(EditAnywhere, Replicated, ReplicatedUsing = OnRep_m_ReplicatedPlayer)
+		FReplicatedPlayerTransform m_ReplicatedPlayer;								//プレイヤーのTransformを格納
 };

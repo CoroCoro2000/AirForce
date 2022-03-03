@@ -14,8 +14,6 @@
 //コンストラクタ
 ANetworkGameMode::ANetworkGameMode()
 {
-	//プレイヤーが持つコントロール権
-	Role = ROLE_Authority;
 	//同期対象フラグ
 	bReplicates = false;
 	//所有権を持つクライアントのみに同期する

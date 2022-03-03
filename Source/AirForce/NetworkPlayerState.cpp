@@ -7,15 +7,15 @@
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #include "NetworkPlayerState.h"
+#include "NetworkPlayerController.h"
 #include "Engine/Engine.h"
 #include "Net/UnrealNetwork.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 //コンストラクタ
 ANetworkPlayerState::ANetworkPlayerState()
-	: m_PlayerTransform(FTransform::Identity)
+	: m_ReplicatedPlayer(FTransform::Identity, -1)
 {
-	//プレイヤーが持つコントロール権
-	Role = ROLE_Authority;
 	//同期対象フラグ
 	bReplicates = true;
 	//所有権を持つクライアントのみに同期する
@@ -41,5 +41,13 @@ void ANetworkPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ANetworkPlayerState, m_PlayerTransform);
+	DOREPLIFETIME(ANetworkPlayerState, m_ReplicatedPlayer);
+}
+
+void ANetworkPlayerState::OnRep_m_ReplicatedPlayer()
+{
+
+#if WITH_EDITOR
+	UKismetSystemLibrary::PrintString(this, TEXT("OnRep_m_ReplicatedPlayer"), true, false);
+#endif // WITH_EDITOR
 }

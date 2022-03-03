@@ -13,6 +13,7 @@
 #include "NetworkGameState.generated.h"
 
 class APlayerDrone;
+class ANetworkPlayerState;
 
 /**
  * 
@@ -36,8 +37,6 @@ public:
 	//ゲームステート取得
 	static ANetworkGameState* Get();
 
-
-private:
-	UPROPERTY(EditAnywhere)
-		TArray<APlayerDrone*> m_pPlayerDrones;
+	//PlayerStateの配列を取得
+	TArray<ANetworkPlayerState*> GetPlayerState()const;
 };
