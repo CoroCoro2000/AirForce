@@ -112,7 +112,7 @@ protected:
 public:
 	//操作可能フラグ取得
 	UFUNCTION(BlueprintCallable, Category = "Drone")
-		bool GetisControl() { return  m_isControl; }
+		bool GetisControl() const { return  m_isControl; }
 
 	//ボディメッシュの回転設定
 	UFUNCTION(BlueprintCallable, Category = "Drone")

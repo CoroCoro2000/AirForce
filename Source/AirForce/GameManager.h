@@ -97,6 +97,10 @@ public:
 	//毎フレーム処理
 	virtual void Tick(float DeltaTime) override;
 
+	//入力可能にする
+	UFUNCTION(BlueprintCallable)
+	void EnableResultInput();
+
 	//カウントダウン処理
 	void CountDown(float DeltaTime);
 

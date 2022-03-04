@@ -49,15 +49,6 @@ void AGameManager::BeginPlay()
 	//ファイル読み込み
 	FFileHelper::LoadFileToStringArray(m_RapTimeText, *(FPaths::ProjectDir() + m_SaveRecordFolderPath + m_SaveStageFolderPath + m_SaveRapTimeTextPath));
 
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if (PlayerController)
-	{
-		EnableInput(PlayerController);
-		//入力マッピング
-		InputComponent->BindAction(TEXT("InputUp"), EInputEvent::IE_Pressed, this, &AGameManager::NextSceneUp);
-		InputComponent->BindAction(TEXT("InputDown"), EInputEvent::IE_Pressed, this, &AGameManager::NextSceneDown);
-	}
-
 	//	ドローンの検索
 	AActor* pDrone = CGameUtility::GetActorFromTag(this, TEXT("Drone"));
 	if (pDrone)
@@ -110,7 +101,7 @@ void AGameManager::Tick(float DeltaTime)
 	
 		
 		//レースが始まっているならラップタイムを計測する
-		if (m_isStart & !m_isGoal)
+		if (m_isStart && !m_isGoal)
 		{
 			m_RapTime += DeltaTime;
 			if (m_RapTime > 599.999f)
@@ -145,6 +136,19 @@ void AGameManager::Tick(float DeltaTime)
 		break;
 	default:
 		break;
+	}
+}
+
+//入力可能にする
+void AGameManager::EnableResultInput()
+{
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (PlayerController)
+	{
+		EnableInput(PlayerController);
+		//入力マッピング
+		InputComponent->BindAction(TEXT("InputUp"), EInputEvent::IE_Pressed, this, &AGameManager::NextSceneUp);
+		InputComponent->BindAction(TEXT("InputDown"), EInputEvent::IE_Pressed, this, &AGameManager::NextSceneDown);
 	}
 }
 
