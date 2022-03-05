@@ -52,6 +52,7 @@ APlayerDrone::APlayerDrone()
 	, m_StartLocation(FVector::ZeroVector)
 	, m_StartQuaternion(FQuat::Identity)
 	, m_CameraRotationYaw(0.f)
+	, m_PlayerId(-1)
 {
 	//自身のTick()を毎フレーム呼び出すかどうか
 	PrimaryActorTick.bCanEverTick = true;
@@ -345,7 +346,6 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 //ドローンの回転処理
 void APlayerDrone::UpdateRotation(const float& DeltaTime)
 {
-	if (!IsLocallyControlled()) { return; }
 	if (!m_pBodyMesh) { return; }
 
 	if (m_isReplay && !IsEndPlayBackReplay())
@@ -406,7 +406,6 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 //速度更新処理
 void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 {
-	if (!IsLocallyControlled()) { return; }
 	Super::UpdateSpeed(DeltaTime);
 
 	//コントロール可能なら移動量を保存する
@@ -486,13 +485,6 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 			}
 		}
 	}
-
-#ifdef DEBUG_UpdateCamera
-	FColor LineColor = isClimbingSlope ? FColor::Yellow : FColor::Blue;
-	//デバッグ用のラインを描画
-	DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.f);
-
-#endif // DEBUG_UpdateCamera
 
 	//カメラと機体の角度を取得
 	FRotator CameraRotation = m_pCamera->GetRelativeRotation();
@@ -768,6 +760,12 @@ void APlayerDrone::WritingReplayRaceQuaternion()
 FRotator APlayerDrone::GetDroneRotation() const
 {
 	return m_pBodyMesh->GetComponentRotation();
+}
+
+//ドローンの更新用オペレーター
+void APlayerDrone::UpdateDrone(APlayerDrone* pPlayerDrone)
+{
+	this->m_AxisValuePerFrame = pPlayerDrone->m_AxisValuePerFrame;
 }
 
 //【入力バインド】コントローラー入力設定

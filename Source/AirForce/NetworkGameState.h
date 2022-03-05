@@ -10,6 +10,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
+#include "NetworkPlayerController.h"
 #include "NetworkGameState.generated.h"
 
 class APlayerDrone;
@@ -32,11 +33,23 @@ protected:
 	virtual void BeginPlay()override;
 	//毎フレーム実行される関数
 	virtual void Tick(float DeltaTime)override;
+	//レプリケートを登録
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const override;
 
 public:
 	//ゲームステート取得
-	static ANetworkGameState* Get();
-
+	static ANetworkGameState* Get(const UObject* WorldContextObject);
 	//PlayerStateの配列を取得
 	TArray<ANetworkPlayerState*> GetPlayerState()const;
+
+	//プレイヤーの登録
+	UFUNCTION(BlueprintCallable)
+		void EntryPlayer(APlayerDrone* pEntryDrone);
+	//参加プレイヤーの取得
+	UFUNCTION(BlueprintCallable)
+		TArray<APlayerDrone*> GetEntryDrone()const { return m_pPlayerDrones; }
+
+private:
+	UPROPERTY(Replicated)
+		TArray<APlayerDrone*> m_pPlayerDrones;
 };

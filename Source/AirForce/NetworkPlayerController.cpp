@@ -50,33 +50,111 @@ void ANetworkPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 //サーバー用　Transform適用
 void ANetworkPlayerController::Server_ApplyTransform()
 {
-	if (IsLocalPlayerController())
+	//GameState取得
+	if (ANetworkGameState* pGameState = GetWorld()->GetGameState<ANetworkGameState>())
 	{
-		if (ANetworkGameState* pGameState = GetWorld()->GetGameState<ANetworkGameState>())
+		//参加している全てのPlayerStateを参照
+		for (ANetworkPlayerState* pPlayerState : pGameState->GetPlayerState())
 		{
-			for (ANetworkPlayerState* pPlayerState : pGameState->GetPlayerState())
+			if (pPlayerState && GetPlayerState<ANetworkPlayerState>() != pPlayerState)
 			{
-				if (pPlayerState)
+				//if (pPlayerState->IsCanUpdate())
 				{
-					//クライアントから送られてきたTransformでサーバー上にいるドローンを更新する
-					FReplicatedPlayerTransform ReplicatedPlayer = pPlayerState->GetPlayerTransform();
-
-					if (ANetworkPlayerController* pPlayerController = Cast<ANetworkPlayerController>(pPlayerState->GetOwner()))
+					if (APlayerDrone* pPlayerDrone = pPlayerState->GetPawn<APlayerDrone>())
 					{
-						if (APlayerDrone* pPlayerDrone = pPlayerController->GetPawn<APlayerDrone>())
+						FReplicatedPlayerTransform ReplicatedPlayer = pPlayerState->GetPlayerTransform();
+
+						if (ReplicatedPlayer.ControllerID > 0)
 						{
-							//ローカルでコントロールされていない(クライアントの)ドローンのみ更新
-							if (!pPlayerDrone->IsLocallyControlled())
-							{
-								pPlayerDrone->SetActorLocation(ReplicatedPlayer.Transform.GetLocation());
-								pPlayerDrone->SetBodyMeshRotation(ReplicatedPlayer.Transform.GetRotation());
+							//pPlayerDrone->SetBodyMeshRotation(ReplicatedPlayer.Transform.GetRotation());
+							pPlayerDrone->SetActorLocation(ReplicatedPlayer.Transform.GetLocation());
 
 #if WITH_EDITOR
-								FString str = TEXT("Server_ApplyTransform_Implementation::") + pPlayerDrone->GetName();
-								UKismetSystemLibrary::PrintString(this, str, true, false);
+							FString str = TEXT("ClientID::") + FString::FromInt(ReplicatedPlayer.ControllerID);
+							UKismetSystemLibrary::PrintString(this, str, true, false);
+							//UKismetSystemLibrary::PrintString(this, ReplicatedPlayer.Transform.ToString(), true, false);
 #endif // WITH_EDITOR
-							}
 						}
+					}
+				}
+#if WITH_EDITOR
+				//else
+				//{
+				//	FString DebugStr = pPlayerState->GetName() + TEXT("::Can't Update");
+				//	UKismetSystemLibrary::PrintString(this, DebugStr, true, false);
+				//}
+#endif // WITH_EDITOR
+			}
+#if WITH_EDITOR
+			else
+			{
+				UKismetSystemLibrary::PrintString(this, TEXT("Server_ApplyTransform_Implementation::Is Server"), true, false);
+			}
+#endif // WITH_EDITOR
+		}
+	}
+#if WITH_EDITOR
+	else
+	{
+		UKismetSystemLibrary::PrintString(this, TEXT("GameState not found."), true, false);
+	}
+#endif // WITH_EDITOR
+}
+
+//クライアント用　Transformを渡す
+void ANetworkPlayerController::Client_TransformTransfer(const FReplicatedPlayerTransform& ReplicatedData)
+{
+	//GameState取得
+	if (ANetworkGameState* pGameState = GetWorld()->GetGameState<ANetworkGameState>())
+	{
+		//自身のPlayerStateを取得
+		if (ANetworkPlayerState* pPlayerState = GetPlayerState<ANetworkPlayerState>())
+		{
+			//自身の操作するプレイヤーのTransformをPlayerStateに転送する
+			if (APlayerDrone* pPlayerDrone = GetPawn<APlayerDrone>())
+			{
+				pPlayerState->SetPlayerTransform(ReplicatedData);
+
+#if WITH_EDITOR
+				FString str = TEXT("Client_TransformTransfer_Implementation::") + GetName();
+				UKismetSystemLibrary::PrintString(this, str, true, false);
+				UKismetSystemLibrary::PrintString(this, ReplicatedData.Transform.ToString(), true, false);
+#endif // WITH_EDITOR
+			}
+		}
+#if WITH_EDITOR
+		else
+		{
+			UKismetSystemLibrary::PrintString(this, TEXT("PlayerState not found."), true, false);
+		}
+#endif // WITH_EDITOR
+	}
+#if WITH_EDITOR
+	else
+	{
+		UKismetSystemLibrary::PrintString(this, TEXT("GameState not found."), true, false);
+	}
+#endif // WITH_EDITOR
+}
+
+//サーバー用　最新のドローン情報に更新
+void ANetworkPlayerController::Server_UpdateDrone() 
+{
+	if (ANetworkGameState* pGameState = GetWorld()->GetGameState<ANetworkGameState>())
+	{
+		//参加している全てのPlayerStateを参照
+		for (ANetworkPlayerState* pPlayerState : pGameState->GetPlayerState())
+		{
+			if (pPlayerState && GetPlayerState<ANetworkPlayerState>() != pPlayerState)
+			{
+				//クライアントから受け取ったドローン情報を取得
+				if (APlayerDrone* pClientDrone = pPlayerState->GetReplicatedPlayer())
+				{
+					//サーバー上に存在するドローンの座標を更新する
+					if (APlayerDrone* pServerDrone = pPlayerState->GetPawn<APlayerDrone>())
+					{
+						pServerDrone->SetActorLocation(pClientDrone->GetActorLocation());
+						pServerDrone->SetBodyMeshRotation(pClientDrone->GetBodyMeshRelativeRotation());
 					}
 				}
 			}
@@ -84,39 +162,26 @@ void ANetworkPlayerController::Server_ApplyTransform()
 	}
 }
 
-//クライアント用　Transformを渡す
-void ANetworkPlayerController::Client_TransformTransfer()
+//クライアント用　最新のドローンデータを渡す
+void ANetworkPlayerController::Client_UpdateDrone(APlayerDrone* ReplicatedDrone)
 {
-	if (IsLocalPlayerController())
+	//GameState取得
+	if (ANetworkGameState* pGameState = GetWorld()->GetGameState<ANetworkGameState>())
 	{
-		if (APlayerDrone* pPlayerDrone = GetPawn<APlayerDrone>())
+		//自身のPlayerStateを取得
+		if (ANetworkPlayerState* pPlayerState = GetPlayerState<ANetworkPlayerState>())
 		{
-			if (ANetworkPlayerState* pPlayerState = GetPlayerState<ANetworkPlayerState>())
-			{
-				pPlayerState->SetPlayerTransform(FReplicatedPlayerTransform(
-					FTransform(pPlayerDrone->GetBodyMeshRelativeRotation(), pPlayerDrone->GetActorLocation()),
-					pPlayerState->PlayerId));
+			pPlayerState->SetReplicatedPlayer(ReplicatedDrone);
 
 #if WITH_EDITOR
-				FString str = TEXT("Client_TransformTransfer_Implementation::") + pPlayerDrone->GetName();
-				UKismetSystemLibrary::PrintString(this, str, true, false);
+			FString str = TEXT("Client_TransformTransfer_Implementation::") + GetName();
+			UKismetSystemLibrary::PrintString(this, str, true, false);
+			UKismetSystemLibrary::PrintString(this, ReplicatedDrone->GetName(), true, false);
 #endif // WITH_EDITOR
-			}
 		}
 	}
 }
 
-//プレイヤーのTransform同期
-void ANetworkPlayerController::SynchronizePlayerTransform()
-{
-
-}
-
-//プレイヤー情報の更新
-void ANetworkPlayerController::ActivateUpdate()
-{
-
-}
 
 //ゲームコントローラー取得
 ANetworkPlayerController* ANetworkPlayerController::Get()
@@ -130,4 +195,28 @@ ANetworkPlayerController* ANetworkPlayerController::Get()
 		}
 	}
 	return pPlayerController;
+}
+
+//レプリケートするデータを取得
+FReplicatedPlayerTransform ANetworkPlayerController::GetReplicatedData()const
+{
+	//このコントローラーが操作するドローンを取得
+	if (APlayerDrone* pPlayerDrone = GetPawn<APlayerDrone>())
+	{
+		//プレイヤーステートを取得
+		if (ANetworkPlayerState* pPlayerState = GetPlayerState<ANetworkPlayerState>())
+		{
+			FReplicatedPlayerTransform ReplicatedPlayer(
+				FTransform(pPlayerDrone->GetBodyMeshRelativeRotation(), pPlayerDrone->GetActorLocation()),
+				pPlayerState->PlayerId);
+
+			return ReplicatedPlayer;
+		}
+	}
+
+#if WITH_EDITOR
+	UKismetSystemLibrary::PrintString(GetWorld(), TEXT("ReplicatedData not found."), true, false);
+#endif // WITH_EDITOR
+
+	return FReplicatedPlayerTransform();
 }

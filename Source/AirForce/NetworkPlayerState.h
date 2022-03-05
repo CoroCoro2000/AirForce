@@ -40,10 +40,31 @@ public:
 	//　サーバー用　トランスフォームを取得
 	UFUNCTION(BlueprintCallable)
 		FReplicatedPlayerTransform GetPlayerTransform()const { return m_ReplicatedPlayer; }
+
+
+	//　クライアント用　ドローンを更新
+	UFUNCTION(BlueprintCallable)
+		void SetReplicatedPlayer(APlayerDrone* pPlayerDrone) { m_pReplicatedDrone = pPlayerDrone; }
+	//　サーバー用　更新済みのドローンを取得
+	UFUNCTION(BlueprintCallable)
+		APlayerDrone* GetReplicatedPlayer()const { return m_pReplicatedDrone; }
+
 	UFUNCTION()
 		void OnRep_m_ReplicatedPlayer();
+
+	UFUNCTION()
+		void OnRep_m_pReplicatedDrone();
+
+	UFUNCTION(BlueprintCallable)
+		bool IsCanUpdate()const { return m_bCanUpdate; }
 
 private:
 	UPROPERTY(EditAnywhere, Replicated, ReplicatedUsing = OnRep_m_ReplicatedPlayer)
 		FReplicatedPlayerTransform m_ReplicatedPlayer;								//プレイヤーのTransformを格納
+
+	UPROPERTY(EditAnywhere, Replicated, ReplicatedUsing = OnRep_m_ReplicatedPlayer)
+		APlayerDrone* m_pReplicatedDrone;
+
+	UPROPERTY(EditAnywhere, Replicated)
+		bool m_bCanUpdate;
 };

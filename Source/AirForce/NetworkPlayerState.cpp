@@ -15,6 +15,8 @@
 //コンストラクタ
 ANetworkPlayerState::ANetworkPlayerState()
 	: m_ReplicatedPlayer(FTransform::Identity, -1)
+	, m_bCanUpdate(false)
+	, m_pReplicatedDrone(nullptr)
 {
 	//同期対象フラグ
 	bReplicates = true;
@@ -42,12 +44,28 @@ void ANetworkPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ANetworkPlayerState, m_ReplicatedPlayer);
+	DOREPLIFETIME(ANetworkPlayerState, m_pReplicatedDrone);
+	DOREPLIFETIME(ANetworkPlayerState, m_bCanUpdate);
 }
 
 void ANetworkPlayerState::OnRep_m_ReplicatedPlayer()
 {
+	//プレイヤーの更新がされたら更新可能フラグを立てる
+	m_bCanUpdate = true;
 
 #if WITH_EDITOR
-	UKismetSystemLibrary::PrintString(this, TEXT("OnRep_m_ReplicatedPlayer"), true, false);
+	FString str = GetName() + TEXT("::Replicated");
+	UKismetSystemLibrary::PrintString(this, str, true, false);
+#endif // WITH_EDITOR
+}
+
+void ANetworkPlayerState::OnRep_m_pReplicatedDrone()
+{
+	//プレイヤーの更新がされたら更新可能フラグを立てる
+	m_bCanUpdate = true;
+
+#if WITH_EDITOR
+	FString str = GetName() + TEXT("::Replicated");
+	UKismetSystemLibrary::PrintString(this, str, true, false);
 #endif // WITH_EDITOR
 }

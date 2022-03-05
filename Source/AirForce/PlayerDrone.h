@@ -18,7 +18,6 @@
 #include "PlayerDrone.generated.h"
 
 //前方宣言
-class USceneComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class UNiagaraSystem;
@@ -106,6 +105,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Replay")
 		FRotator GetDroneRotation() const;
 
+	//プレイヤーのID設定
+	UFUNCTION(BlueprintCallable, Category = "Replay")
+		void SetPlayerId(const int32& PlayerId) { m_PlayerId = PlayerId; }
+	//プレイヤーのID取得
+	UFUNCTION(BlueprintCallable, Category = "Replay")
+		int32 GetPlayerId()const { return m_PlayerId; }
+
+	//ドローンの更新
+	void UpdateDrone(APlayerDrone* pPlayerDrone);
+
 private:
 	//【入力バインド】各スティックの入力
 	void Input_Throttle(float _axisValue);
@@ -190,4 +199,7 @@ private:
 	FQuat m_StartQuaternion;
 
 	float m_CameraRotationYaw;
+
+	UPROPERTY(EditAnywhere, Category = "Network")
+		int32 m_PlayerId;
 };

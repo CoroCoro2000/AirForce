@@ -33,6 +33,14 @@ void ANetworkGameState::BeginPlay()
 
 }
 
+//レプリケートを登録
+void ANetworkGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ANetworkGameState, m_pPlayerDrones);
+}
+
 //毎フレーム実行される関数
 void ANetworkGameState::Tick(float DeltaTime)
 {
@@ -41,17 +49,17 @@ void ANetworkGameState::Tick(float DeltaTime)
 }
 
 //ゲームステート取得
-ANetworkGameState* ANetworkGameState::Get()
+ANetworkGameState* ANetworkGameState::Get(const UObject* WorldContextObject)
 {
-	ANetworkGameState* pGameState = nullptr;
-	if (GEngine)
+	if (WorldContextObject)
 	{
-		if (UWorld* pWorld = GEngine->GetWorld())
+		if (UWorld* pWorld = WorldContextObject->GetWorld())
 		{
-			pGameState = pWorld->GetGameState<ANetworkGameState>();
+			pWorld->GetGameState<ANetworkGameState>();
 		}
 	}
-	return pGameState;
+
+	return nullptr;
 }
 
 //PlayerStateの配列を取得
@@ -65,4 +73,28 @@ TArray<ANetworkPlayerState*> ANetworkGameState::GetPlayerState()const
 	}
 
 	return pNetworkPlayerArray;
+}
+
+//プレイヤーの登録
+void ANetworkGameState::EntryPlayer(APlayerDrone* pEntryDrone)
+{
+	for (APlayerDrone* pEntryedDrone : m_pPlayerDrones)
+	{
+		if (pEntryDrone == pEntryedDrone)
+		{
+#if WITH_EDITOR
+			FString str = TEXT("Entryed::") + pEntryDrone->GetName();
+			UKismetSystemLibrary::PrintString(this, str, true, false);
+#endif // WITH_EDITOR
+
+			break;
+		}
+	}
+
+#if WITH_EDITOR
+	FString str = TEXT("Entry::") + pEntryDrone->GetName();
+	UKismetSystemLibrary::PrintString(this, str, true, false);
+#endif // WITH_EDITOR
+
+	m_pPlayerDrones.Add(pEntryDrone);
 }

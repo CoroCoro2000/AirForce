@@ -98,7 +98,7 @@ public:
 	//【入力バインド】コントローラー入力設定
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	//	入力フラグの取得
+	//	入力フラグの設定
 	void SetisControl(const bool _isControl) { m_isControl = _isControl; }
 
 protected:

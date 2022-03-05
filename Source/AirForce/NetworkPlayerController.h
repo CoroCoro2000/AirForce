@@ -53,13 +53,6 @@ protected:
 	//レプリケートを登録
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const override;
 
-
-	//プレイヤーのTransform同期
-	void SynchronizePlayerTransform();
-	//プレイヤー情報の更新
-	UFUNCTION()
-		void ActivateUpdate();
-
 public:
 	//ゲームコントローラー取得
 	static ANetworkPlayerController* Get();
@@ -69,7 +62,18 @@ public:
 		void Server_ApplyTransform();
 	//クライアント用　Transformを渡す
 	UFUNCTION(BlueprintCallable)
-		void Client_TransformTransfer();
+		void Client_TransformTransfer(const FReplicatedPlayerTransform& ReplicatedData);
+
+	//サーバー用　最新のドローン情報に更新
+	UFUNCTION(BlueprintCallable)
+		void Server_UpdateDrone();
+	//クライアント用　最新のドローンデータを渡す
+	UFUNCTION(BlueprintCallable)
+		void Client_UpdateDrone(APlayerDrone* ReplicatedDrone);
+
+	//レプリケートするデータを取得
+	UFUNCTION(BlueprintCallable)
+		FReplicatedPlayerTransform GetReplicatedData()const;
 
 	UFUNCTION(BlueprintCallable)
 		float GetSynchronousInterval()const { return m_SynchronousInterval; }
