@@ -77,6 +77,11 @@ public:
 	bool GetIsPassed()const { return m_bIsPassed; }
 	//メッシュ取得
 	UStaticMeshComponent* GetMesh()const { return m_pRingMesh; }
+	//Tickを更新するフレームを設定
+	void SetTickFPS(const float& NewTickFPS) { m_TickFPS = NewTickFPS; }
+	//現在の更新されているFPSを取得
+	UFUNCTION(BlueprintCallable)
+	float GetTickFPS()const { return m_TickFPS; }
 
 private:
 	//サインカーブの値を更新
@@ -117,4 +122,8 @@ protected:
 		FLinearColor m_HSV;																					//リングの色
 	UPROPERTY(EditAnywhere, Category = "Sound")
 		USoundBase* m_pRingHitSE;																		//リング衝突SE
+	UPROPERTY(EditAnywhere)
+		float m_TickFPS;																						//1秒間にTickを更新する回数
+	UPROPERTY(VisibleAnywhere)
+		float m_LastTickTime;																				//最後にTickが実行された時刻
 };

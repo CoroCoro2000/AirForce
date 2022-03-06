@@ -120,10 +120,6 @@
 				"IOS",
 				"TVOS"
 			]
-		},
-		{
-			"Name": "MediaFrameworkUtilities",
-			"Enabled": true
 		}
 	]
 }

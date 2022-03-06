@@ -59,6 +59,8 @@ ARing::ARing()
 	, m_RingMaxScale(m_RingScale * 1.8f)
 	, m_HSV(30.f, 40.f, 30.f)
 	, m_pRingHitSE(NULL)
+	, m_TickFPS(60.f)
+	, m_LastTickTime(0.f)
 {
 	//毎フレームTickを呼び出すかどうかのフラグ
 	PrimaryActorTick.bCanEverTick = true;
@@ -94,17 +96,26 @@ void ARing::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//サインカーブの値を更新
-	UpdateSineCurve(DeltaTime);
+	//設定されたFPSの間隔でTickを更新する
+	const float currentTime = GetWorld()->GetTimeSeconds();
+	const float deltaTime = currentTime - m_LastTickTime;
 
-	//リングのサイズ更新
-	UpdateScale(DeltaTime);
+	if (deltaTime > 1.f / m_TickFPS)
+	{
+		m_LastTickTime = currentTime;
 
-	//リングのマテリアル更新
-	UpdateMaterial(DeltaTime);
+		//サインカーブの値を更新
+		UpdateSineCurve(deltaTime);
 
-	//エフェクトの更新
-	UpdateEffect(DeltaTime);
+		//リングのサイズ更新
+		UpdateScale(deltaTime);
+
+		//リングのマテリアル更新
+		UpdateMaterial(deltaTime);
+
+		//エフェクトの更新
+		UpdateEffect(deltaTime);
+	}
 }
 
 //サインカーブの値を更新
@@ -195,7 +206,7 @@ void ARing::UpdateEffect(const float& DeltaTime)
 			else if (!DroneAndEffect.IsEffectSpawned())
 			{
 				FVector scaleSubtract = FVector(m_RingMaxScale) - GetActorScale3D();
-				if (scaleSubtract.IsNearlyZero(0.2f))
+				if (scaleSubtract.IsNearlyZero(0.3f))
 				{
 					if (m_pEffect)
 					{

@@ -155,8 +155,6 @@ void AGameManager::CountDown(float DeltaTime)
 
 	FString m_prevCountDownText = m_CountDownText;	//1フレーム前のカウントダウンテキスト
 
-	ATrain* pTrain = CGameUtility::GetActorFromTag<ATrain>(this, TEXT("Train"));
-
 	m_CountDownTime -= DeltaTime;
 	m_CountDownText = FString::FromInt(int(m_CountDownTime) + 1);
 
@@ -170,7 +168,9 @@ void AGameManager::CountDown(float DeltaTime)
 		UGameplayStatics::PlaySound2D(GetWorld(), m_StartSE);
 		m_CountDownText = "";
 		m_isStart = true;
-		if (pTrain)
+
+		//レース開始と同時に電車の移動を開始する
+		if (ATrain* pTrain = CGameUtility::GetActorFromTag<ATrain>(this, TEXT("Train")))
 		{
 			pTrain->SetIsMove(true);
 		}

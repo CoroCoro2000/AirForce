@@ -65,9 +65,9 @@ public:
 
 //defineマクロ
 //現在のFPSを計測
-#define FPS (1.f / DeltaTime)
+#define GetFPS (1.f / DeltaTime)
 //フレームレートが低下しても移動量に影響が無いよう補正する値
-#define MOVE_CORRECTION (60.f / FPS)
+#define MOVE_CORRECTION (60.f / GetFPS)
 #define SLOPE_MIN 0.f
 #define SPEED_MIN -10.5f
 #define SPEED_MAX 10.5f
