@@ -15,8 +15,8 @@
 //コンストラクタ
 ANetworkPlayerState::ANetworkPlayerState()
 	: m_ReplicatedPlayer(FTransform::Identity, -1)
-	, m_bCanUpdate(false)
 	, m_pReplicatedDrone(nullptr)
+	, m_bCanUpdate(false)
 {
 	//同期対象フラグ
 	bReplicates = true;

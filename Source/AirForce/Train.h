@@ -42,7 +42,10 @@ private:
 
 public:
 	//‰Šú‰»
-	void Init();
+	void InitReplay();
+
+	//ˆÚ“®ƒtƒ‰ƒO‚Ìİ’è
+	void SetIsMove(const bool bCanMove) { m_bCanMove = bCanMove; }
 
 private:
 	UPROPERTY(EditAnywhere)

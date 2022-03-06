@@ -242,17 +242,10 @@ private:
 		ADroneBase* m_PlayerDrone;						//プレイヤードローン
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
 		AGhostDrone* m_GhostDrone;						//ゴーストドローン
-	UPROPERTY(VisibleAnywhere, Category = "Drone")
-		ADroneBase* m_ReplayDrone;						//リプレイドローン
-
-	UPROPERTY(VisibleAnywhere, Category = "Drone")
-		int m_GoalRingNumber;						//ゴールのリングの通し番号
-
 	UPROPERTY(EditAnywhere, Category = "Sound")
 		USoundBase* m_CountDownSE;						//カウントダウンSE
 	UPROPERTY(EditAnywhere, Category = "Sound")
 		USoundBase* m_StartSE;						//スタートSE
 
 	float m_LeftStickInputValue;
-
 };

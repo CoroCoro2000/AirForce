@@ -16,7 +16,7 @@ ATrain::ATrain()
 	, m_Deceleration(5.f)
 	, m_MoveDistance(0.f)
 	, m_bLoop(true)
-	, m_bCanMove(true)
+	, m_bCanMove(false)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -25,8 +25,6 @@ ATrain::ATrain()
 	{
 		RootComponent = m_pFrontTrainMesh;
 	}
-
-	m_pTrainMeshes.Empty();
 
 	//タグの追加
 	Tags.Add(TEXT("Train"));
@@ -93,9 +91,24 @@ void ATrain::UpdateSpeed(const float& DeltaTime)
 	if (!m_pSplineActor) { return; }
 	if (m_pTrainMeshes.Num() == 0) { return; }
 
-	m_CurrentSpeed = m_bCanMove ?
-		FMath::Lerp(m_CurrentSpeed, m_MaxSpeed, FMath::Clamp(DeltaTime * m_Acceleration, 0.f, 1.f)) :
-		FMath::Lerp(m_CurrentSpeed, 0.f, FMath::Clamp(DeltaTime * m_Deceleration, 0.f, 1.f));
+	if (m_bCanMove)
+	{
+		m_CurrentSpeed = FMath::Lerp(m_CurrentSpeed, m_MaxSpeed, FMath::Clamp(DeltaTime * m_Acceleration, 0.f, 1.f));
+
+		if (FMath::IsNearlyZero(m_MaxSpeed - m_CurrentSpeed))
+		{
+			m_CurrentSpeed = m_MaxSpeed;
+		}
+	}
+	else
+	{
+		m_CurrentSpeed = FMath::Lerp(m_CurrentSpeed, 0.f, FMath::Clamp(DeltaTime * m_Deceleration, 0.f, 1.f));
+
+		if (FMath::IsNearlyZero(m_CurrentSpeed))
+		{
+			m_CurrentSpeed = 0.f;
+		}
+	}
 }
 
 //移動の更新
@@ -178,8 +191,20 @@ void ATrain::CheckMoveDistance()
 }
 
 //初期化
-void ATrain::Init()
+void ATrain::InitReplay()
 {
+	if (!m_pFrontTrainMesh) { return; }
+
 	m_CurrentSpeed = 0.f;
 	m_MoveDistance = 0.f;
+
+	m_pFrontTrainMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	for (UStaticMeshComponent* pTrainMesh : m_pTrainMeshes)
+	{
+		if (pTrainMesh)
+		{
+			pTrainMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
+	}
 }

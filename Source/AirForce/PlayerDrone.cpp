@@ -140,11 +140,11 @@ void APlayerDrone::Tick(float DeltaTime)
 	//回転処理
 	UpdateRotation(DeltaTime);
 
+	//高度チェック
+	UpdateAltitudeCheck(DeltaTime);
+
 	//移動処理
 	UpdateSpeed(DeltaTime);
-
-	//高度チェック
-	UpdateAltitudeCheck();
 
 	//リプレイ更新処理
 	UpdateReplay(DeltaTime);
@@ -686,7 +686,7 @@ void APlayerDrone::InitializeReplay()
 	//電車を初期位置に配置
 	if (ATrain* pTrain = Cast<ATrain>(CGameUtility::GetActorFromTag(this, TEXT("Train"))))
 	{
-		pTrain->Init();
+		pTrain->InitReplay();
 	}
 }
 //リプレイ更新処理

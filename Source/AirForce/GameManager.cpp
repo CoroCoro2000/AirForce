@@ -9,6 +9,7 @@
 //インクルード
 #include "GameManager.h"
 #include "PlayerDrone.h"
+#include "Train.h"
 #include "GameUtility.h"
 #include "Sound/SoundBase.h"
 #include "Misc/FileHelper.h"
@@ -36,7 +37,6 @@ AGameManager::AGameManager()
 	, m_isNewRecord(false)
 	, m_PlayerDrone(NULL)
 	, m_GhostDrone(NULL)
-	, m_ReplayDrone(NULL)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -125,12 +125,6 @@ void AGameManager::Tick(float DeltaTime)
 			m_GhostDrone->SetisControl((m_isStart));
 		}
 
-		if (m_ReplayDrone)
-		{
-			//レースがスタートしている間操作可能にする
-			m_ReplayDrone->SetisControl((m_isStart));
-		}
-
 		break;
 	case ECURRENTSCENE::SCENE_RESULT:
 		break;
@@ -161,6 +155,8 @@ void AGameManager::CountDown(float DeltaTime)
 
 	FString m_prevCountDownText = m_CountDownText;	//1フレーム前のカウントダウンテキスト
 
+	ATrain* pTrain = CGameUtility::GetActorFromTag<ATrain>(this, TEXT("Train"));
+
 	m_CountDownTime -= DeltaTime;
 	m_CountDownText = FString::FromInt(int(m_CountDownTime) + 1);
 
@@ -174,8 +170,11 @@ void AGameManager::CountDown(float DeltaTime)
 		UGameplayStatics::PlaySound2D(GetWorld(), m_StartSE);
 		m_CountDownText = "";
 		m_isStart = true;
+		if (pTrain)
+		{
+			pTrain->SetIsMove(true);
+		}
 	}
-
 }
 
 //リザルト処理

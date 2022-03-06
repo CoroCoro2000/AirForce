@@ -175,7 +175,7 @@ protected:
 	//進行軸と入力軸が逆向きか確認
 	bool IsReverseInput(const float& _movingAxis, const float& _axisValue)const { return (_movingAxis < 0.f && 0.f < _axisValue) || (_movingAxis > 0.f && 0.f > _axisValue); }
 	//高度の上限をを超えているか確認
-	void UpdateAltitudeCheck();
+	void UpdateAltitudeCheck(const float& DeltaTime);
 
 	//砂埃のエフェクトの表示切替
 	void UpdateCloudOfDustEffect();

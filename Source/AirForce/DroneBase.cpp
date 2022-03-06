@@ -323,12 +323,6 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 
 	//ドローンにかかる力の設定
 	m_Velocity = CGameUtility::SetDecimalTruncation(m_LocalAxis * m_Speed, 3);
-
-	//高度上限を超えていたら自動的に高度を下げる
-	if (m_HeightFromGround >= m_HeightMax)
-	{
-		m_Velocity.Z = -3.f;
-	}
 }
 
 //風のエフェクト更新処理
@@ -361,7 +355,7 @@ void ADroneBase::UpdateWindEffect(const float& DeltaTime)
 }
 
 //高度の上限をを超えているか確認
-void ADroneBase::UpdateAltitudeCheck()
+void ADroneBase::UpdateAltitudeCheck(const float& DeltaTime)
 {
 	//レイの開始点と終点を設定(ドローンの座標から高度の上限の長さ)
 	FVector Start = GetActorLocation();
@@ -375,9 +369,7 @@ void ADroneBase::UpdateAltitudeCheck()
 
 	//レイを飛ばし、WorldStaticのコリジョンチャンネルを持つオブジェクトのヒット判定を取得する
 	bool isHit = GetWorld()->LineTraceMultiByObjectType(OutHits, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
-	bool OverHeightMax = true;
-
-	m_HeightFromGround = m_HeightMax;
+	bool isHitGround = false;
 
 	//レイがヒットしたらアクターのタグを確認し、Groundのタグを持つアクターがあれば高度上限を越えていないのでフラグを降ろす
 	if (isHit)
@@ -388,11 +380,11 @@ void ADroneBase::UpdateAltitudeCheck()
 			{
 				if (pHitActor->ActorHasTag(TEXT("Ground")))
 				{
-					OverHeightMax = false;
+					isHitGround = true;
 					//地面からの高さを計測
 					m_HeightFromGround = HitResult.Distance;
 
-					if(pHitActor->ActorHasTag(TEXT("LandScape")))
+					if (pHitActor->ActorHasTag(TEXT("LandScape")))
 					{
 						m_GroundMaterialName = TEXT("LandScape");
 					}
@@ -411,6 +403,13 @@ void ADroneBase::UpdateAltitudeCheck()
 				}
 			}
 		}
+	}
+
+	//地面にヒットしていないときは上限を越えているので、上向きの入力値に補正をかける
+	if (!isHitGround)
+	{
+		float ReturnSpeed = -m_WingAccelMax * 0.5f;
+		m_AxisAccel.Z = FMath::Lerp(m_AxisAccel.Z, ReturnSpeed, DeltaTime * 3.f);
 	}
 }
 
