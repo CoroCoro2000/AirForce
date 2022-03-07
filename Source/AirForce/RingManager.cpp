@@ -40,11 +40,17 @@ void ARingManager::InitializeRing()
 {
 	//レベル上に存在するリングをすべて配列に格納
 	TArray<AActor*> OutActors;
-	UGameplayStatics::GetAllActorsOfClass(this, ARing::StaticClass(), OutActors);
+	UGameplayStatics::GetAllActorsOfClass(this, AActor::StaticClass(), OutActors);
 
 	for (AActor* pActor : OutActors)
 	{
-		m_pRings.Add(Cast<ARing>(pActor));
+		if (pActor)
+		{
+			if (pActor->ActorHasTag(TEXT("Ring")))
+			{
+				m_pRings.Add(Cast<ARing>(pActor));
+			}
+		}
 	}
 
 #if WITH_EDITOR
@@ -79,13 +85,13 @@ void ARingManager::UpdateRings()
 	}
 }
 
-//初期化関数
+//配置時に実行される関数
 void ARingManager::OnConstruction(const FTransform& Transform)
 {
 	if (m_TickLODSettings.Num() <= 0) { return; }
 
 	//LOD設定の配列をDistanceの値が小さい順にソートする
-	int32 i, j;
+	int32 i = 0, j = 0;
 	int32 Max = m_TickLODSettings.Num();
 	FTickLODSetting tmpTickLODSetting;
 	for (i = 0; i < Max; ++i)
