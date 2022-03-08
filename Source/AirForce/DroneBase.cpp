@@ -508,7 +508,7 @@ FRotator ADroneBase::GetBodyMeshRelativeRotation()const
 //オーバーラップ開始時に呼ばれる処理
 void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor && OtherActor != this)
+	if (OtherActor && OtherComp && OtherActor != this)
 	{
 		//タグがRingだった場合
 		if (OtherActor->ActorHasTag(TEXT("Ring")))
@@ -519,6 +519,24 @@ void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedCom
 			//加速計測カウンターをリセット
 			m_SincePassageCount = 0.f;
 		}
+
+		if (OtherActor->ActorHasTag(TEXT("Train")) && !OtherComp->ComponentHasTag(TEXT("Carhorn")))
+		{
+			//ドローンの向きを取得
+			FQuat Quat = FRotator(0.f, m_pBodyMesh->GetComponentRotation().Yaw + 90.f, 0.f).Quaternion();
+			//入力軸を取得
+			FVector AxisAccle = m_AxisAccel;
+			//ワールド座標に変換
+			FVector WorldDir = Quat.RotateVector(AxisAccle);
+			//反射ベクトルを求める
+			FVector ReflectVector = WorldDir - SweepResult.Normal * (2.f * (WorldDir | SweepResult.Normal));
+			//求めた反射ベクトルを入力軸の座標に変換
+			FVector LocalReflectVector = Quat.Inverse().RotateVector(ReflectVector);
+			LocalReflectVector.X = FMath::RandBool() ? m_WingAccelMax : -m_WingAccelMax;
+
+			//反射ベクトルを進行方向に設定
+			m_AxisAccel = FVector4(LocalReflectVector, m_AxisAccel.W);
+		}
 	}
 #ifdef DEBUG_CollisionOverlap_Begin
 	UE_LOG(LogTemp, Warning, TEXT("OverlapBegin"));
@@ -528,31 +546,34 @@ void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedCom
 //ドローンの当たり判定にオブジェクトがヒットした時呼ばれるイベント関数を登録
 void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (m_pBodyMesh && OtherActor && OtherActor != this)
-	{
-		//ドローンの向きを取得
-		FQuat Quat = FRotator(0.f, m_pBodyMesh->GetComponentRotation().Yaw + 90.f, 0.f).Quaternion();
+	if (!m_pBodyMesh) { return; }
 
-		//衝突したアクターが電車の場合は外側にはじかれるようにする
-		if (OtherActor->ActorHasTag(TEXT("Train")))
-		{
-			FVector LocalReflectVector = Quat.Inverse().RotateVector(Hit.Normal);
-			//反射ベクトルを進行方向に設定
-			m_AxisAccel = FVector4(LocalReflectVector, m_AxisAccel.W);
-		}
-		//電車以外は跳ね返りの処理を行う
-		else
-		{
-			//入力軸を取得
-			FVector AxisAccle = m_AxisAccel;
-			//ワールド座標に変換
-			FVector WorldDir = Quat.RotateVector(AxisAccle);
-			//反射ベクトルを求める
-			FVector ReflectVector = WorldDir - Hit.Normal * (2.f * (WorldDir | Hit.Normal));
-			//求めた反射ベクトルを入力軸の座標に変換
-			FVector LocalReflectVector = Quat.Inverse().RotateVector(ReflectVector);
-			//反射ベクトルを進行方向に設定
-			m_AxisAccel = FVector4(LocalReflectVector * m_Attenuation, m_AxisAccel.W);
-		}
+	//ドローンの向きを取得
+	FQuat Quat = FRotator(0.f, m_pBodyMesh->GetComponentRotation().Yaw + 90.f, 0.f).Quaternion();
+
+	//if (OtherComp)
+	//{
+	//	if (OtherComp->ComponentHasTag(TEXT("TrainHead")))
+	//	{
+	//		//求めた反射ベクトルを入力軸の座標に変換
+	//		FVector LocalReflectVector = Quat.Inverse().RotateVector(OtherComp->GetForwardVector());
+	//		m_AxisAccel = FVector4(LocalReflectVector * m_Attenuation, m_AxisAccel.W);
+
+	//		return;
+	//	}
+	//}
+
+	if (OtherActor && OtherActor != this)
+	{
+		//入力軸を取得
+		FVector AxisAccle = m_AxisAccel;
+		//ワールド座標に変換
+		FVector WorldDir = Quat.RotateVector(AxisAccle);
+		//反射ベクトルを求める
+		FVector ReflectVector = WorldDir - Hit.Normal * (2.f * (WorldDir | Hit.Normal));
+		//求めた反射ベクトルを入力軸の座標に変換
+		FVector LocalReflectVector = Quat.Inverse().RotateVector(ReflectVector);
+		//反射ベクトルを進行方向に設定
+		m_AxisAccel = FVector4(LocalReflectVector * m_Attenuation, m_AxisAccel.W);
 	}
 }

@@ -684,7 +684,7 @@ void APlayerDrone::InitializeReplay()
 	m_isReplay = true;
 
 	//電車を初期位置に配置
-	if (ATrain* pTrain = Cast<ATrain>(CGameUtility::GetActorFromTag(this, TEXT("Train"))))
+	if (ATrain* pTrain = CGameUtility::GetActorFromTag<ATrain>(this, TEXT("Train")))
 	{
 		pTrain->InitReplay();
 	}
