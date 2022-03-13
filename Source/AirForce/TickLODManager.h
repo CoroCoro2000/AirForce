@@ -23,19 +23,19 @@ struct FTickLODSetting
 
 public:
 	FTickLODSetting()
-		: FPS(60)
+		: FrameRate(1.f)
 		, Distance(1500.f)
 	{}
 
-	FTickLODSetting(const uint8& NewFPS, const float& NewDistance)
-		: FPS(NewFPS)
+	FTickLODSetting(const float& NewFrameRate, const float& NewDistance)
+		: FrameRate(NewFrameRate)
 		, Distance(NewDistance)
 	{}
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
+		float FrameRate;														//設定された距離より近い時に適用するFPSの割合
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		uint8 FPS;																	//設定された範囲内に存在するアクターのFPS上限値
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float Distance;															//この距離の範囲内に存在するアクターのFPSを設定する
+		float Distance;															//FPSの割合を適用する距離
 };
 
 UCLASS()
@@ -61,7 +61,7 @@ private:
 	//LODのアクター配列の初期化
 	void InitializeActorArray();
 	//LODの更新
-	void UpdateLOD();
+	void UpdateLOD(const float& DeltaTime);
 
 private:
 	UPROPERTY(EditAnywhere)

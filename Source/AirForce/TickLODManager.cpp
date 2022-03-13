@@ -42,7 +42,7 @@ void ATickLODManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	//LODを更新
-	UpdateLOD();
+	UpdateLOD(DeltaTime);
 }
 
 //LODのアクター配列の初期化
@@ -58,6 +58,8 @@ void ATickLODManager::InitializeActorArray()
 			//レベル上のATickLODActorを継承しているアクターを全て配列に格納
 			if (ATickLODActor* pTickLODActor = Cast<ATickLODActor>(pActor))
 			{
+				//アクターに番号を設定
+				pTickLODActor->SetNumber(m_pTickLODActors.Num());
 				m_pTickLODActors.Add(pTickLODActor);
 			}
 
@@ -73,11 +75,12 @@ void ATickLODManager::InitializeActorArray()
 }
 
 //LODの更新
-void ATickLODManager::UpdateLOD()
+void ATickLODManager::UpdateLOD(const float& DeltaTime)
 {
 	if (!m_pPlayer) { return; }
 
 	FVector PlayerLocation = m_pPlayer->GetActorLocation();
+	const float FPS = 1.f / GetWorld()->GetDeltaSeconds();
 
 	for (ATickLODActor* pTickLODActor : m_pTickLODActors)
 	{
@@ -91,10 +94,8 @@ void ATickLODManager::UpdateLOD()
 			{
 				if (TickLODSetting.Distance <= Distance)
 				{
-					if (pTickLODActor->GetTickFPS() != TickLODSetting.FPS)
-					{
-						pTickLODActor->SetTickFPS(TickLODSetting.FPS);
-					}
+					pTickLODActor->SetTickFPS(FPS * TickLODSetting.FrameRate);
+					
 					break;
 				}
 			}
@@ -109,7 +110,7 @@ void ATickLODManager::OnConstruction(const FTransform& Transform)
 
 	if (m_TickLODSettings.Num() <= 1) { return; }
 
-	//LOD設定の配列をDistanceの値が大きい順にソートする
+	//LOD設定の配列を距離が遠い順にソートする
 	int32 i = 0, j = 0;
 	int32 Max = m_TickLODSettings.Num();
 	FTickLODSetting tmpTickLODSetting;

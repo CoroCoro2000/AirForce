@@ -46,10 +46,13 @@ void ATrain::Tick(float DeltaTime)
 
 	//設定されたFPSの間隔でTickを更新する
 	const float currentTime = GetWorld()->GetTimeSeconds();
+	//想定される1フレームにかかる時間
+	const float TimePerFrame = 1.f / m_TickFPS;
+	//前回実行されてからの経過時間
 	const float deltaTime = currentTime - m_LastTickTime;
-	const float TimePerFrame = (float)(1.f / (float)m_TickFPS);
 
-	if (deltaTime > TimePerFrame)
+	//処理可能なフレームであれば更新
+	if (deltaTime > TimePerFrame && IsProcessableFrame())
 	{
 		m_LastTickTime = currentTime;
 

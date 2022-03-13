@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------------------------------------------------------------------------------
 // ファイル名		:TickLODActor.h
-// 概要				:アクターのTickLODレベルを変更する
+// 概要				:1フレーム当たりのTick更新回数を変更できるアクターのベースクラス
 // 作成日			:2022/03/09
 // 作成者			:19CU0105 池村凌太
 //------------------------------------------------------------------------------------------------------------------------------------------------
@@ -29,15 +29,25 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	//Tickを更新するフレームを設定
-	void SetTickFPS(const uint8& NewTickFPS) { m_TickFPS = NewTickFPS; }
-	//現在の更新されているFPSを取得
+	//FPSを設定
+	void SetTickFPS(const float& NewTickFPS) { m_TickFPS = NewTickFPS; }
+	//FPSを取得
 	UFUNCTION(BlueprintCallable)
-		uint8 GetTickFPS()const { return m_TickFPS; }
+		float GetTickFPS()const { return m_TickFPS; }
+	//LODアクターの番号を設定
+	void SetNumber(const uint32& Number) { m_ActorNumber = Number; }
+
+protected:
+	//処理可能なフレームか判定
+	bool IsProcessableFrame()const;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "TickLOD")
-		uint8 m_TickFPS;																						//1秒間にTickを更新する回数
+		float m_TickFPS;																						//FPS
 	UPROPERTY(VisibleAnywhere, Category = "TickLOD")
 		float m_LastTickTime;																				//最後にTickが実行された時刻
+	UPROPERTY(VisibleAnywhere, Category = "TickLOD")
+		uint32 m_ActorNumber;																				//番号
+	UPROPERTY(VisibleAnywhere, Category = "TickLOD")
+		uint32 m_FrameCount;																				//処理フレーム数
 };

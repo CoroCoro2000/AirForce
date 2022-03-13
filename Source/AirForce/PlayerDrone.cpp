@@ -268,12 +268,13 @@ void APlayerDrone::UpdateWingAccle(const float& DeltaTime)
 	//両方の入力がある場合
 	if (!RightAxis.IsZero() && !LeftAxis.IsZero())
 	{
+		const float moveCorrection = MOVE_CORRECTION;
 		for (TSharedPtr<FWing> pWing : m_pWings)
 		{
 			if (pWing.IsValid())
 			{
 				//羽の回転量の合成
-				pWing->AccelState = RightInputValueToWingAcceleration(pWing->GetWingNumber()) + LeftInputValueToWingAcceleration(pWing->GetWingNumber());
+				pWing->AccelState = (RightInputValueToWingAcceleration(pWing->GetWingNumber()) + LeftInputValueToWingAcceleration(pWing->GetWingNumber())) * moveCorrection;
 			}
 		}
 		return;
@@ -282,17 +283,19 @@ void APlayerDrone::UpdateWingAccle(const float& DeltaTime)
 	//右スティックのみの場合
 	if (!RightAxis.IsZero())
 	{
+		const float moveCorrection = MOVE_CORRECTION;
 		for (TSharedPtr<FWing> pWing : m_pWings)
 		{
-			pWing->AccelState = RightInputValueToWingAcceleration(pWing->GetWingNumber());
+			pWing->AccelState = RightInputValueToWingAcceleration(pWing->GetWingNumber()) * moveCorrection;
 		}
 	}
 	//左スティックのみの場合
 	else if (!LeftAxis.IsZero())
 	{
+		const float moveCorrection = MOVE_CORRECTION;
 		for (TSharedPtr<FWing> pWing : m_pWings)
 		{
-			pWing->AccelState = LeftInputValueToWingAcceleration(pWing->GetWingNumber());
+			pWing->AccelState = LeftInputValueToWingAcceleration(pWing->GetWingNumber()) * moveCorrection;
 		}
 	}
 }
@@ -373,7 +376,7 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 			ReplayQuat.Z = FCString::Atof(*(m_SaveQuatText[2][m_PlaybackFlame]));
 			ReplayQuat.W = FCString::Atof(*(m_SaveQuatText[3][m_PlaybackFlame]));
 		}
-		m_pBodyMesh->SetWorldRotation(ReplayQuat * MOVE_CORRECTION);
+		m_pBodyMesh->SetWorldRotation(ReplayQuat);
 		return; 
 	}
 
@@ -439,7 +442,7 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 		}
 	}
 	//座標を更新
-	AddActorWorldOffset(m_Velocity * MOVE_CORRECTION, true);
+	AddActorWorldOffset(m_Velocity, true);
 }
 
 //カメラ更新処理
@@ -524,8 +527,8 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	m_pSpringArm->TargetArmLength = FMath::Lerp(m_pSpringArm->TargetArmLength, (isClimbingSlope ? 150.f : 90.f), SocketAttenRate.Z);
 
 	//カメラの回転を更新
-	m_pCamera->SetRelativeRotation(CameraRotation.Quaternion() * MOVE_CORRECTION);
-	m_pSpringArm->SetRelativeRotation(FRotator(0.f, BodyRotation.Yaw + m_CameraRotationYaw, 0.f) * MOVE_CORRECTION);
+	m_pCamera->SetRelativeRotation(CameraRotation.Quaternion());
+	m_pSpringArm->SetRelativeRotation(FRotator(0.f, BodyRotation.Yaw + m_CameraRotationYaw, 0.f));
 
 	if (!m_isReplay)
 	{

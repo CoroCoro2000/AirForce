@@ -94,15 +94,15 @@ void ARing::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	UWorld* pWorld = GetWorld();
-	if (!pWorld) { return; }
-
 	//設定されたFPSの間隔でTickを更新する
-	const float currentTime = pWorld->GetTimeSeconds();
+	const float currentTime = GetWorld()->GetTimeSeconds();
+	//想定される1フレームにかかる時間
+	const float TimePerFrame = 1.f / m_TickFPS;
+	//前回実行されてからの経過時間
 	const float deltaTime = currentTime - m_LastTickTime;
-	const float TimePerFrame = (float)(1.f / (float)m_TickFPS);
 
-	if (deltaTime > TimePerFrame)
+	//処理可能なフレームであれば更新
+	if (deltaTime > TimePerFrame && IsProcessableFrame())
 	{
 		m_LastTickTime = currentTime;
 
@@ -159,7 +159,7 @@ void ARing::UpdateScale(const float& DeltaTime)
 		float ScaleMultiplier = FMath::Lerp(m_SineScaleMin, m_SineScaleMax, m_SineCurveValue);
 		NewScale *= ScaleMultiplier;
 	}
-	float Speed = m_bIsPassed ? DeltaTime * 10.f : DeltaTime * 8.f;
+	float Speed = FMath::Clamp(m_bIsPassed ? DeltaTime * 10.f : DeltaTime * 8.f, 0.f, 1.f);
 	SetActorScale3D(FMath::Lerp(GetActorScale3D(), FVector(NewScale), Speed));
 }
 
@@ -224,6 +224,9 @@ void ARing::UpdateEffect()
 //オーバーラップ開始時に呼ばれる処理
 void ARing::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	//リングの更新フレームが15FPSより少ない場合はオーバーラップ処理を行わない
+	if (m_TickFPS < 15.f) { return; }
+
 	if (OtherActor && OtherActor != this)
 	{
 		//タグがPlayerだった場合

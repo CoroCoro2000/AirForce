@@ -303,8 +303,8 @@ void ADroneBase::UpdateRotation(const float& DeltaTime)
 	BodyRotation.Roll = FMath::Lerp(BodyRotation.Roll, HorizontalAxis * deg, RotationSpeed);
 
 	FRotator NewRotation = BodyRotation;
-	NewRotation.Yaw += AngularVelocity.Z * 0.7f;
-	m_pBodyMesh->SetRelativeRotation(NewRotation.Quaternion() * MOVE_CORRECTION, true);
+	NewRotation.Yaw += (AngularVelocity.Z * 0.7f * MOVE_CORRECTION);
+	m_pBodyMesh->SetRelativeRotation(NewRotation.Quaternion(), true);
 }
 
 //‘¬“xXVˆ—
