@@ -59,8 +59,6 @@ ARing::ARing()
 	, m_RingMaxScale(m_RingScale * 1.8f)
 	, m_HSV(30.f, 40.f, 30.f)
 	, m_pRingHitSE(NULL)
-	, m_TickFPS(60.f)
-	, m_LastTickTime(0.f)
 {
 	//毎フレームTickを呼び出すかどうかのフラグ
 	PrimaryActorTick.bCanEverTick = true;
@@ -96,38 +94,39 @@ void ARing::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//設定されたFPSの間隔でTickを更新する
-	const float currentTime = GetWorld()->GetTimeSeconds();
-	const float deltaTime = currentTime - m_LastTickTime;
+	UWorld* pWorld = GetWorld();
+	if (!pWorld) { return; }
 
-	if (deltaTime > 1.f / m_TickFPS)
+	//設定されたFPSの間隔でTickを更新する
+	const float currentTime = pWorld->GetTimeSeconds();
+	const float deltaTime = currentTime - m_LastTickTime;
+	const float TimePerFrame = (float)(1.f / (float)m_TickFPS);
+
+	if (deltaTime > TimePerFrame)
 	{
 		m_LastTickTime = currentTime;
 
 		//サインカーブの値を更新
-		UpdateSineCurve(deltaTime);
+		UpdateSineCurve(currentTime);
 
 		//リングのサイズ更新
 		UpdateScale(deltaTime);
 
 		//リングのマテリアル更新
-		UpdateMaterial(deltaTime);
-
-		//エフェクトの更新
-		UpdateEffect(deltaTime);
+		UpdateMaterial();
 	}
+
+	//エフェクトの更新
+	UpdateEffect();
 }
 
 //サインカーブの値を更新
-void ARing::UpdateSineCurve(const float& DeltaTime)
+void ARing::UpdateSineCurve(const float& CurrentTime)
 {
-	if (const UWorld* pWorld = GetWorld())
-	{
-		//サイン波の幅を設定
-		const float WaveWidth = m_SineWidth * pWorld->GetTimeSeconds();
-		//サイン波の大きさを0から1に正規化する
-		m_SineCurveValue = FMath::Sin(WaveWidth) * 0.5f + 0.5f;
-	}
+	//サイン波の幅を設定
+	const float WaveWidth = m_SineWidth * CurrentTime;
+	//サイン波の大きさを0から1に正規化する
+	m_SineCurveValue = FMath::Sin(WaveWidth) * 0.5f + 0.5f;
 }
 
 //リングのサイズ更新
@@ -145,6 +144,10 @@ void ARing::UpdateScale(const float& DeltaTime)
 		else
 		{
 			m_bIsPassed = false;
+
+			//マテリアルの回転速度を下げる
+			float ScrollSpeed = 0.5f;
+			m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
 		}
 
 		NewScale = FMath::InterpExpoOut(m_RingScale, m_RingMaxScale, FMath::Clamp(m_PassedTime / m_ResetTime, 0.f, 1.f));
@@ -161,21 +164,14 @@ void ARing::UpdateScale(const float& DeltaTime)
 }
 
 //リングのマテリアル更新
-void ARing::UpdateMaterial(const float& DeltaTime)
+void ARing::UpdateMaterial()
 {
 	if (!m_pRingMesh) { return; }
 
 	if (m_bIsPassed)
 	{
-		//マテリアルの回転速度を下げる
-		float ScrollSpeed = 1.5f;
-		m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
-	}
-	//通過フラグが立っていない間はメッシュの拡縮に合わせてリングの色を変える
-	else
-	{
 		//マテリアルの回転速度を上げる
-		float ScrollSpeed = 0.5f;
+		float ScrollSpeed = 1.5f;
 		m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
 	}
 
@@ -185,7 +181,7 @@ void ARing::UpdateMaterial(const float& DeltaTime)
 }
 
 //リングのエフェクト更新
-void ARing::UpdateEffect(const float& DeltaTime)
+void ARing::UpdateEffect()
 {
 	if (m_pFollowingDroneAndEffect.Num() <= 0) { return; }
 

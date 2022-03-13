@@ -9,7 +9,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "TickLODActor.h"
 #include "NiagaraComponentPool.h"
 #include "Ring.generated.h"
 
@@ -51,7 +51,7 @@ public:
 };
 
 UCLASS()
-class AIRFORCE_API ARing : public AActor
+class AIRFORCE_API ARing : public ATickLODActor
 {
 	GENERATED_BODY()
 	
@@ -77,21 +77,16 @@ public:
 	bool GetIsPassed()const { return m_bIsPassed; }
 	//メッシュ取得
 	UStaticMeshComponent* GetMesh()const { return m_pRingMesh; }
-	//Tickを更新するフレームを設定
-	void SetTickFPS(const float& NewTickFPS) { m_TickFPS = NewTickFPS; }
-	//現在の更新されているFPSを取得
-	UFUNCTION(BlueprintCallable)
-	float GetTickFPS()const { return m_TickFPS; }
 
 private:
 	//サインカーブの値を更新
-	void UpdateSineCurve(const float& DeltaTime);
+	void UpdateSineCurve(const float& CurrentTime);
 	//リングのサイズ更新
 	void UpdateScale(const float& DeltaTime);
 	//リングのマテリアル更新
-	void UpdateMaterial(const float& DeltaTime);
+	void UpdateMaterial();
 	//リングのエフェクト更新
-	void UpdateEffect(const float& DeltaTime);
+	void UpdateEffect();
 
 protected:
 	UPROPERTY(EditAnywhere)
@@ -122,8 +117,4 @@ protected:
 		FLinearColor m_HSV;																					//リングの色
 	UPROPERTY(EditAnywhere, Category = "Sound")
 		USoundBase* m_pRingHitSE;																		//リング衝突SE
-	UPROPERTY(EditAnywhere)
-		float m_TickFPS;																						//1秒間にTickを更新する回数
-	UPROPERTY(VisibleAnywhere)
-		float m_LastTickTime;																				//最後にTickが実行された時刻
 };

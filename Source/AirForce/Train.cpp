@@ -44,14 +44,24 @@ void ATrain::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//速度更新処理
-	UpdateSpeed(DeltaTime);
+	//設定されたFPSの間隔でTickを更新する
+	const float currentTime = GetWorld()->GetTimeSeconds();
+	const float deltaTime = currentTime - m_LastTickTime;
+	const float TimePerFrame = (float)(1.f / (float)m_TickFPS);
 
-	//移動更新処理
-	UpdateMove(DeltaTime);
+	if (deltaTime > TimePerFrame)
+	{
+		m_LastTickTime = currentTime;
 
-	//回転更新処理
-	UpdateRotation(DeltaTime);
+		//速度更新処理
+		UpdateSpeed(deltaTime);
+
+		//移動更新処理
+		UpdateMove(deltaTime);
+
+		//回転更新処理
+		UpdateRotation(deltaTime);
+	}
 }
 
 //メッシュの初期化

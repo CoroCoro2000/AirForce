@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "TickLODActor.h"
 #include "Train.generated.h"
 
 //ëOï˚êÈåæ
@@ -12,7 +12,7 @@ class UStaticMeshComponent;
 class ASplineActor;
 
 UCLASS()
-class AIRFORCE_API ATrain : public AActor
+class AIRFORCE_API ATrain : public ATickLODActor
 {
 	GENERATED_BODY()
 	

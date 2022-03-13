@@ -15,29 +15,6 @@
 class ARing;
 class APlayerDrone;
 
-//リングのTickLOD設定のパラメーター構造体
-USTRUCT(BlueprintType)
-struct FTickLODSetting
-{
-	GENERATED_BODY()
-
-public:
-	FTickLODSetting()
-		: FPS(60)
-		, Distance(500.f)
-	{}
-
-	FTickLODSetting(const float& NewFPS, const float& NewDistance)
-		: FPS(NewFPS)
-		, Distance(NewDistance)
-	{}
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float FPS;																	//設定された範囲内に存在するリングのFPS上限値
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float Distance;															//この距離の範囲内に存在するリングのFPSを設定する
-};
-
 UCLASS()
 class AIRFORCE_API ARingManager : public AActor
 {
@@ -69,6 +46,6 @@ private:
 		APlayerDrone* m_pPlayer;										//プレイヤー
 	UPROPERTY(EditAnywhere)
 		TArray<ARing*> m_pRings;									//このマネージャーが管理するリング
-	UPROPERTY(EditAnywhere)
-		TArray<FTickLODSetting> m_TickLODSettings;		//距離に応じたリングのFPSを可変する設定項目、配列は距離が近い順にソートされる
+	//UPROPERTY(EditAnywhere)
+	//	TArray<FTickLODSetting> m_TickLODSettings;		//距離に応じたリングのFPSを可変する設定項目、配列は距離が近い順にソートされる
 };
