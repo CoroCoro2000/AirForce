@@ -7,6 +7,7 @@
 #include "RacingD_GameInstance.generated.h"
 
 class FLoadingScreenSystem;
+class USaveRecord;
 
 /**
  * 
@@ -32,7 +33,10 @@ public:
 	//ロードスクリーン用のシステムを取得
 	TSharedPtr<FLoadingScreenSystem> GetLoadingScreenSystem()const { return m_pLoadingScreenSystem; }
 
+	//セーブデータの取得
+	//USaveRecord* GetSaveRecord(const FString& SlotName, const int32& SlotIndex);
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 private:
 	TSharedPtr<FLoadingScreenSystem> m_pLoadingScreenSystem;						//ロードスクリーンシステム
-	FString m_PCName;																						//PC名
 };

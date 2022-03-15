@@ -25,4 +25,6 @@ public:
 	static AActor* GetActorFromTag(AActor* _pOwnerActor, const FName& _tag);
 	template<class T>
 	static T* GetActorFromTag(AActor* _pOwnerActor, const FName& _tag) { return Cast<T>(GetActorFromTag(_pOwnerActor, _tag)); }
+
+	//バイナリソート
 };
