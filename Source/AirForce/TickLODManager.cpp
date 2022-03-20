@@ -9,6 +9,7 @@
 #include "TickLODManager.h"
 #include "TickLODActor.h"
 #include "PlayerDrone.h"
+#include "GameUtility.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -94,7 +95,7 @@ void ATickLODManager::UpdateLOD(const float& DeltaTime)
 			{
 				if (TickLODSetting.Distance <= Distance)
 				{
-					pTickLODActor->SetTickFPS(FPS * TickLODSetting.FrameRate);
+					pTickLODActor->SetTickFPS(CGameUtility::SetDecimalTruncation(FPS * TickLODSetting.FrameRate,3));
 					
 					break;
 				}

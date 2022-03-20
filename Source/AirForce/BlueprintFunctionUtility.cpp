@@ -67,6 +67,6 @@ FQuat UBlueprintFunctionUtility::RInterpToQuaternion(const FRotator Current, con
 	else
 	{
 		//クォータニオンによる回転
-		return UKismetMathLibrary::Conv_VectorToQuaterion(UKismetMathLibrary::RotateAngleAxis(CurrentXVector, RotateAngle, RotationAxis));
+		return UKismetMathLibrary::Conv_VectorToQuaternion(UKismetMathLibrary::RotateAngleAxis(CurrentXVector, RotateAngle, RotationAxis));
 	}
 }

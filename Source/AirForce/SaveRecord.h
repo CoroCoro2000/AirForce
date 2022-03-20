@@ -18,7 +18,7 @@ public:
 		: BestRecordLocation()
 		, BestRecordRotation()
 	{}
-	FSaveBestTimeTransform(const TArray<FVector>& NewRecordLocations, const TArray<FQuat>& NewRecordRotations)
+	FSaveBestTimeTransform(const TArray<FVector> NewRecordLocations, const TArray<FQuat> NewRecordRotations)
 		: BestRecordLocation(NewRecordLocations)
 		, BestRecordRotation(NewRecordRotations)
 	{}

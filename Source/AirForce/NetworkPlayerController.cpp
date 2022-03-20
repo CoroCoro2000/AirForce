@@ -1,8 +1,8 @@
 //------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:ANetworkPlayerController.cpp
-// ŠT—v				:ƒNƒ‰ƒCƒAƒ“ƒg‚ÌPawn‚ÆHUD‚Ì‘€ì‚ğs‚¤ƒRƒ“ƒgƒ[ƒ‰[
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e			:
+// ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½		:ANetworkPlayerController.cpp
+// ï¿½Tï¿½v				:ï¿½Nï¿½ï¿½ï¿½Cï¿½Aï¿½ï¿½ï¿½gï¿½ï¿½Pawnï¿½ï¿½HUDï¿½Ì‘ï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½Rï¿½ï¿½ï¿½gï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½[
+// ï¿½ì¬ï¿½ï¿½			:19CU0105 ï¿½rï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+// ï¿½Xï¿½Vï¿½ï¿½ï¿½e			:
 //------------------------------------------------------------------------
 
 
@@ -15,45 +15,45 @@
 #include "NetworkPlayerState.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ï¿½Rï¿½ï¿½ï¿½Xï¿½gï¿½ï¿½ï¿½Nï¿½^
 ANetworkPlayerController::ANetworkPlayerController()
 	: m_SynchronousInterval(0.25f)
 {
-	//“¯Šú‘ÎÛƒtƒ‰ƒO
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ÎÛƒtï¿½ï¿½ï¿½O
 	bReplicates = true;
-	//Š—LŒ ‚ğ‚ÂƒNƒ‰ƒCƒAƒ“ƒg‚Ì‚İ‚É“¯Šú‚·‚é
+	//ï¿½ï¿½ï¿½Lï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÂƒNï¿½ï¿½ï¿½Cï¿½Aï¿½ï¿½ï¿½gï¿½Ì‚İ‚É“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	bOnlyRelevantToOwner = true;
 	bAlwaysRelevant = true;
 }
 
-//ƒQ[ƒ€ŠJn‚ÉÀs‚³‚ê‚éŠÖ”
+//ï¿½Qï¿½[ï¿½ï¿½ï¿½Jï¿½nï¿½ï¿½ï¿½Éï¿½ï¿½sï¿½ï¿½ï¿½ï¿½ï¿½Öï¿½
 void ANetworkPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
 }
 
-//–ˆƒtƒŒ[ƒ€Às‚³‚ê‚éŠÖ”
+//ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½ï¿½ï¿½Öï¿½
 void ANetworkPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-//ƒŒƒvƒŠƒP[ƒg‚ğ“o˜^
+//ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½Pï¿½[ï¿½gï¿½ï¿½oï¿½^
 void ANetworkPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 }
 
-//ƒT[ƒo[—p@Transform“K—p
+//ï¿½Tï¿½[ï¿½oï¿½[ï¿½pï¿½@Transformï¿½Kï¿½p
 void ANetworkPlayerController::Server_ApplyTransform()
 {
-	//GameStateæ“¾
+	//GameStateï¿½æ“¾
 	if (ANetworkGameState* pGameState = GetWorld()->GetGameState<ANetworkGameState>())
 	{
-		//Q‰Á‚µ‚Ä‚¢‚é‘S‚Ä‚ÌPlayerState‚ğQÆ
+		//ï¿½Qï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½Sï¿½Ä‚ï¿½PlayerStateï¿½ï¿½ï¿½Qï¿½ï¿½
 		for (ANetworkPlayerState* pPlayerState : pGameState->GetPlayerState())
 		{
 			if (pPlayerState && GetPlayerState<ANetworkPlayerState>() != pPlayerState)
@@ -101,16 +101,16 @@ void ANetworkPlayerController::Server_ApplyTransform()
 #endif // WITH_EDITOR
 }
 
-//ƒNƒ‰ƒCƒAƒ“ƒg—p@Transform‚ğ“n‚·
+//ï¿½Nï¿½ï¿½ï¿½Cï¿½Aï¿½ï¿½ï¿½gï¿½pï¿½@Transformï¿½ï¿½nï¿½ï¿½
 void ANetworkPlayerController::Client_TransformTransfer(const FReplicatedPlayerTransform& ReplicatedData)
 {
-	//GameStateæ“¾
+	//GameStateï¿½æ“¾
 	if (ANetworkGameState* pGameState = GetWorld()->GetGameState<ANetworkGameState>())
 	{
-		//©g‚ÌPlayerState‚ğæ“¾
+		//ï¿½ï¿½ï¿½gï¿½ï¿½PlayerStateï¿½ï¿½ï¿½æ“¾
 		if (ANetworkPlayerState* pPlayerState = GetPlayerState<ANetworkPlayerState>())
 		{
-			//©g‚Ì‘€ì‚·‚éƒvƒŒƒCƒ„[‚ÌTransform‚ğPlayerState‚É“]‘—‚·‚é
+			//ï¿½ï¿½ï¿½gï¿½Ì‘ï¿½ï¿½ì‚·ï¿½ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½Transformï¿½ï¿½PlayerStateï¿½É“]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			if (APlayerDrone* pPlayerDrone = GetPawn<APlayerDrone>())
 			{
 				pPlayerState->SetPlayerTransform(ReplicatedData);
@@ -137,20 +137,20 @@ void ANetworkPlayerController::Client_TransformTransfer(const FReplicatedPlayerT
 #endif // WITH_EDITOR
 }
 
-//ƒT[ƒo[—p@ÅV‚Ìƒhƒ[ƒ“î•ñ‚ÉXV
+//ï¿½Tï¿½[ï¿½oï¿½[ï¿½pï¿½@ï¿½ÅVï¿½Ìƒhï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ÉXï¿½V
 void ANetworkPlayerController::Server_UpdateDrone() 
 {
 	if (ANetworkGameState* pGameState = GetWorld()->GetGameState<ANetworkGameState>())
 	{
-		//Q‰Á‚µ‚Ä‚¢‚é‘S‚Ä‚ÌPlayerState‚ğQÆ
+		//ï¿½Qï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½Sï¿½Ä‚ï¿½PlayerStateï¿½ï¿½ï¿½Qï¿½ï¿½
 		for (ANetworkPlayerState* pPlayerState : pGameState->GetPlayerState())
 		{
 			if (pPlayerState && GetPlayerState<ANetworkPlayerState>() != pPlayerState)
 			{
-				//ƒNƒ‰ƒCƒAƒ“ƒg‚©‚çó‚¯æ‚Á‚½ƒhƒ[ƒ“î•ñ‚ğæ“¾
+				//ï¿½Nï¿½ï¿½ï¿½Cï¿½Aï¿½ï¿½ï¿½gï¿½ï¿½ï¿½ï¿½ó‚¯ï¿½ï¿½ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½æ“¾
 				if (APlayerDrone* pClientDrone = pPlayerState->GetReplicatedPlayer())
 				{
-					//ƒT[ƒo[ã‚É‘¶İ‚·‚éƒhƒ[ƒ“‚ÌÀ•W‚ğXV‚·‚é
+					//ï¿½Tï¿½[ï¿½oï¿½[ï¿½ï¿½É‘ï¿½ï¿½İ‚ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Ìï¿½ï¿½Wï¿½ï¿½ï¿½Xï¿½Vï¿½ï¿½ï¿½ï¿½
 					if (APlayerDrone* pServerDrone = pPlayerState->GetPawn<APlayerDrone>())
 					{
 						pServerDrone->SetActorLocation(pClientDrone->GetActorLocation());
@@ -162,13 +162,13 @@ void ANetworkPlayerController::Server_UpdateDrone()
 	}
 }
 
-//ƒNƒ‰ƒCƒAƒ“ƒg—p@ÅV‚Ìƒhƒ[ƒ“ƒf[ƒ^‚ğ“n‚·
+//ï¿½Nï¿½ï¿½ï¿½Cï¿½Aï¿½ï¿½ï¿½gï¿½pï¿½@ï¿½ÅVï¿½Ìƒhï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½fï¿½[ï¿½^ï¿½ï¿½nï¿½ï¿½
 void ANetworkPlayerController::Client_UpdateDrone(APlayerDrone* ReplicatedDrone)
 {
-	//GameStateæ“¾
+	//GameStateï¿½æ“¾
 	if (ANetworkGameState* pGameState = GetWorld()->GetGameState<ANetworkGameState>())
 	{
-		//©g‚ÌPlayerState‚ğæ“¾
+		//ï¿½ï¿½ï¿½gï¿½ï¿½PlayerStateï¿½ï¿½ï¿½æ“¾
 		if (ANetworkPlayerState* pPlayerState = GetPlayerState<ANetworkPlayerState>())
 		{
 			pPlayerState->SetReplicatedPlayer(ReplicatedDrone);
@@ -183,7 +183,7 @@ void ANetworkPlayerController::Client_UpdateDrone(APlayerDrone* ReplicatedDrone)
 }
 
 
-//ƒQ[ƒ€ƒRƒ“ƒgƒ[ƒ‰[æ“¾
+//ï¿½Qï¿½[ï¿½ï¿½ï¿½Rï¿½ï¿½ï¿½gï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½[ï¿½æ“¾
 ANetworkPlayerController* ANetworkPlayerController::Get()
 {
 	ANetworkPlayerController* pPlayerController = nullptr;
@@ -197,18 +197,18 @@ ANetworkPlayerController* ANetworkPlayerController::Get()
 	return pPlayerController;
 }
 
-//ƒŒƒvƒŠƒP[ƒg‚·‚éƒf[ƒ^‚ğæ“¾
+//ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½Pï¿½[ï¿½gï¿½ï¿½ï¿½ï¿½fï¿½[ï¿½^ï¿½ï¿½ï¿½æ“¾
 FReplicatedPlayerTransform ANetworkPlayerController::GetReplicatedData()const
 {
-	//‚±‚ÌƒRƒ“ƒgƒ[ƒ‰[‚ª‘€ì‚·‚éƒhƒ[ƒ“‚ğæ“¾
+	//ï¿½ï¿½ï¿½ÌƒRï¿½ï¿½ï¿½gï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ì‚·ï¿½ï¿½hï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½æ“¾
 	if (APlayerDrone* pPlayerDrone = GetPawn<APlayerDrone>())
 	{
-		//ƒvƒŒƒCƒ„[ƒXƒe[ƒg‚ğæ“¾
+		//ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Xï¿½eï¿½[ï¿½gï¿½ï¿½ï¿½æ“¾
 		if (ANetworkPlayerState* pPlayerState = GetPlayerState<ANetworkPlayerState>())
 		{
 			FReplicatedPlayerTransform ReplicatedPlayer(
 				FTransform(pPlayerDrone->GetBodyMeshRelativeRotation(), pPlayerDrone->GetActorLocation()),
-				pPlayerState->PlayerId);
+				pPlayerState->GetPlayerId());
 
 			return ReplicatedPlayer;
 		}

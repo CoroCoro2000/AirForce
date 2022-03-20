@@ -102,7 +102,7 @@ void ARing::Tick(float DeltaTime)
 	const float deltaTime = currentTime - m_LastTickTime;
 
 	//処理可能なフレームであれば更新
-	if (deltaTime > TimePerFrame && IsProcessableFrame())
+	if (deltaTime > TimePerFrame && IsProcessableFrame(currentTime))
 	{
 		m_LastTickTime = currentTime;
 

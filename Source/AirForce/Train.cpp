@@ -9,7 +9,7 @@
 // Sets default values
 ATrain::ATrain()
 	: m_pFrontTrainMesh(CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Front")))
-	, m_pSplineActor(NULL)
+	, m_pSplineActor(nullptr)
 	, m_MaxSpeed(500.f)
 	, m_CurrentSpeed(0.f)
 	, m_Acceleration(3.f)
@@ -52,7 +52,7 @@ void ATrain::Tick(float DeltaTime)
 	const float deltaTime = currentTime - m_LastTickTime;
 
 	//処理可能なフレームであれば更新
-	if (deltaTime > TimePerFrame && IsProcessableFrame())
+	if (deltaTime > TimePerFrame && IsProcessableFrame(currentTime))
 	{
 		m_LastTickTime = currentTime;
 

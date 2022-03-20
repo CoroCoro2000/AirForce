@@ -39,15 +39,13 @@ public:
 
 protected:
 	//処理可能なフレームか判定
-	bool IsProcessableFrame()const;
+	bool IsProcessableFrame(const float& currentTime)const;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "TickLOD")
-		float m_TickFPS;																						//FPS
+		float m_TickFPS;																					//FPS
 	UPROPERTY(VisibleAnywhere, Category = "TickLOD")
 		float m_LastTickTime;																				//最後にTickが実行された時刻
 	UPROPERTY(VisibleAnywhere, Category = "TickLOD")
 		uint32 m_ActorNumber;																				//番号
-	UPROPERTY(VisibleAnywhere, Category = "TickLOD")
-		uint32 m_FrameCount;																				//処理フレーム数
 };

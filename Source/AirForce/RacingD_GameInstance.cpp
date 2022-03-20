@@ -5,25 +5,29 @@
 #include "RacingD_GameInstance.h"
 #include "LoadingScreenLibrary.h"
 #include "Blueprint/UserWidget.h"
+#include "ConfigParameter.h"
 #include "Engine/Engine.h"
 
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 URacingD_GameInstance::URacingD_GameInstance()
 	: m_pLoadingScreenSystem(nullptr)
 {
 
 }
 
-//ƒQ[ƒ€ŠJn‚ÉÀs‚·‚éŠÖ”
+//ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã«å®Ÿè¡Œã™ã‚‹é–¢æ•°
 void URacingD_GameInstance::Init()
 {
 	Super::Init();
 
-	//ƒ[ƒfƒBƒ“ƒOƒVƒXƒeƒ€‚Ì¶¬
+	//ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ã‚·ã‚¹ãƒ†ãƒ ã®ç”Ÿæˆ
 	m_pLoadingScreenSystem = MakeShareable(new FLoadingScreenSystem(this));
+
+	//ã‚³ãƒ³ãƒ•ã‚£ã‚°ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒ¼ã®åˆæœŸåŒ–
+	CConfigParameter::InitConfigParameter();
 }
 
-//ƒQ[ƒ€I—¹‚ÉÀs‚·‚éŠÖ”
+//ã‚²ãƒ¼ãƒ çµ‚äº†æ™‚ã«å®Ÿè¡Œã™ã‚‹é–¢æ•°
 void URacingD_GameInstance::Shutdown()
 {
 	Super::Shutdown();
@@ -35,7 +39,7 @@ void URacingD_GameInstance::Shutdown()
 	}
 }
 
-//ƒQ[ƒ€ƒCƒ“ƒXƒ^ƒ“ƒX‚Ìæ“¾
+//ã‚²ãƒ¼ãƒ ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®å–å¾—
 URacingD_GameInstance* URacingD_GameInstance::Get()
 {
 	URacingD_GameInstance* pGameInstance = nullptr;
