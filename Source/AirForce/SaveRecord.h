@@ -6,6 +6,8 @@
 #include "GameFramework/SaveGame.h"
 #include "SaveRecord.generated.h"
 
+class USaveRecord;
+
 //1ˆÊ‚ÌTransformî•ñ‚ğŠi”[‚·‚é\‘¢‘Ì
 USTRUCT(BlueprintType)
 struct FSaveBestTimeTransform

@@ -111,10 +111,11 @@ public:
 	//プレイヤーのID取得
 	UFUNCTION(BlueprintCallable, Category = "Replay")
 		int32 GetPlayerId()const { return m_PlayerId; }
-
-	//ドローンの更新
-	void UpdateDrone(APlayerDrone* pPlayerDrone);
-
+	
+	//レース中のTransformをセーブデータに書き込む
+	UFUNCTION(BlueprintCallable, Category = "SaveRecord")
+		bool SaveTransform(const FName CourseName);
+	
 private:
 	//【入力バインド】各スティックの入力
 	void Input_Throttle(float _axisValue);
@@ -202,4 +203,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Network")
 		int32 m_PlayerId;
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveRecord")
+		TArray<FVector> m_SaveVelocityArray;
+	UPROPERTY(VisibleAnywhere, Category = "SaveRecord")
+		TArray<FQuat> m_SaveQuaternionArray;
 };

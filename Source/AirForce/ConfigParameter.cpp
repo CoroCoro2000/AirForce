@@ -15,7 +15,6 @@ void CConfigParameter::InitConfigParameter()
 	{
 		CConfigParameter::FixedFrameRate = _FrameRate;
 
-		UE_LOG(LogTemp,Warning,TEXT("Config Read Success!"));
 		UE_LOG(LogTemp,Warning,TEXT("Config::FixedFrameRate[%f]"),CConfigParameter::FixedFrameRate);
 	}
 	else

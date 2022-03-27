@@ -18,37 +18,37 @@ class FObjectInitializer;
 class FLoadingScreenSystem : public FTickableGameObject
 {
 public:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	FLoadingScreenSystem(URacingD_GameInstance* InGameInstance);
-	//ƒfƒXƒgƒ‰ƒNƒ^
+	//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	virtual ~FLoadingScreenSystem();
-	//CycleCounter‚ğ•Ô‚·ŠÖ”
+	//CycleCounterã‚’è¿”ã™é–¢æ•°
 	virtual TStatId GetStatId() const  override{ RETURN_QUICK_DECLARE_CYCLE_STAT(FLoadingScreenSystem, STATGROUP_Tickables); }
-	//–ˆƒtƒŒ[ƒ€Às‚³‚ê‚éŠÖ”
+	//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å®Ÿè¡Œã•ã‚Œã‚‹é–¢æ•°
 	virtual void Tick(float DeltaTime) override;
-	//“Ç‚İ‚İ‚ğ‚·‚éƒpƒbƒP[ƒW–¼‚Ìİ’è
+	//èª­ã¿è¾¼ã¿ã‚’ã™ã‚‹ãƒ‘ãƒƒã‚±ãƒ¼ã‚¸åã®è¨­å®š
 	void SetPackageNameForLoadingProgress(FName InPackageName) { m_PackageName = InPackageName; }
-	//ƒ[ƒh‰æ–Ê‚Ì•\¦
+	//ãƒ­ãƒ¼ãƒ‰ç”»é¢ã®è¡¨ç¤º
 	void ShowLoadingScreen(const TSubclassOf<UUserWidget> WidgetClass, const FName InPackageName);
-	//ƒ[ƒh‰æ–Ê‚Ì”ñ•\¦
+	//ãƒ­ãƒ¼ãƒ‰ç”»é¢ã®éè¡¨ç¤º
 	void HideLoadingScreen();
-	//ƒ[ƒh‰æ–Ê‚ª•\¦’†‚©”»’è
+	//ãƒ­ãƒ¼ãƒ‰ç”»é¢ãŒè¡¨ç¤ºä¸­ã‹åˆ¤å®š
 	bool IsShow()const { return m_bShowing; }
-	//ƒ[ƒh‚Ìi’»‚ğæ“¾‚·‚éŠÖ”
+	//ãƒ­ãƒ¼ãƒ‰ã®é€²æ—ã‚’å–å¾—ã™ã‚‹é–¢æ•°
 	float GetLoadingProgress();
 
 private:
-	//ƒXƒŒ[ƒg‚ÌXVˆ—
+	//ã‚¹ãƒ¬ãƒ¼ãƒˆã®æ›´æ–°å‡¦ç†
 	void OnAsyncLoadingFlushUpdate();
 
 private:
-	URacingD_GameInstance* m_pGameInstance;								//ƒQ[ƒ€ƒCƒ“ƒXƒ^ƒ“ƒX
-	TSharedPtr<SWidget>	m_pLoadingScreenWidget;						//ƒ[ƒh’†‚É•\¦‚·‚éƒXƒŒ[ƒgƒEƒBƒWƒFƒbƒg
-	bool m_bShowing;																		//ƒEƒBƒWƒFƒbƒg‚ª•\¦‚³‚ê‚Ä‚¢‚é‚©
-	double m_LastTickTime;																//ÅŒã‚ÉÀs‚³‚ê‚½Tick‚Ìˆ—ŠÔ
-	FName m_PackageName;															//ƒ[ƒh‚·‚éƒpƒbƒP[ƒW–¼(ƒpƒXw’è)
-	float m_Progress;																		//ƒ[ƒh‚Ìisó‹µ
-	FDelegateHandle m_AsyncLoadingFlushUpdateHandle;					//OnAsyncLoadingFlushUpdate‚ÌƒoƒCƒ“ƒhA‰ğœ‚ğs‚¤ƒfƒŠƒQ[ƒgƒnƒ“ƒhƒ‹
+	URacingD_GameInstance* m_pGameInstance;								//ã‚²ãƒ¼ãƒ ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹
+	TSharedPtr<SWidget>	m_pLoadingScreenWidget;						//ãƒ­ãƒ¼ãƒ‰ä¸­ã«è¡¨ç¤ºã™ã‚‹ã‚¹ãƒ¬ãƒ¼ãƒˆã‚¦ã‚£ã‚¸ã‚§ãƒƒãƒˆ
+	bool m_bShowing;																		//ã‚¦ã‚£ã‚¸ã‚§ãƒƒãƒˆãŒè¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹ã‹
+	double m_LastTickTime;																//æœ€å¾Œã«å®Ÿè¡Œã•ã‚ŒãŸTickã®å‡¦ç†æ™‚é–“
+	FName m_PackageName;															//ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ãƒ‘ãƒƒã‚±ãƒ¼ã‚¸å(ãƒ‘ã‚¹æŒ‡å®š)
+	float m_Progress;																		//ãƒ­ãƒ¼ãƒ‰ã®é€²è¡ŒçŠ¶æ³
+	FDelegateHandle m_AsyncLoadingFlushUpdateHandle;					//OnAsyncLoadingFlushUpdateã®ãƒã‚¤ãƒ³ãƒ‰ã€è§£é™¤ã‚’è¡Œã†ãƒ‡ãƒªã‚²ãƒ¼ãƒˆãƒãƒ³ãƒ‰ãƒ«
 };
 
 /**
@@ -60,20 +60,20 @@ class AIRFORCE_API ULoadingScreenLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 private:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	ULoadingScreenLibrary(const FObjectInitializer& ObjectInitializer);
 
 public:
-	//ƒ[ƒh‰æ–Ê‚Ì•\¦
+	//ãƒ­ãƒ¼ãƒ‰ç”»é¢ã®è¡¨ç¤º
 	UFUNCTION(BlueprintCallable)
 		static void ShowLoadingScreen(const TSubclassOf<UUserWidget> WidgetClass, FName InPackageName);
-	//ƒ[ƒh‰æ–Ê‚Ì”ñ•\¦
+	//ãƒ­ãƒ¼ãƒ‰ç”»é¢ã®éè¡¨ç¤º
 	UFUNCTION(BlueprintCallable)
 		static void HideLoadingScreen();
-	//ƒ[ƒh‚Ìisó‹µ‚ğæ“¾
+	//ãƒ­ãƒ¼ãƒ‰ã®é€²è¡ŒçŠ¶æ³ã‚’å–å¾—
 	UFUNCTION(BlueprintCallable)
 		static float GetLoadingProgress();
-	//ƒ[ƒh‰æ–Ê‚ª•\¦’†‚©”»’è
+	//ãƒ­ãƒ¼ãƒ‰ç”»é¢ãŒè¡¨ç¤ºä¸­ã‹åˆ¤å®š
 	UFUNCTION(BlueprintCallable)
 		static bool IsShowLoadingScreen();
 };

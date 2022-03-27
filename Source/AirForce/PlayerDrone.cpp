@@ -23,6 +23,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "RacingD_GameInstance.h"
+#include "SaveRecord.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Misc/FileHelper.h"
 #include "Train.h"
@@ -765,10 +767,20 @@ FRotator APlayerDrone::GetDroneRotation() const
 	return m_pBodyMesh->GetComponentRotation();
 }
 
-//ドローンの更新用オペレーター
-void APlayerDrone::UpdateDrone(APlayerDrone* pPlayerDrone)
+//レース中のTransformをセーブデータに書き込む
+bool APlayerDrone::SaveTransform(const FName CourseName)
 {
-	this->m_AxisValuePerFrame = pPlayerDrone->m_AxisValuePerFrame;
+	if(const URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
+	{
+		if(USaveRecord* pSaveRecord = pGameInstance->GetSaveRecord())
+		{
+			pSaveRecord->SetBestTimeTransform(CourseName,m_SaveVelocityArray,m_SaveQuaternionArray);
+
+			return true;
+		}
+	}
+	
+	return false;
 }
 
 //【入力バインド】コントローラー入力設定

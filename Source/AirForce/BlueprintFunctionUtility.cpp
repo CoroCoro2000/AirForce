@@ -2,6 +2,8 @@
 
 
 #include "BlueprintFunctionUtility.h"
+
+#include "RacingD_GameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -44,29 +46,38 @@ void UBlueprintFunctionUtility::GetAllActorHasTags(const UObject* WorldContextOb
 	}
 }
 
-//ターゲットに向かう回転量を返す関数
-FQuat UBlueprintFunctionUtility::RInterpToQuaternion(const FRotator Current, const FRotator Target, const float DeltaTime, const float InterpSpeed)
+//ゲームデータのロード
+void UBlueprintFunctionUtility::LoadGameData(const FString& SlotName, const int SlotIndex)
 {
-	//回転角度
-	float RotateAngle = DeltaTime * InterpSpeed;
-	//現在の回転とターゲットのXベクトル
-	FVector CurrentXVector = Current.Vector();
-	FVector TargetXVector = Target.Vector();
-	//回転軸
-	FVector RotationAxis = CurrentXVector * TargetXVector;
-
-	//なす角を求める
-	float dot = CurrentXVector | TargetXVector;
-	float DegAngle = UKismetMathLibrary::DegAcos(dot);
-
-	//回転角度よりなす角が小さい場合はTargetまでの回転量を返す
-	if (DegAngle <= RotateAngle)
+	if(URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
 	{
-		return Target.Quaternion();
+		pGameInstance->LoadGameData(SlotName,SlotIndex);
 	}
-	else
+}
+
+//ゲームデータの非同期ロード
+void UBlueprintFunctionUtility::AsyncLoadGameData(const FString& SlotName, const int SlotIndex)
+{
+	if(URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
 	{
-		//クォータニオンによる回転
-		return UKismetMathLibrary::Conv_VectorToQuaternion(UKismetMathLibrary::RotateAngleAxis(CurrentXVector, RotateAngle, RotationAxis));
+		pGameInstance->AsyncLoadGameData(SlotName,SlotIndex);
+	}
+}
+
+//ゲームデータのセーブ
+void UBlueprintFunctionUtility::SaveGameData(const FString& SlotName, const int SlotIndex)
+{
+	if(const URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
+	{
+		pGameInstance->SaveGameData(SlotName,SlotIndex);
+	}
+}
+
+//ゲームデータの非同期セーブ
+void UBlueprintFunctionUtility::AsyncSaveGameData(const FString& SlotName, const int SlotIndex)
+{
+	if(URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
+	{
+		pGameInstance->AsyncSaveGameData(SlotName,SlotIndex);
 	}
 }

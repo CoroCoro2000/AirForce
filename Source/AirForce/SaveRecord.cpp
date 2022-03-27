@@ -1,7 +1,7 @@
 
 #include "SaveRecord.h"
 
-const int32 FSaveTopRankingTime::RankingMax = 5;
+constexpr int32 FSaveTopRankingTime::RankingMax = 5;
 
 //指定順位のレコードを取得
 float FSaveTopRankingTime::GetRankRecord(const int& rank)const
@@ -51,7 +51,7 @@ void USaveRecord::SetRecordTime(const FName CourseName, const float& RecordTime)
 		//タイムが速い順に並び替える
 		m_TopRankingTimes[CourseName].RecordTimes.Sort();
 		//ランキング外のタイムを削除
-		int32 RankingNum = m_TopRankingTimes[CourseName].RecordTimes.Num();
+		const int32 RankingNum = m_TopRankingTimes[CourseName].RecordTimes.Num();
 		if (RankingNum > FSaveTopRankingTime::RankingMax)
 		{
 			for (int32 Lastindex = RankingNum - 1; Lastindex >= FSaveTopRankingTime::RankingMax; --Lastindex)
