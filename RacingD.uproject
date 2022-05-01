@@ -71,15 +71,7 @@
 			]
 		},
 		{
-			"Name": "AndroidPermission",
-			"Enabled": false
-		},
-		{
 			"Name": "AISupport",
-			"Enabled": false
-		},
-		{
-			"Name": "AndroidMedia",
 			"Enabled": false
 		},
 		{
@@ -99,10 +91,6 @@
 		},
 		{
 			"Name": "MobilePatchingUtils",
-			"Enabled": false
-		},
-		{
-			"Name": "AndroidMoviePlayer",
 			"Enabled": false
 		},
 		{
