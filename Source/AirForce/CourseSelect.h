@@ -55,13 +55,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 		FString GetSelectCourseBestTime(int _CourseNumber)const;
 
-private:
 	//【入力バインド】各スティックの入力
-	void Input_Right();
-	void Input_Left();
-	void Input_Decide();
-	void Input_Cansel();
-
+	UFUNCTION(BlueprintCallable)
+		void Input_Right();
+	UFUNCTION(BlueprintCallable)
+		void Input_Left();
+	UFUNCTION(BlueprintCallable)
+		void Input_Decide();
+	UFUNCTION(BlueprintCallable)
+		void Input_Cansel();
+private:
 
 	//メッシュ初期化
 	void InitializeMesh();
