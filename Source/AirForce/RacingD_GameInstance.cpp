@@ -35,13 +35,13 @@ void URacingD_GameInstance::Init()
 //ゲーム終了時に実行する関数
 void URacingD_GameInstance::Shutdown()
 {
-	Super::Shutdown();
-
 	if (m_pLoadingScreenSystem.IsValid())
 	{
 		m_pLoadingScreenSystem.Reset();
 		m_pLoadingScreenSystem = nullptr;
 	}
+
+	Super::Shutdown();
 }
 
 //ゲームインスタンスの取得

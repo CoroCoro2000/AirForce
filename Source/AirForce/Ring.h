@@ -115,6 +115,6 @@ protected:
 		float m_RingMaxScale;																				//リングの最大スケール
 	UPROPERTY(EditAnywhere)
 		FLinearColor m_HSV;																					//リングの色
-	UPROPERTY(EditAnywhere, Category = "Sound")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
 		USoundBase* m_pRingHitSE;																		//リング衝突SE
 };

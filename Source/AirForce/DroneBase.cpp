@@ -265,7 +265,7 @@ void ADroneBase::UpdateWingRotation(const float& DeltaTime)
 				//‰E‰ñ‚è‚Ì‰H‚©”»•Ê‚·‚é(¶‘O‚Æ‰EŒã‚ë‚Ì‰H‚ª‰E‰ñ‚è‚É‰ñ“]‚·‚é)
 				const bool isTurnRight = (pWing->GetWingNumber() == EWING::LEFT_FORWARD || pWing->GetWingNumber() == EWING::RIGHT_BACKWARD ? true : false);
 				//1ƒtƒŒ[ƒ€‚É‰ñ“]‚·‚éŠp“x‚ð‹‚ß‚é
-				const float angularVelocity = m_RPSMax * 360.f * DeltaTime * WingAccel * (isTurnRight ? 1.f : -1.f) * MOVE_CORRECTION;
+				const float angularVelocity = m_RPSMax * 360.f * DeltaTime * WingAccel * (isTurnRight ? 1.f : -1.f);
 
 				//‰H‚ð‰ñ“]‚³‚¹‚é
 				pWing->GetWingMesh()->AddLocalRotation(FRotator(0.f, angularVelocity, 0.f));
@@ -292,7 +292,6 @@ void ADroneBase::UpdateRotation(const float& DeltaTime)
 		(m_pWings[EWING::LEFT_FORWARD]->AccelState + m_pWings[EWING::LEFT_BACKWARD]->AccelState) - (m_pWings[EWING::RIGHT_FORWARD]->AccelState + m_pWings[EWING::RIGHT_BACKWARD]->AccelState),
 		(m_pWings[EWING::LEFT_BACKWARD]->AccelState + m_pWings[EWING::RIGHT_BACKWARD]->AccelState) - (m_pWings[EWING::LEFT_FORWARD]->AccelState + m_pWings[EWING::RIGHT_FORWARD]->AccelState),
 		(m_pWings[EWING::RIGHT_FORWARD]->AccelState + m_pWings[EWING::LEFT_BACKWARD]->AccelState) - (m_pWings[EWING::LEFT_FORWARD]->AccelState + m_pWings[EWING::RIGHT_BACKWARD]->AccelState));
-	AngularVelocity.Z = FMath::Abs(AngularVelocity.Z) * m_AxisAccel.W;
 
 	FRotator BodyRotation = m_pBodyMesh->GetRelativeRotation();
 
@@ -303,7 +302,8 @@ void ADroneBase::UpdateRotation(const float& DeltaTime)
 	BodyRotation.Roll = FMath::Lerp(BodyRotation.Roll, HorizontalAxis * deg, RotationSpeed);
 
 	FRotator NewRotation = BodyRotation;
-	NewRotation.Yaw += (AngularVelocity.Z * 0.7f * MOVE_CORRECTION);
+	float NewYaw = FMath::Lerp(AngularVelocity.Z, FMath::Abs(AngularVelocity.Z) * m_AxisAccel.W, DeltaTime);
+	NewRotation.Yaw += (NewYaw * 0.3f);
 	m_pBodyMesh->SetRelativeRotation(NewRotation.Quaternion(), true);
 }
 

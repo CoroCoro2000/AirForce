@@ -252,12 +252,6 @@ void ARing::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AA
 
 					//ヒットしたドローンを配列に格納する
 					m_pFollowingDroneAndEffect.Add(FFollowingDroneAndEffect(pDrone));
-
-					//ヒットしたドローンが自身の操作するドローンの時のみSEを再生
-					if (pDrone->GetisControl() && pDrone->IsPlayerControlled())
-					{
-						UGameplayStatics::PlaySound2D(GetWorld(), m_pRingHitSE);
-					}
 				}
 			}
 		}

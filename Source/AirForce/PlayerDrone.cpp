@@ -530,7 +530,9 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 
 	//ƒJƒƒ‰‚Ì‰ñ“]‚ðXV
 	m_pCamera->SetRelativeRotation(CameraRotation.Quaternion());
-	m_pSpringArm->SetRelativeRotation(FRotator(0.f, BodyRotation.Yaw + m_CameraRotationYaw, 0.f));
+
+	FQuat SprignArm = FQuat::FastLerp(m_pSpringArm->GetComponentQuat(), (FRotator(0.f, m_pBodyMesh->GetComponentRotation().Yaw, 0.f).Quaternion()), FMath::Clamp(DeltaTime * 5.f, 0.f, 1.f));
+	m_pSpringArm->SetWorldRotation(SprignArm);
 
 	if (!m_isReplay)
 	{
