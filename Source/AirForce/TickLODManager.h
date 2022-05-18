@@ -12,7 +12,7 @@
 #include "GameFramework/Actor.h"
 #include "TickLODManager.generated.h"
 
-class APlayerDrone;
+class APlayerCameraManager;
 class ATickLODActor;
 
 //アクターのTickLOD設定のパラメーター構造体
@@ -67,7 +67,7 @@ private:
 	UPROPERTY(EditAnywhere)
 		TArray<FTickLODSetting> m_TickLODSettings;								//距離に応じたリングのFPSを可変する設定項目、配列は距離が近い順にソートされる
 	UPROPERTY(EditAnywhere)
-		APlayerDrone* m_pPlayer;																//プレイヤー
+		APlayerCameraManager* m_pPlayerCamera;											//プレイヤーのカメラ
 	UPROPERTY(EditAnywhere)
 		TArray<ATickLODActor*> m_pTickLODActors;										//LODの設定をするアクターを格納する配列
 };

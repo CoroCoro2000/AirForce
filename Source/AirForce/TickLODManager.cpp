@@ -8,14 +8,14 @@
 
 #include "TickLODManager.h"
 #include "TickLODActor.h"
-#include "PlayerDrone.h"
 #include "GameUtility.h"
+#include "Camera/PlayerCameraManager.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ATickLODManager::ATickLODManager()
 	: m_TickLODSettings()
-	, m_pPlayer(nullptr)
+	, m_pPlayerCamera(nullptr)
 	, m_pTickLODActors()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -35,6 +35,9 @@ void ATickLODManager::BeginPlay()
 	
 	//LODアクターの初期化
 	InitializeActorArray();
+
+	//プレイヤーのカメラを取得
+	m_pPlayerCamera = UGameplayStatics::GetPlayerCameraManager(this, 0);
 }
 
 // Called every frame
@@ -63,14 +66,6 @@ void ATickLODManager::InitializeActorArray()
 				pTickLODActor->SetNumber(m_pTickLODActors.Num());
 				m_pTickLODActors.Add(pTickLODActor);
 			}
-
-			if (!m_pPlayer)
-			{
-				if (pActor->ActorHasTag("Player"))
-				{
-					m_pPlayer = Cast<APlayerDrone>(pActor);
-				}
-			}
 		}
 	}
 }
@@ -78,24 +73,24 @@ void ATickLODManager::InitializeActorArray()
 //LODの更新
 void ATickLODManager::UpdateLOD(const float& DeltaTime)
 {
-	if (!m_pPlayer) { return; }
+	if (!m_pPlayerCamera) { return; }
 
-	FVector PlayerLocation = m_pPlayer->GetActorLocation();
+	FVector CameraLocation = m_pPlayerCamera->GetCameraLocation();
 	const float FPS = 1.f / GetWorld()->GetDeltaSeconds();
 
 	for (ATickLODActor* pTickLODActor : m_pTickLODActors)
 	{
 		if (pTickLODActor)
 		{
-			//プレイヤーとアクターの距離
-			const float Distance = FVector::Dist(PlayerLocation, pTickLODActor->GetActorLocation());
+			//カメラとアクターの距離
+			const float Distance = FVector::Dist(CameraLocation, pTickLODActor->GetActorLocation());
 
 			//LOD設定の距離が遠い順に確認し、アクターの位置にあったLOD設定を割り当てる
 			for (const FTickLODSetting& TickLODSetting : m_TickLODSettings)
 			{
 				if (TickLODSetting.Distance <= Distance)
 				{
-					pTickLODActor->SetTickFPS(CGameUtility::SetDecimalTruncation(FPS * TickLODSetting.FrameRate,3));
+					pTickLODActor->SetTickFPS(CGameUtility::SetDecimalTruncation(FPS * TickLODSetting.FrameRate, 3));
 					
 					break;
 				}
