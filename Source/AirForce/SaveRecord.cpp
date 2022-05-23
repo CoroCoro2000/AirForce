@@ -1,100 +1,146 @@
 
 #include "SaveRecord.h"
 
-constexpr int32 FSaveTopRankingTime::RankingMax = 5;
+#define LOCTEXT_NAMESPACE "Record"
 
-//指定順位のレコードを取得
-float FSaveTopRankingTime::GetRankRecord(const int& rank)const
+//記録する時間の上限(10:00;00)
+const float FRecordTime::RECORDTICKS_MAX = 600.f;
+const FRecordTime FRecordTime::RECORDTIME_MAX = FRecordTime(RECORDTICKS_MAX);
+
+FRecordTime::FRecordTime()
+	: Minutes(0)
+	, Second(0)
+	, Millisecond(0)
+	, Ticks(0)
 {
-	//指定順位の記録がある場合は値を返す
-	if (RecordTimes.IsValidIndex(rank - 1))
-	{
-		return RecordTimes[rank - 1];
-	}
-
-	//引数の順位の記録がない場合はログ出力
-	UE_LOG(LogTemp, Error, TEXT("FSaveTop5Time::GetRankRecord = No record of this rank [%d]."), rank);
-
-	return -1.f;
+	Initialize();
 }
+
+FRecordTime::FRecordTime(const FRecordTime& recordTime)
+	: Minutes(recordTime.Minutes)
+	, Second(recordTime.Second)
+	, Millisecond(recordTime.Millisecond)
+	, Ticks(recordTime.Ticks)
+	, MinutesTextFormat(recordTime.MinutesTextFormat)
+	, SecondTextFormat(recordTime.SecondTextFormat)
+	, MillisecondTextFormat(recordTime.MillisecondTextFormat)
+{
+
+}
+
+FRecordTime::FRecordTime(const float& ticks)
+	: Ticks(ticks)
+{
+	Initialize();
+
+	if (this->Ticks >= RECORDTICKS_MAX)
+	{
+		Ticks = RECORDTICKS_MAX;
+		Minutes = Ticks / 60;
+		Second = 0;
+		Millisecond = 0;
+	}
+	else
+	{
+		//経過時間を分/秒/ミリ秒に分解
+		Minutes = Ticks / 60;
+		Second = (int32)Ticks % 60;
+		Millisecond = (Ticks - (int32)ticks) * (10 ^ MillisecondTextFormat.MaximumIntegralDigits);
+	}
+}
+
+void FRecordTime::UpdateTime(const float& deltaTime)
+{
+	Ticks += deltaTime;
+
+	if (this->Ticks >= RECORDTICKS_MAX)
+	{
+		Ticks = RECORDTICKS_MAX;
+		Minutes = Ticks / 60;
+		Second = 0;
+		Millisecond = 0;
+	}
+	else
+	{
+		//経過時間を分/秒/ミリ秒に分解
+		Minutes = Ticks / 60;
+		Second = (int32)Ticks % 60;
+		Millisecond = (Ticks - (int32)Ticks) * 1000;
+	}
+}
+
+FText FRecordTime::ToText()const
+{
+	//文字詰め設定
+	FText minutesText = FText::AsNumber(Minutes, &MinutesTextFormat);
+	FText secondText = FText::AsNumber(Second, &SecondTextFormat);
+	FText millisecondText = FText::AsNumber(Millisecond, &MillisecondTextFormat);
+	
+	return FText::Format(LOCTEXT("Record", "{minutesText}:{secondText}.{millisecondText}"), minutesText, secondText, millisecondText);
+}
+
+#undef LOCTEXT_NAMESPACE
+
+FString FRecordTime::ToString()const
+{
+	return 	ToText().ToString();
+}
+
+bool FRecordTime::operator>(const FRecordTime& Time)const
+{
+	return Ticks > Time.Ticks;
+}
+
+bool FRecordTime::operator>=(const FRecordTime& Time)const
+{
+	return Ticks >= Time.Ticks;
+}
+
+bool FRecordTime::operator<(const FRecordTime& Time)const
+{
+	return Ticks < Time.Ticks;
+}
+
+bool FRecordTime::operator<=(const FRecordTime& Time)const
+{
+	return Ticks <= Time.Ticks;
+}
+
+bool FRecordTime::operator==(const FRecordTime& Time)const
+{
+	return Ticks == Time.Ticks;
+}
+
+bool FRecordTime::operator!=(const FRecordTime& Time)const
+{
+	return Ticks != Time.Ticks;
+}
+
+void FRecordTime::Initialize()
+{
+	//符号、カンマ区切りは表示しない設定
+	MinutesTextFormat.AlwaysSign = false;
+	MinutesTextFormat.UseGrouping = false;
+	SecondTextFormat.AlwaysSign = false;
+	SecondTextFormat.UseGrouping = false;
+	MillisecondTextFormat.AlwaysSign = false;
+	MillisecondTextFormat.UseGrouping = false;
+
+	//表示する桁数の上限と下限を設定
+	MinutesTextFormat.MinimumIntegralDigits = 2;
+	MinutesTextFormat.MaximumIntegralDigits = 2;
+	SecondTextFormat.MinimumIntegralDigits = 2;
+	SecondTextFormat.MaximumIntegralDigits = 2;
+	MillisecondTextFormat.MinimumIntegralDigits = 3;
+	MillisecondTextFormat.MaximumIntegralDigits = 3;
+}
+
+//-------------------------------------------------------------------------------------------------
+
 
 //コンストラクタ
 USaveRecord::USaveRecord(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 
-}
-
-//1位のTransformを設定
-void USaveRecord::SetBestTimeTransform(const FName CourseName, const TArray<FVector>& RecordLocations, const TArray<FQuat>& RecordRotations)
-{
-	//既にデータがあれば上書き
-	if (m_BestTimeTransform.Contains(CourseName))
-	{
-		m_BestTimeTransform[CourseName].BestRecordLocation = RecordLocations;
-		m_BestTimeTransform[CourseName].BestRecordRotation = RecordRotations;
-	}
-	//データがなければ新しく作る
-	else
-	{
-		m_BestTimeTransform.Add(CourseName, FSaveBestTimeTransform(RecordLocations, RecordRotations));
-	}
-}
-
-//ランキング入りしたレコードを設定
-void USaveRecord::SetRecordTime(const FName CourseName, const float& RecordTime)
-{
-	//ランキングデータがある場合は記録を追加
-	if (m_TopRankingTimes.Contains(CourseName))
-	{
-		m_TopRankingTimes[CourseName].RecordTimes.Add(RecordTime);
-		//タイムが速い順に並び替える
-		m_TopRankingTimes[CourseName].RecordTimes.Sort();
-		//ランキング外のタイムを削除
-		const int32 RankingNum = m_TopRankingTimes[CourseName].RecordTimes.Num();
-		if (RankingNum > FSaveTopRankingTime::RankingMax)
-		{
-			for (int32 Lastindex = RankingNum - 1; Lastindex >= FSaveTopRankingTime::RankingMax; --Lastindex)
-			{
-				m_TopRankingTimes[CourseName].RecordTimes.RemoveAt(Lastindex);
-			}
-		}
-	}
-	//ランキングがなかった場合は新しく作る
-	else
-	{
-		m_TopRankingTimes.Add(CourseName);
-		if (m_TopRankingTimes.Contains(CourseName))
-		{
-			m_TopRankingTimes[CourseName].RecordTimes.Add(RecordTime);
-		}
-	}
-}
-
-//1位のTransformを取得
-FSaveBestTimeTransform USaveRecord::GetBestTimeTransform(const FName CourseName)const
-{
-	//1位の記録があれば取り出す
-	if (m_BestTimeTransform.Contains(CourseName))
-	{
-		return m_BestTimeTransform[CourseName];
-	}
-
-	//データがない場合はログを出す
-	UE_LOG(LogTemp, Error, TEXT("USaveRecord::GetBestTimeTransform = No records for [%s]."), *(CourseName.ToString()));
-	return FSaveBestTimeTransform();
-}
-
-//上位5位のランキング取得
-FSaveTopRankingTime USaveRecord::GetTopRankingTime(const FName CourseName)const
-{
-	//ランキングデータが見つかったら取り出す
-	if (m_TopRankingTimes.Contains(CourseName))
-	{
-		return m_TopRankingTimes[CourseName];
-	}
-
-	//データがない場合はログを出す
-	UE_LOG(LogTemp, Error, TEXT("USaveRecord::GetTop5Time = No ranking data for [%s]."), *(CourseName.ToString()));
-	return FSaveTopRankingTime();
 }

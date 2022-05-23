@@ -111,11 +111,7 @@ public:
 	//プレイヤーのID取得
 	UFUNCTION(BlueprintCallable, Category = "Replay")
 		int32 GetPlayerId()const { return m_PlayerId; }
-	
-	//レース中のTransformをセーブデータに書き込む
-	UFUNCTION(BlueprintCallable, Category = "SaveRecord")
-		bool SaveTransform(const FName CourseName);
-	
+		
 private:
 	//【入力バインド】各スティックの入力
 	void Input_Throttle(float _axisValue);

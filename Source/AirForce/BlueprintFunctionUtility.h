@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "SaveRecord.h"
 #include "BlueprintFunctionUtility.generated.h"
 
 /**
@@ -22,16 +23,7 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject", DeterminesOutputType = "ActorClass", DynamicOutputParam = "OutActors"))
 		static void GetAllActorHasTags(const UObject* WorldContextObject, TSubclassOf<AActor> ActorClass, TArray<FName> FindTags, TArray<AActor*>& OutActors);
 
-	//ゲームデータのロード
-	UFUNCTION(BlueprintCallable)
-		static void LoadGameData(const FString& SlotName, const int SlotIndex);
-	//ゲームデータの非同期ロード
-	UFUNCTION(BlueprintCallable)
-		static void AsyncLoadGameData(const FString& SlotName, const int SlotIndex);
-	//ゲームデータのセーブ
-	UFUNCTION(BlueprintCallable)
-		static void SaveGameData(const FString& SlotName, const int SlotIndex);
-	//ゲームデータの非同期セーブ
-	UFUNCTION(BlueprintCallable)
-		static void AsyncSaveGameData(const FString& SlotName, const int SlotIndex);
+	/** Converts a RecordTime to localized formatted text, in the form '00:00.000' */
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToText (RecordTime)", CompactNodeTitle = "->", BlueprintAutocast), Category = "Utilities|Text")
+		static FText Conv_RecordTimeToText(const FRecordTime& InRecordTime);
 };

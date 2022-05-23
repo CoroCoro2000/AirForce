@@ -13,6 +13,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/KismetTextLibrary.h"
+#include "SaveRecord.h"
 #include "GameManager.generated.h"
 
 class USoundBase;
@@ -192,6 +193,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Result")
 		void RapTimeSort();
 
+	UFUNCTION(BlueprintCallable, Category = "Stage")
+		/**
+		 * @brief レコード取得
+		 * @return 
+		*/
+		FRecordTime GetRecordTime()const { return m_RecordTime; }
+
 private:
 	UPROPERTY(EditAnywhere, Category = "Flag")
 		TEnumAsByte<ECURRENTSCENE::Type> m_CurrentScene;				//現在のシーンステート
@@ -217,6 +225,9 @@ private:
 		FString m_CountDownText;					//レース前のカウントダウン表示テキスト
 	UPROPERTY(VisibleAnywhere, Category = "Stage")
 		float m_RapTime;							//ゴールするまでの時間
+
+	UPROPERTY(VisibleAnywhere, Category = "Stage")
+		FRecordTime m_RecordTime;					//タイム
 
 	UPROPERTY(VisibleAnywhere, Category = "Result")
 		TArray<FString> m_RapTimeText;			//ラップテキスト

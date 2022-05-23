@@ -46,38 +46,7 @@ void UBlueprintFunctionUtility::GetAllActorHasTags(const UObject* WorldContextOb
 	}
 }
 
-//ゲームデータのロード
-void UBlueprintFunctionUtility::LoadGameData(const FString& SlotName, const int SlotIndex)
+FText UBlueprintFunctionUtility::Conv_RecordTimeToText(const FRecordTime& InRecordTime)
 {
-	if(URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
-	{
-		pGameInstance->LoadGameData(SlotName,SlotIndex);
-	}
-}
-
-//ゲームデータの非同期ロード
-void UBlueprintFunctionUtility::AsyncLoadGameData(const FString& SlotName, const int SlotIndex)
-{
-	if(URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
-	{
-		pGameInstance->AsyncLoadGameData(SlotName,SlotIndex);
-	}
-}
-
-//ゲームデータのセーブ
-void UBlueprintFunctionUtility::SaveGameData(const FString& SlotName, const int SlotIndex)
-{
-	if(const URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
-	{
-		pGameInstance->SaveGameData(SlotName,SlotIndex);
-	}
-}
-
-//ゲームデータの非同期セーブ
-void UBlueprintFunctionUtility::AsyncSaveGameData(const FString& SlotName, const int SlotIndex)
-{
-	if(URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
-	{
-		pGameInstance->AsyncSaveGameData(SlotName,SlotIndex);
-	}
+	return InRecordTime.ToText();
 }

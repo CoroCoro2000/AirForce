@@ -30,6 +30,7 @@ AGameManager::AGameManager()
 	, m_CountDownTime(4.f)
 	, m_CountDownText(TEXT(""))
 	, m_RapTime(0.f)
+	, m_RecordTime()
 	, m_RapDefaultText(TEXT(""))
 	, m_PlayerRank(0)
 	, m_RankingDisplayNum(5)
@@ -108,6 +109,8 @@ void AGameManager::Tick(float DeltaTime)
 			{
 				m_RapTime = 599.999f;
 			}
+
+			m_RecordTime.UpdateTime(DeltaTime);
 		}
 		
 		//ƒŠƒUƒ‹ƒgˆ—

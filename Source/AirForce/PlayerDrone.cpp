@@ -769,22 +769,6 @@ FRotator APlayerDrone::GetDroneRotation() const
 	return m_pBodyMesh->GetComponentRotation();
 }
 
-//レース中のTransformをセーブデータに書き込む
-bool APlayerDrone::SaveTransform(const FName CourseName)
-{
-	if(const URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
-	{
-		if(USaveRecord* pSaveRecord = pGameInstance->GetSaveRecord())
-		{
-			pSaveRecord->SetBestTimeTransform(CourseName,m_SaveVelocityArray,m_SaveQuaternionArray);
-
-			return true;
-		}
-	}
-	
-	return false;
-}
-
 //【入力バインド】コントローラー入力設定
 void APlayerDrone::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {

@@ -108,6 +108,10 @@
 				"IOS",
 				"TVOS"
 			]
+		},
+		{
+			"Name": "OnlineSubsystemEOS",
+			"Enabled": true
 		}
 	]
 }

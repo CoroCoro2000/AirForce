@@ -6,51 +6,139 @@
 #include "GameFramework/SaveGame.h"
 #include "SaveRecord.generated.h"
 
-class USaveRecord;
-
-//1位のTransform情報を格納する構造体
 USTRUCT(BlueprintType)
-struct FSaveBestTimeTransform
+/**
+ * @brief レコード記録用構造体
+*/
+struct FRecordTime
 {
 	GENERATED_BODY()
 
 public:
-	//コンストラクタ
-	FSaveBestTimeTransform()
-		: BestRecordLocation()
-		, BestRecordRotation()
-	{}
-	FSaveBestTimeTransform(const TArray<FVector> NewRecordLocations, const TArray<FQuat> NewRecordRotations)
-		: BestRecordLocation(NewRecordLocations)
-		, BestRecordRotation(NewRecordRotations)
-	{}
+	/**
+	 * @brief Constructor
+	*/
+	FRecordTime();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		TArray<FVector> BestRecordLocation;									//1位の座標を保存する配列
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		TArray<FQuat> BestRecordRotation;									//1位の回転を保存する配列
-};
+	/**
+	 * @brief 
+	 * @param recordTime レコード
+	*/
+	FRecordTime(const FRecordTime& recordTime);
 
-//上位のタイムを格納する構造体
-USTRUCT(BlueprintType)
-struct FSaveTopRankingTime
-{
-	GENERATED_BODY()
+	/**
+	 * @brief 
+	 * @param ticks 経過時間　秒単位
+	*/
+	FRecordTime(const float& ticks);
+
+	/**
+	 * @brief レコードの時間更新
+	 * @param ticks 
+	*/
+	void UpdateTime(const float& deltaTime);
+
+	/**
+	 * @brief Text 変換
+	 * @return 
+	*/
+	FText ToText()const;
+
+	/**
+	 * @brief String 変換
+	 * @return Record
+	*/
+	FString ToString()const;
 
 public:
-	//コンストラクタ
-	FSaveTopRankingTime()
-		: RecordTimes()
-	{}
+	/**
+	 * @brief operator> override
+	*/
+	bool operator>(const FRecordTime& Time)const;
 
-	//指定順位のレコードを取得
-	float GetRankRecord(const int& rank)const;
+	/**
+	* @brief operator>= override
+	*/
+	bool operator>=(const FRecordTime& Time)const;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		TArray<float> RecordTimes;									//時間を記録する配列
-	//ランキング上限
-	static const int32 RankingMax;
+	/**
+	 * @brief operator< override
+	*/
+	bool operator<(const FRecordTime& Time)const;
+
+	/**
+	 * @brief operator<= override
+	*/
+	bool operator<=(const FRecordTime& Time)const;
+
+	/**
+	 * @brief operator== override
+	*/
+	bool operator==(const FRecordTime& Time)const;
+
+	/**
+	 * @brief operator!= override
+	*/
+	bool operator!=(const FRecordTime& Time)const;
+
+private:
+	/**
+	 * @brief 初期化
+	*/
+	void Initialize();
+
+public:
+	UPROPERTY(BlueprintReadOnly, SaveGame)
+	/**
+	 * @brief 分
+	*/
+	int32 Minutes;
+
+	UPROPERTY(BlueprintReadOnly, SaveGame)
+	/**
+	 * @brief 秒
+	*/
+	int32 Second;
+
+	UPROPERTY(BlueprintReadOnly, SaveGame)
+	/**
+	 * @brief ミリ秒
+	*/
+	int32 Millisecond;
+
+	UPROPERTY(BlueprintReadOnly, SaveGame)
+	/**
+	 * @brief 0から数えた現在の時間　ミリ秒単位
+	*/
+	float Ticks;
+
+	/**
+	 * @brief 記録できるTicksの上限
+	*/
+	static const float RECORDTICKS_MAX;
+
+	/**
+	 * @brief 記録できる時間の上限
+	*/
+	static const FRecordTime RECORDTIME_MAX;
+
+private:
+	/**
+	 * @brief 分のテキストフォーマット
+	*/
+	FNumberFormattingOptions MinutesTextFormat;
+
+	/**
+	 * @brief 秒のテキストフォーマット
+	*/
+	FNumberFormattingOptions SecondTextFormat;
+
+	/**
+	 * @brief ミリ秒のテキストフォーマット
+	*/
+	FNumberFormattingOptions MillisecondTextFormat;
 };
+
 
 /**
  * 
@@ -64,20 +152,6 @@ public:
 	//コンストラクタ
 	USaveRecord(const FObjectInitializer& ObjectInitializer);
 
-	//1位のTransformを設定
-	void SetBestTimeTransform(const FName CourseName, const TArray<FVector>& RecordLocations, const TArray<FQuat>& RecordRotations);
-	//ランキング入りしたレコードを設定
-	void SetRecordTime(const FName CourseName, const float& RecordTime);
-	//1位のTransformを取得
-	UFUNCTION(BlueprintCallable)
-		FSaveBestTimeTransform GetBestTimeTransform(const FName CourseName)const;
-	//上位のランキング取得
-	UFUNCTION(BlueprintCallable)
-		FSaveTopRankingTime GetTopRankingTime(const FName CourseName)const;
 
 private:
-	UPROPERTY(VisibleAnywhere)
-		TMap<FName, FSaveBestTimeTransform> m_BestTimeTransform;						//1位のTransformを格納する構造体、コース名で各Transformを取り出せる
-	UPROPERTY(VisibleAnywhere)
-		TMap <FName, FSaveTopRankingTime> m_TopRankingTimes;												//1位の回転を保存する配列、コース名でランキングを取り出せる
 };
