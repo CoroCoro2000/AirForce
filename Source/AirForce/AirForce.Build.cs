@@ -17,8 +17,10 @@ public class AirForce : ModuleRules
 				"Slate",
 				"SlateCore",
 				"UMG",
-				"ApexDestruction",
+				//"ApexDestruction",
 				"Niagara",
+				"OnlineSubsystem",
+				"OnlineSubsystemUtils",
 			}
 		);
 	}
