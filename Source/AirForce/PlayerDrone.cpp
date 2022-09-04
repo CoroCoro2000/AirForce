@@ -13,8 +13,6 @@
 //インクルード
 #include "PlayerDrone.h"
 #include "GameUtility.h"
-#include "Net/UnrealNetwork.h"
-#include "NetworkGameState.h"
 #include "Components/InputComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
