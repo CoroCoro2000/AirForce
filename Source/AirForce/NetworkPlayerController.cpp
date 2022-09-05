@@ -6,13 +6,9 @@
 
 ANetworkPlayerController::ANetworkPlayerController()
     : OnLoginCompleted()
+    , OnCreateSessionCompleted()
 {
 
-}
-
-ANetworkPlayerController* ANetworkPlayerController::GetNetworkPlayerController(const UObject* WorldContextObject)
-{
-    return Cast<ANetworkPlayerController>(UGameplayStatics::GetPlayerController(WorldContextObject, 0));
 }
 
 void ANetworkPlayerController::LoginEOS(const FLoginCompleted& _loginCompleted)
@@ -68,6 +64,56 @@ void ANetworkPlayerController::LoginEOS(const FLoginCompleted& _loginCompleted)
     _loginCompleted.ExecuteIfBound(false);
 }
 
+bool ANetworkPlayerController::CreateSession(const int32 _connection,const FString _searchKeyword, const FName _sessionName, const FCreateSessionCompleted& _createSessionCompleted)
+{
+    if (IOnlineSubsystem* const pOnlineSubsystem = Online::GetSubsystem(GetWorld()))
+    {
+        IOnlineSessionPtr Sessions = pOnlineSubsystem->GetSessionInterface();
+        if (Sessions.IsValid())
+        {
+            TSharedPtr<FOnlineSessionSettings> pSessionSettings = MakeShareable(new FOnlineSessionSettings());
+            //制限なしで参加できる人数
+            pSessionSettings->NumPublicConnections = _connection;
+
+            pSessionSettings->NumPrivateConnections = 0;
+            //セッションの検索を許可する
+            pSessionSettings->bShouldAdvertise = true;
+            //Session開始後でも参加を許可する
+            pSessionSettings->bAllowJoinInProgress = true;
+            //招待を許可する
+            pSessionSettings->bAllowInvites = true;
+            //プレゼンスにロビー情報をのせる
+            pSessionSettings->bUsesPresence = true;
+            //SessionIDを知っているユーザーであれば参加可能にする
+            pSessionSettings->bAllowJoinViaPresence = true;
+            //EOSロビーサービスを利用するように設定
+            pSessionSettings->bUseLobbiesIfAvailable = true;
+            //ロビーによる音声通話の設定
+            pSessionSettings->bUseLobbiesVoiceChatIfAvailable = false;
+
+            //検索ワードとしてSearchKeywordを設定
+            pSessionSettings->Set(SEARCH_KEYWORDS, _searchKeyword, EOnlineDataAdvertisementType::ViaOnlineService);
+
+            //セッション作成終了時デリゲートの登録
+            OnCreateSessionCompleted = _createSessionCompleted;
+            Sessions->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ANetworkPlayerController::OnCreateSessionCompleted_Internal));
+
+            TSharedPtr<const FUniqueNetId> pUniqueNetIdptr = this->GetLocalPlayer()->GetPreferredUniqueNetId().GetUniqueNetId();
+            //セッションの作成
+            bool bResult = Sessions->CreateSession(*pUniqueNetIdptr, _sessionName, *pSessionSettings);
+
+            if (bResult) 
+            {
+                return true;
+            }
+        }
+    }
+
+    _createSessionCompleted.ExecuteIfBound(NAME_None, false);
+    this->OnCreateSessionCompleted.Clear();
+    return false;
+}
+
 void ANetworkPlayerController::OnLoginCompleted_Internal(int32 _localUserNum, bool _bWasSuccessful, const FUniqueNetId& _userId, const FString& _error)
 {
     //ログイン成功
@@ -99,4 +145,19 @@ void ANetworkPlayerController::OnLoginCompleted_Internal(int32 _localUserNum, bo
     //デリゲート処理
     OnLoginCompleted.ExecuteIfBound(_bWasSuccessful);
     OnLoginCompleted.Clear();
+}
+
+void ANetworkPlayerController::OnCreateSessionCompleted_Internal(FName _sessionName, bool _bWasSuccessful)
+{
+    if (_bWasSuccessful)
+    {
+
+    }
+    else
+    {
+
+    }
+
+    this->OnCreateSessionCompleted.ExecuteIfBound(_sessionName, _bWasSuccessful);
+    this->OnCreateSessionCompleted.Clear();
 }
