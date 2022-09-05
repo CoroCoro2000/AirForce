@@ -2,7 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "FindSessionsCallbackProxy.h"
 #include "NetworkPlayerController.generated.h"
+
+class FOnlineSessionSearch;
 
 /**
  * @brief ログイン完了時のデリゲート
@@ -16,6 +19,13 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FLoginCompleted, bool, success);
  * @param  success セッション作成に成功したか
 */
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FCreateSessionCompleted, const FName, sessionName, bool, success);
+
+/**
+ * @brief セッション検索完了時のデリゲート
+ * @param  results 検索結果のリスト
+ * @param  success セッション検索に成功したか
+*/
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FFindSessionCompleted, const TArray<FBlueprintSessionResult>&, results, bool, success);
 
 UCLASS()
 class AIRFORCE_API ANetworkPlayerController : public APlayerController
@@ -45,6 +55,16 @@ public:
     */
     bool CreateSession(const int32 _connection, const FString _searchKeyword, const FName _sessionName, const FCreateSessionCompleted& _createSessionCompleted);
 
+    UFUNCTION(BlueprintCallable, Category = "Racing-D|Network")
+    /**
+     * @brief セッションの検索
+     * @param _searchKeyword 検索する名前
+     * @param _maxSearchResults 検索するセッションの最大数
+     * @param _findSessionCompleted セッション検索完了時のデリゲート
+     * @return 
+    */
+    bool FindSession(const FString _searchKeyword, const int32 _maxSearchResults, const FFindSessionCompleted& _findSessionCompleted);
+
 private:
 	/**
 	 * @brief ログイン後の内部処理
@@ -62,7 +82,18 @@ private:
     */
     virtual void OnCreateSessionCompleted_Internal(FName _sessionName, bool _bWasSuccessful);
 
+    /**
+     * @brief セッション検索完了時のデリゲート
+     * @param _bWasSuccessful 
+    */
+    virtual void OnFindSessionsCompleted_Internal(bool _bWasSuccessful);
+
 private:
+    /**
+     * @brief セッション検索の結果を保持する用
+    */
+    TSharedPtr<FOnlineSessionSearch> m_pSearchSettings;
+
 	UPROPERTY()
 	/**
 	 * @brief ログイン成功時のデリゲート
@@ -74,4 +105,10 @@ private:
      * @brief セッション作成完了時のデリゲート
     */
     FCreateSessionCompleted OnCreateSessionCompleted;
+
+    UPROPERTY()
+    /**
+     * @brief セッション検索完了時のデリゲート
+    */
+    FFindSessionCompleted OnFindSessionCompleted;
 };

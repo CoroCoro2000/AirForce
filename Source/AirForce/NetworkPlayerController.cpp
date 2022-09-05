@@ -5,8 +5,10 @@
 #include "Kismet/GameplayStatics.h"
 
 ANetworkPlayerController::ANetworkPlayerController()
-    : OnLoginCompleted()
+    : m_pSearchSettings()
+    , OnLoginCompleted()
     , OnCreateSessionCompleted()
+    , OnFindSessionCompleted()
 {
 
 }
@@ -114,6 +116,47 @@ bool ANetworkPlayerController::CreateSession(const int32 _connection,const FStri
     return false;
 }
 
+bool ANetworkPlayerController::FindSession(const FString _searchKeyword, const int32 _maxSearchResults, const FFindSessionCompleted& _findSessionCompleted)
+{
+    if (IOnlineSubsystem* const pOnlineSubsystem = Online::GetSubsystem(GetWorld()))
+    {
+        IOnlineSessionPtr pSessions = pOnlineSubsystem->GetSessionInterface();
+        if (pSessions.IsValid())
+        {
+            m_pSearchSettings = MakeShareable(new FOnlineSessionSearch());
+
+            m_pSearchSettings->MaxSearchResults = _maxSearchResults;
+            m_pSearchSettings->PingBucketSize = 50;
+            m_pSearchSettings->bIsLanQuery = false;
+
+            m_pSearchSettings->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+            m_pSearchSettings->QuerySettings.Set(SEARCH_LOBBIES, true, EOnlineComparisonOp::Equals);
+            if (!_searchKeyword.IsEmpty())
+            {
+                m_pSearchSettings->QuerySettings.Set(SEARCH_KEYWORDS, _searchKeyword, EOnlineComparisonOp::Near);
+            }
+
+            //検索完了時のデリゲートを登録
+            OnFindSessionCompleted = _findSessionCompleted;
+            pSessions->AddOnFindSessionsCompleteDelegate_Handle(FOnFindSessionsCompleteDelegate::CreateUObject(this, &ANetworkPlayerController::OnFindSessionsCompleted_Internal));
+
+            TSharedRef<FOnlineSessionSearch> SearchSettingsRef = m_pSearchSettings.ToSharedRef();
+            TSharedPtr<const FUniqueNetId> UniqueNetIdptr = this->GetLocalPlayer()->GetPreferredUniqueNetId().GetUniqueNetId();
+            if (UniqueNetIdptr != nullptr)
+            {
+                if (pSessions->FindSessions(*UniqueNetIdptr, SearchSettingsRef))
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    _findSessionCompleted.ExecuteIfBound(TArray<FBlueprintSessionResult>(), false);
+    this->OnFindSessionCompleted.Clear();
+    return false;
+}
+
 void ANetworkPlayerController::OnLoginCompleted_Internal(int32 _localUserNum, bool _bWasSuccessful, const FUniqueNetId& _userId, const FString& _error)
 {
     //ログイン成功
@@ -124,7 +167,7 @@ void ANetworkPlayerController::OnLoginCompleted_Internal(int32 _localUserNum, bo
         {
             //ローカルプレイヤーを取得
             ULocalPlayer* pLocalPlayer = Cast<ULocalPlayer>(this->GetLocalPlayer());
-            if (pLocalPlayer != NULL)
+            if (pLocalPlayer != nullptr)
             {
                 int ControllerId = pLocalPlayer->GetControllerId();
                 //現在のユニークIDの取得
@@ -160,4 +203,38 @@ void ANetworkPlayerController::OnCreateSessionCompleted_Internal(FName _sessionN
 
     this->OnCreateSessionCompleted.ExecuteIfBound(_sessionName, _bWasSuccessful);
     this->OnCreateSessionCompleted.Clear();
+}
+
+void ANetworkPlayerController::OnFindSessionsCompleted_Internal(bool _bWasSuccessful)
+{
+    if (_bWasSuccessful)
+    {
+        //検索に引っかかったセッションがある
+        if (m_pSearchSettings->SearchResults.Num() > 0)
+        {
+            TArray<FBlueprintSessionResult> results;
+            for (const auto& result : m_pSearchSettings->SearchResults)
+            {
+                FBlueprintSessionResult val;
+                val.OnlineResult = result;
+                results.Add(val);
+            }
+            this->OnFindSessionCompleted.ExecuteIfBound(results, true);
+            this->OnFindSessionCompleted.Clear();
+            return;
+        }
+        //セッション1つもない
+        else
+        {
+
+        }
+    }
+    //検索に失敗
+    else
+    {
+
+    }
+
+    this->OnFindSessionCompleted.ExecuteIfBound(TArray<FBlueprintSessionResult>(), false);
+    this->OnFindSessionCompleted.Clear();
 }
