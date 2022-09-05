@@ -1,9 +1,9 @@
-//------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:Ring.cpp
-// ŠT—v				:ƒR[ƒX‚Ìisæ‚ğ¦‚·ƒŠƒ“ƒO‚ÌƒNƒ‰ƒX
-// ì¬“ú			:2021/06/04
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e			:2021/06/04
+ï»¿//------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:Ring.cpp
+// æ¦‚è¦				:ã‚³ãƒ¼ã‚¹ã®é€²è¡Œå…ˆã‚’ç¤ºã™ãƒªãƒ³ã‚°ã®ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2021/06/04
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹			:2021/06/04
 //------------------------------------------------------------------------
 
 
@@ -16,7 +16,7 @@
 #include "Kismet/GameplayStatics.h"
 
 //struct FFollowingDroneAndEffect----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 FFollowingDroneAndEffect::FFollowingDroneAndEffect()
 	: m_pDrone(nullptr)
 	, m_pNiagaraEffect(nullptr)
@@ -31,12 +31,12 @@ FFollowingDroneAndEffect::FFollowingDroneAndEffect(ADroneBase* pDrone, UNiagaraC
 {
 
 }
-//ƒfƒXƒgƒ‰ƒNƒ^
+//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 FFollowingDroneAndEffect::~FFollowingDroneAndEffect()
 {
 
 }
-//ƒGƒtƒFƒNƒg‚ğ¶¬
+//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆ
 void FFollowingDroneAndEffect::SpawnEffectAtLocation(const UObject* WorldContextObject, UNiagaraSystem* SystemTemplate, FVector SpawnLocation, FRotator SpawnRotation, FVector Scale, bool bAutoDestroy, bool bAutoActivate, ENCPoolMethod PoolingMethod)
 {
 	m_pNiagaraEffect = MakeWeakObjectPtr<UNiagaraComponent>(UNiagaraFunctionLibrary::SpawnSystemAtLocation(WorldContextObject, SystemTemplate, SpawnLocation, SpawnRotation, Scale, bAutoDestroy, bAutoActivate, PoolingMethod));
@@ -44,7 +44,7 @@ void FFollowingDroneAndEffect::SpawnEffectAtLocation(const UObject* WorldContext
 }
 
 //ARing----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 ARing::ARing()
 	: m_pRingMesh(NULL)
 	, m_pEffect(NULL)
@@ -60,81 +60,81 @@ ARing::ARing()
 	, m_HSV(30.f, 40.f, 30.f)
 	, m_pRingHitSE(NULL)
 {
-	//–ˆƒtƒŒ[ƒ€Tick‚ğŒÄ‚Ño‚·‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO
+	//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ Tickã‚’å‘¼ã³å‡ºã™ã‹ã©ã†ã‹ã®ãƒ•ãƒ©ã‚°
 	PrimaryActorTick.bCanEverTick = true;
 
-	//ƒƒbƒVƒ…¶¬
+	//ãƒ¡ãƒƒã‚·ãƒ¥ç”Ÿæˆ
 	m_pRingMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("m_pRingMesh"));
 	if (m_pRingMesh)
 	{
 		RootComponent = m_pRingMesh;
 	}
 
-	//ƒ^ƒO‚Ì’Ç‰Á
+	//ã‚¿ã‚°ã®è¿½åŠ 
 	Tags.Add(TEXT("Ring"));
 }
 
-//ƒQ[ƒ€ŠJn‚Ü‚½‚Í‚±‚ÌƒNƒ‰ƒX‚ÌƒIƒuƒWƒFƒNƒg‚ªƒXƒ|[ƒ“‚³‚ê‚½‚P“x‚¾‚¯ŒÄ‚Ño‚³‚ê‚éŠÖ”
+//ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã¾ãŸã¯ã“ã®ã‚¯ãƒ©ã‚¹ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒã‚¹ãƒãƒ¼ãƒ³ã•ã‚ŒãŸæ™‚ï¼‘åº¦ã ã‘å‘¼ã³å‡ºã•ã‚Œã‚‹é–¢æ•°
 void ARing::BeginPlay()
 {
 	Super::BeginPlay();
 
 	if (m_pRingMesh)
 	{
-		//ƒI[ƒo[ƒ‰ƒbƒvŠJn‚ÉŒÄ‚Î‚ê‚éƒCƒxƒ“ƒgŠÖ”‚ğ“o˜^
+		//ã‚ªãƒ¼ãƒãƒ¼ãƒ©ãƒƒãƒ—é–‹å§‹æ™‚ã«å‘¼ã°ã‚Œã‚‹ã‚¤ãƒ™ãƒ³ãƒˆé–¢æ•°ã‚’ç™»éŒ²
 		m_pRingMesh->OnComponentBeginOverlap.AddDynamic(this, &ARing::OnComponentBeginOverlap);
 	}
 
-	//ƒŠƒ“ƒO‚Ì‰ŠúƒXƒP[ƒ‹‚ğ•Û
+	//ãƒªãƒ³ã‚°ã®åˆæœŸã‚¹ã‚±ãƒ¼ãƒ«ã‚’ä¿æŒ
 	m_RingScale = GetActorScale3D().GetMax();
 }
 
-//–ˆƒtƒŒ[ƒ€ŒÄ‚Ño‚³‚ê‚éŠÖ”
+//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‘¼ã³å‡ºã•ã‚Œã‚‹é–¢æ•°
 void ARing::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//İ’è‚³‚ê‚½FPS‚ÌŠÔŠu‚ÅTick‚ğXV‚·‚é
+	//è¨­å®šã•ã‚ŒãŸFPSã®é–“éš”ã§Tickã‚’æ›´æ–°ã™ã‚‹
 	const float currentTime = GetWorld()->GetTimeSeconds();
-	//‘z’è‚³‚ê‚é1ƒtƒŒ[ƒ€‚É‚©‚©‚éŠÔ
+	//æƒ³å®šã•ã‚Œã‚‹1ãƒ•ãƒ¬ãƒ¼ãƒ ã«ã‹ã‹ã‚‹æ™‚é–“
 	const float TimePerFrame = 1.f / m_TickFPS;
-	//‘O‰ñÀs‚³‚ê‚Ä‚©‚ç‚ÌŒo‰ßŠÔ
+	//å‰å›å®Ÿè¡Œã•ã‚Œã¦ã‹ã‚‰ã®çµŒéæ™‚é–“
 	const float deltaTime = currentTime - m_LastTickTime;
 
-	//ˆ—‰Â”\‚ÈƒtƒŒ[ƒ€‚Å‚ ‚ê‚ÎXV
+	//å‡¦ç†å¯èƒ½ãªãƒ•ãƒ¬ãƒ¼ãƒ ã§ã‚ã‚Œã°æ›´æ–°
 	if (deltaTime > TimePerFrame && IsProcessableFrame(currentTime))
 	{
 		m_LastTickTime = currentTime;
 
-		//ƒTƒCƒ“ƒJ[ƒu‚Ì’l‚ğXV
+		//ã‚µã‚¤ãƒ³ã‚«ãƒ¼ãƒ–ã®å€¤ã‚’æ›´æ–°
 		UpdateSineCurve(currentTime);
 
-		//ƒŠƒ“ƒO‚ÌƒTƒCƒYXV
+		//ãƒªãƒ³ã‚°ã®ã‚µã‚¤ã‚ºæ›´æ–°
 		UpdateScale(deltaTime);
 
-		//ƒŠƒ“ƒO‚Ìƒ}ƒeƒŠƒAƒ‹XV
+		//ãƒªãƒ³ã‚°ã®ãƒãƒ†ãƒªã‚¢ãƒ«æ›´æ–°
 		UpdateMaterial();
 	}
 
-	//ƒGƒtƒFƒNƒg‚ÌXV
+	//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®æ›´æ–°
 	UpdateEffect();
 }
 
-//ƒTƒCƒ“ƒJ[ƒu‚Ì’l‚ğXV
+//ã‚µã‚¤ãƒ³ã‚«ãƒ¼ãƒ–ã®å€¤ã‚’æ›´æ–°
 void ARing::UpdateSineCurve(const float& CurrentTime)
 {
-	//ƒTƒCƒ“”g‚Ì•‚ğİ’è
+	//ã‚µã‚¤ãƒ³æ³¢ã®å¹…ã‚’è¨­å®š
 	const float WaveWidth = m_SineWidth * CurrentTime;
-	//ƒTƒCƒ“”g‚Ì‘å‚«‚³‚ğ0‚©‚ç1‚É³‹K‰»‚·‚é
+	//ã‚µã‚¤ãƒ³æ³¢ã®å¤§ãã•ã‚’0ã‹ã‚‰1ã«æ­£è¦åŒ–ã™ã‚‹
 	m_SineCurveValue = FMath::Sin(WaveWidth) * 0.5f + 0.5f;
 }
 
-//ƒŠƒ“ƒO‚ÌƒTƒCƒYXV
+//ãƒªãƒ³ã‚°ã®ã‚µã‚¤ã‚ºæ›´æ–°
 void ARing::UpdateScale(const float& DeltaTime)
 {
 	float NewScale = m_RingScale;
 
-	//’Ê‰ßƒtƒ‰ƒO‚ª—§‚Á‚Ä‚¢‚é‚È‚çƒŠƒ“ƒO‚ğŠg‘å‚·‚é
+	//é€šéãƒ•ãƒ©ã‚°ãŒç«‹ã£ã¦ã„ã‚‹ãªã‚‰ãƒªãƒ³ã‚°ã‚’æ‹¡å¤§ã™ã‚‹
 	if (m_bIsPassed)
 	{
 		if (m_PassedTime < m_ResetTime)
@@ -145,17 +145,17 @@ void ARing::UpdateScale(const float& DeltaTime)
 		{
 			m_bIsPassed = false;
 
-			//ƒ}ƒeƒŠƒAƒ‹‚Ì‰ñ“]‘¬“x‚ğ‰º‚°‚é
+			//ãƒãƒ†ãƒªã‚¢ãƒ«ã®å›è»¢é€Ÿåº¦ã‚’ä¸‹ã’ã‚‹
 			float ScrollSpeed = 0.5f;
 			m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
 		}
 
 		NewScale = FMath::InterpExpoOut(m_RingScale, m_RingMaxScale, FMath::Clamp(m_PassedTime / m_ResetTime, 0.f, 1.f));
 	}
-	//’Ê‰ßƒtƒ‰ƒO‚ª—§‚Á‚Ä‚¢‚È‚¢‚Æ‚«‚ÍSin”g‚ÌŠÔŠu‚ÅŠg‘åk¬‚ğŒJ‚è•Ô‚·
+	//é€šéãƒ•ãƒ©ã‚°ãŒç«‹ã£ã¦ã„ãªã„ã¨ãã¯Sinæ³¢ã®é–“éš”ã§æ‹¡å¤§ç¸®å°ã‚’ç¹°ã‚Šè¿”ã™
 	else
 	{
-		//ƒTƒCƒ“”g‚Ì’l‚ÅƒŠƒ“ƒO‚Ì‘å‚«‚³‚ğ•Ï‚¦‚é
+		//ã‚µã‚¤ãƒ³æ³¢ã®å€¤ã§ãƒªãƒ³ã‚°ã®å¤§ãã•ã‚’å¤‰ãˆã‚‹
 		float ScaleMultiplier = FMath::Lerp(m_SineScaleMin, m_SineScaleMax, m_SineCurveValue);
 		NewScale *= ScaleMultiplier;
 	}
@@ -163,14 +163,14 @@ void ARing::UpdateScale(const float& DeltaTime)
 	SetActorScale3D(FMath::Lerp(GetActorScale3D(), FVector(NewScale), Speed));
 }
 
-//ƒŠƒ“ƒO‚Ìƒ}ƒeƒŠƒAƒ‹XV
+//ãƒªãƒ³ã‚°ã®ãƒãƒ†ãƒªã‚¢ãƒ«æ›´æ–°
 void ARing::UpdateMaterial()
 {
 	if (!m_pRingMesh) { return; }
 
 	if (m_bIsPassed)
 	{
-		//ƒ}ƒeƒŠƒAƒ‹‚Ì‰ñ“]‘¬“x‚ğã‚°‚é
+		//ãƒãƒ†ãƒªã‚¢ãƒ«ã®å›è»¢é€Ÿåº¦ã‚’ä¸Šã’ã‚‹
 		float ScrollSpeed = 1.5f;
 		m_pRingMesh->SetScalarParameterValueOnMaterials(TEXT("ColorScrollSpeed"), ScrollSpeed);
 	}
@@ -180,25 +180,25 @@ void ARing::UpdateMaterial()
 	m_pRingMesh->SetVectorParameterValueOnMaterials(TEXT("BlendColor"), FVector(m_HSV.HSVToLinearRGB()));
 }
 
-//ƒŠƒ“ƒO‚ÌƒGƒtƒFƒNƒgXV
+//ãƒªãƒ³ã‚°ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ›´æ–°
 void ARing::UpdateEffect()
 {
 	if (m_pFollowingDroneAndEffect.Num() <= 0) { return; }
 
-	//ƒGƒtƒFƒNƒg‚ªÁ‚¦‚Ä‚¢‚½‚ç”z—ñ‚©‚çíœ‚·‚é‚½‚ßA‹t‡‚Éfor•¶‚ğ‰ñ‚·
+	//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãŒæ¶ˆãˆã¦ã„ãŸã‚‰é…åˆ—ã‹ã‚‰å‰Šé™¤ã™ã‚‹ãŸã‚ã€é€†é †ã«foræ–‡ã‚’å›ã™
 	for (int32 index = m_pFollowingDroneAndEffect.Num() - 1; index >= 0; --index)
 	{
 		if (m_pFollowingDroneAndEffect.IsValidIndex(index))
 		{
 			FFollowingDroneAndEffect& DroneAndEffect = m_pFollowingDroneAndEffect[index];
 
-			//¶¬Ï‚İ‚ÌƒGƒtƒFƒNƒg‚ª–³Œø‚É‚È‚Á‚Ä‚¢‚½‚ç
+			//ç”Ÿæˆæ¸ˆã¿ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãŒç„¡åŠ¹ã«ãªã£ã¦ã„ãŸã‚‰
 			if (DroneAndEffect.IsEffectSpawned() && (!DroneAndEffect.m_pNiagaraEffect.IsValid()))
 			{
-				//”z—ñ‚©‚çæ‚èœ‚­
+				//é…åˆ—ã‹ã‚‰å–ã‚Šé™¤ã
 				m_pFollowingDroneAndEffect.RemoveAt(index);
 			}
-			//ƒGƒtƒFƒNƒg‚ªƒXƒ|[ƒ“‚³‚ê‚Ä‚¢‚È‚¢ê‡‚ÍƒŠƒ“ƒO‚ÌŠg‘å‚ªI‚í‚Á‚Ä‚¢‚½‚çƒXƒ|[ƒ“‚³‚¹‚é
+			//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãŒã‚¹ãƒãƒ¼ãƒ³ã•ã‚Œã¦ã„ãªã„å ´åˆã¯ãƒªãƒ³ã‚°ã®æ‹¡å¤§ãŒçµ‚ã‚ã£ã¦ã„ãŸã‚‰ã‚¹ãƒãƒ¼ãƒ³ã•ã›ã‚‹
 			else if (!DroneAndEffect.IsEffectSpawned())
 			{
 				FVector scaleSubtract = FVector(m_RingMaxScale) - GetActorScale3D();
@@ -221,20 +221,20 @@ void ARing::UpdateEffect()
 	}
 }
 
-//ƒI[ƒo[ƒ‰ƒbƒvŠJn‚ÉŒÄ‚Î‚ê‚éˆ—
+//ã‚ªãƒ¼ãƒãƒ¼ãƒ©ãƒƒãƒ—é–‹å§‹æ™‚ã«å‘¼ã°ã‚Œã‚‹å‡¦ç†
 void ARing::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	//ƒŠƒ“ƒO‚ÌXVƒtƒŒ[ƒ€‚ª15FPS‚æ‚è­‚È‚¢ê‡‚ÍƒI[ƒo[ƒ‰ƒbƒvˆ—‚ğs‚í‚È‚¢
+	//ãƒªãƒ³ã‚°ã®æ›´æ–°ãƒ•ãƒ¬ãƒ¼ãƒ ãŒ15FPSã‚ˆã‚Šå°‘ãªã„å ´åˆã¯ã‚ªãƒ¼ãƒãƒ¼ãƒ©ãƒƒãƒ—å‡¦ç†ã‚’è¡Œã‚ãªã„
 	if (m_TickFPS < 15.f) { return; }
 
 	if (OtherActor && OtherActor != this)
 	{
-		//ƒ^ƒO‚ªPlayer‚¾‚Á‚½ê‡
+		//ã‚¿ã‚°ãŒPlayerã ã£ãŸå ´åˆ
 		if (OtherActor->ActorHasTag(TEXT("Drone")))
 		{
 			if (ADroneBase* pDrone = Cast<ADroneBase>(OtherActor))
 			{
-				//’Ê‰ßÏ‚İ‚Ìƒhƒ[ƒ“‚©Šm”F
+				//é€šéæ¸ˆã¿ã®ãƒ‰ãƒ­ãƒ¼ãƒ³ã‹ç¢ºèª
 				bool isPassed = false;
 				for (const FFollowingDroneAndEffect& FollowingDroneAndEffect : m_pFollowingDroneAndEffect)
 				{
@@ -250,7 +250,7 @@ void ARing::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AA
 					m_bIsPassed = true;
 					m_PassedTime = 0.f;
 
-					//ƒqƒbƒg‚µ‚½ƒhƒ[ƒ“‚ğ”z—ñ‚ÉŠi”[‚·‚é
+					//ãƒ’ãƒƒãƒˆã—ãŸãƒ‰ãƒ­ãƒ¼ãƒ³ã‚’é…åˆ—ã«æ ¼ç´ã™ã‚‹
 					m_pFollowingDroneAndEffect.Add(FFollowingDroneAndEffect(pDrone));
 				}
 			}

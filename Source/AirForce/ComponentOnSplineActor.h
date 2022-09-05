@@ -1,14 +1,14 @@
+ï»¿//--------------------------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:ComponentOnSplineActor.h
+// æ¦‚è¦				:ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ä¸Šã«ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’è‡ªå‹•ç”Ÿæˆã™ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2021/08/30
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹			:
 //--------------------------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:ComponentOnSplineActor.h
-// ŠT—v				:ƒXƒvƒ‰ƒCƒ“ã‚ÉƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ©“®¶¬‚·‚éƒAƒNƒ^[ƒNƒ‰ƒX
-// ì¬“ú			:2021/08/30
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e			:
-//--------------------------------------------------------------------------------------------
-//ƒCƒ“ƒNƒ‹[ƒhƒK[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ã‚¬ãƒ¼ãƒ‰
 #pragma once
 
-//ƒCƒ“ƒNƒ‹[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ComponentOnSplineActor.generated.h"
@@ -23,14 +23,14 @@ namespace EComponent
 	};
 }
 
-//‘O•ûéŒ¾
+//å‰æ–¹å®£è¨€
 class USplineComponent;
 class UNiagaraSystem;
 class UNiagaraComponent;
 
-//ƒfƒoƒbƒO—pdefine
-//#define DEBUG_TRANSFORM				//ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€‚ÌƒƒOo—Í
-#define DEBUG_COMPONENTCOUNT			//•Û‚µ‚Ä‚¢‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì”‚ğo—Í
+//ãƒ‡ãƒãƒƒã‚°ç”¨define
+//#define DEBUG_TRANSFORM				//ãƒˆãƒ©ãƒ³ã‚¹ãƒ•ã‚©ãƒ¼ãƒ ã®ãƒ­ã‚°å‡ºåŠ›
+#define DEBUG_COMPONENTCOUNT			//ä¿æŒã—ã¦ã„ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®æ•°ã‚’å‡ºåŠ›
 
 UCLASS()
 class AIRFORCE_API AComponentOnSplineActor : public AActor
@@ -50,20 +50,20 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	//ƒXƒvƒ‰ƒCƒ“ã‚É¶¬‚·‚éNiagaraƒGƒtƒFƒNƒgî•ñ‚ÌXV
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ä¸Šã«ç”Ÿæˆã™ã‚‹Niagaraã‚¨ãƒ•ã‚§ã‚¯ãƒˆæƒ…å ±ã®æ›´æ–°
 	void SpawnNiagaraOnSpline();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline")
-		USplineComponent* m_pSpline;										//ƒIƒuƒWƒFƒNƒg‚ğ”z’u‚·‚éˆÊ’u‚ğ¦‚·ƒXƒvƒ‰ƒCƒ“
+		USplineComponent* m_pSpline;										//ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’é…ç½®ã™ã‚‹ä½ç½®ã‚’ç¤ºã™ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline")
-		TEnumAsByte<EComponent::Type> m_ComponentType;						//”z’u‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚Ìí—Ş
+		TEnumAsByte<EComponent::Type> m_ComponentType;						//é…ç½®ã™ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®ç¨®é¡
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "InstanceSetting")
-		UNiagaraSystem* m_pNiagaraEffect;									//•\¦‚·‚éƒGƒtƒFƒNƒg
+		UNiagaraSystem* m_pNiagaraEffect;									//è¡¨ç¤ºã™ã‚‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "InstanceSetting")
-		TArray<UNiagaraComponent*> m_pNiagaraEffectComponents;				//ƒXƒvƒ‰ƒCƒ“ã‚É”z’u‚·‚éƒGƒtƒFƒNƒgƒRƒ“ƒ|[ƒlƒ“ƒg
+		TArray<UNiagaraComponent*> m_pNiagaraEffectComponents;				//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ä¸Šã«é…ç½®ã™ã‚‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "InstanceSetting")
-		int m_ComponentCount;												//”z’u‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì”
+		int m_ComponentCount;												//é…ç½®ã™ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®æ•°
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "InstanceSetting")
-		FRotator m_ComponentRelativeRotation;								//”z’u‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì‘Š‘ÎŠp“x
+		FRotator m_ComponentRelativeRotation;								//é…ç½®ã™ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®ç›¸å¯¾è§’åº¦
 };

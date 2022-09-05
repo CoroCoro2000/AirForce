@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -16,7 +16,7 @@ class AIRFORCE_API ACourseSelect : public APawn
 	GENERATED_BODY()
 
 public:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	ACourseSelect();
 
 protected:
@@ -30,32 +30,32 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	//‘I‘ğ’†‚ÌƒR[ƒX”Ô†æ“¾
+	//é¸æŠä¸­ã®ã‚³ãƒ¼ã‚¹ç•ªå·å–å¾—
 	UFUNCTION(BlueprintCallable)
 		int GetSelectCourseNumber()const { return m_CourseNumber; }
 
-	//“ü—Í‰Â”\ƒtƒ‰ƒOİ’è
+	//å…¥åŠ›å¯èƒ½ãƒ•ãƒ©ã‚°è¨­å®š
 	UFUNCTION(BlueprintCallable)
 		void SetInputEnable(const bool _bInputEnable) { m_bInputEnable = _bInputEnable; }
-	//“ü—Í‰Â”\ƒtƒ‰ƒOæ“¾
+	//å…¥åŠ›å¯èƒ½ãƒ•ãƒ©ã‚°å–å¾—
 	UFUNCTION(BlueprintCallable)
 		bool GetInputEnable() const { return m_bInputEnable; }
-	//“ü—Í‰Â”\ƒtƒ‰ƒOİ’è
+	//å…¥åŠ›å¯èƒ½ãƒ•ãƒ©ã‚°è¨­å®š
 	UFUNCTION(BlueprintCallable)
 		void SetCourseSelectCompleted(const bool _bCourseSelectCompletedEnable) { m_bCourseSelectCompleted = _bCourseSelectCompletedEnable; }
-	//ƒR[ƒX‘I‘ğI—¹ƒtƒ‰ƒOæ“¾
+	//ã‚³ãƒ¼ã‚¹é¸æŠçµ‚äº†ãƒ•ãƒ©ã‚°å–å¾—
 	UFUNCTION(BlueprintCallable)
 		bool GetCourseSelectCompleted() const { return m_bCourseSelectCompleted; }
 
-	//‘I‘ğ’†‚ÌƒR[ƒX–¼æ“¾
+	//é¸æŠä¸­ã®ã‚³ãƒ¼ã‚¹åå–å¾—
 	UFUNCTION(BlueprintCallable)
 		FName GetSelectCourseName()const;
 
-	//‘I‘ğ’†‚ÌƒR[ƒXƒxƒXƒgƒ^ƒCƒ€æ“¾
+	//é¸æŠä¸­ã®ã‚³ãƒ¼ã‚¹ãƒ™ã‚¹ãƒˆã‚¿ã‚¤ãƒ å–å¾—
 	UFUNCTION(BlueprintCallable)
 		FString GetSelectCourseBestTime(int _CourseNumber)const;
 
-	//y“ü—ÍƒoƒCƒ“ƒhzŠeƒXƒeƒBƒbƒN‚Ì“ü—Í
+	//ã€å…¥åŠ›ãƒã‚¤ãƒ³ãƒ‰ã€‘å„ã‚¹ãƒ†ã‚£ãƒƒã‚¯ã®å…¥åŠ›
 	UFUNCTION(BlueprintCallable)
 		void Input_Right();
 	UFUNCTION(BlueprintCallable)
@@ -66,40 +66,40 @@ public:
 		void Input_Cansel();
 private:
 
-	//ƒƒbƒVƒ…‰Šú‰»
+	//ãƒ¡ãƒƒã‚·ãƒ¥åˆæœŸåŒ–
 	void InitializeMesh();
-	//ƒƒbƒVƒ…‚Ì‰ñ“]
+	//ãƒ¡ãƒƒã‚·ãƒ¥ã®å›è»¢
 	void UpdateMeshRotation(const float& DeltaTime);
-	//ƒƒbƒVƒ…‚ÌÀ•WˆÚ“®
+	//ãƒ¡ãƒƒã‚·ãƒ¥ã®åº§æ¨™ç§»å‹•
 	void UpdateLocation(const float& DeltaTime);
-	//ƒR[ƒX•ÊƒxƒXƒgƒ^ƒCƒ€“Ç‚İ‚İ
+	//ã‚³ãƒ¼ã‚¹åˆ¥ãƒ™ã‚¹ãƒˆã‚¿ã‚¤ãƒ èª­ã¿è¾¼ã¿
 	void InitializeCourseBestTimeText();
 
 private:
 	UPROPERTY(VisibleAnywhere)
-		USceneComponent* m_pDummyComponent;					//3Dƒ~ƒjƒ}ƒbƒv‚Ì‰ñ“]‚Ì’†S‚É‚·‚éƒ_ƒ~[ƒIƒuƒWƒFƒNƒg
+		USceneComponent* m_pDummyComponent;					//3DãƒŸãƒ‹ãƒãƒƒãƒ—ã®å›è»¢ã®ä¸­å¿ƒã«ã™ã‚‹ãƒ€ãƒŸãƒ¼ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 	UPROPERTY(VisibleAnywhere)
-		int m_CourseNumber;									//ƒR[ƒX”Ô†
+		int m_CourseNumber;									//ã‚³ãƒ¼ã‚¹ç•ªå·
 	UPROPERTY(VisibleAnywhere)
-		int m_CourseTotal;									//ƒR[ƒX”
+		int m_CourseTotal;									//ã‚³ãƒ¼ã‚¹æ•°
 	UPROPERTY(VisibleAnywhere)
-		bool m_bInputEnable;								//“ü—Í‰Â”\ƒtƒ‰ƒO
+		bool m_bInputEnable;								//å…¥åŠ›å¯èƒ½ãƒ•ãƒ©ã‚°
 	UPROPERTY(VisibleAnywhere)
-		bool m_bCourseSelectCompleted;						//ƒR[ƒX‘I‘ğI—¹ƒtƒ‰ƒO
+		bool m_bCourseSelectCompleted;						//ã‚³ãƒ¼ã‚¹é¸æŠçµ‚äº†ãƒ•ãƒ©ã‚°
 	UPROPERTY(VisibleAnywhere)
 		float m_CurrentRotation;
 	UPROPERTY(VisibleAnywhere)
 		float m_TargetRotation;
 	UPROPERTY(EditAnywhere)
-		float m_TargetRotationSpeed;						//ƒ_ƒ~[ƒIƒuƒWƒFƒNƒg‚Ì‰ñ“]‘¬“x
+		float m_TargetRotationSpeed;						//ãƒ€ãƒŸãƒ¼ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®å›è»¢é€Ÿåº¦
 	UPROPERTY(EditAnywhere)
-		UDataTable* m_pLevelDataTable;						//ƒV[ƒ“‚Ìƒf[ƒ^ƒe[ƒuƒ‹
+		UDataTable* m_pLevelDataTable;						//ã‚·ãƒ¼ãƒ³ã®ãƒ‡ãƒ¼ã‚¿ãƒ†ãƒ¼ãƒ–ãƒ«
 	UPROPERTY(EditAnywhere)
-		TArray<UStaticMeshComponent*> m_pMinimapMeshes;		//3D‚Ìƒ~ƒjƒ}ƒbƒvƒƒbƒVƒ…
+		TArray<UStaticMeshComponent*> m_pMinimapMeshes;		//3Dã®ãƒŸãƒ‹ãƒãƒƒãƒ—ãƒ¡ãƒƒã‚·ãƒ¥
 	UPROPERTY(EditAnywhere)
-		UStaticMesh* m_pMinimapDefaultMesh;					//3D‚ÌƒfƒtƒHƒ‹ƒgƒ~ƒjƒ}ƒbƒvƒƒbƒVƒ…
+		UStaticMesh* m_pMinimapDefaultMesh;					//3Dã®ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒŸãƒ‹ãƒãƒƒãƒ—ãƒ¡ãƒƒã‚·ãƒ¥
 	UPROPERTY(EditAnywhere)
-		TArray<UMaterialInterface*> m_pMinimapMaterials;	//3D‚Ìƒ~ƒjƒ}ƒbƒv‚Ìƒ}ƒeƒŠƒAƒ‹
+		TArray<UMaterialInterface*> m_pMinimapMaterials;	//3Dã®ãƒŸãƒ‹ãƒãƒƒãƒ—ã®ãƒãƒ†ãƒªã‚¢ãƒ«
 	UPROPERTY(EditAnywhere)
-		TArray<FString> m_pCourseBestTimeText;				//ƒR[ƒX•ÊƒxƒXƒgƒ^ƒCƒ€ƒeƒLƒXƒg
+		TArray<FString> m_pCourseBestTimeText;				//ã‚³ãƒ¼ã‚¹åˆ¥ãƒ™ã‚¹ãƒˆã‚¿ã‚¤ãƒ ãƒ†ã‚­ã‚¹ãƒˆ
 };

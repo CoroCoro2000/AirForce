@@ -1,12 +1,12 @@
-//------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:DroneBase.cpp
-// ŠT—v				:ƒhƒ[ƒ“‚Ìƒx[ƒXƒNƒ‰ƒX
-// ì¬“ú			:2021/04/19
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e			:2021/04/19 ƒvƒŒƒCƒ„[‚ÆƒGƒlƒ~[‚Ì‹¤’Ê€‚Ì’Ç‰Á
+ï»¿//------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:DroneBase.cpp
+// æ¦‚è¦				:ãƒ‰ãƒ­ãƒ¼ãƒ³ã®ãƒ™ãƒ¼ã‚¹ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2021/04/19
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹			:2021/04/19 ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ã‚¨ãƒãƒŸãƒ¼ã®å…±é€šé …ã®è¿½åŠ 
 //------------------------------------------------------------------------
 
-//ƒCƒ“ƒNƒ‹[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #include "DroneBase.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/StaticMeshComponent.h"
@@ -21,7 +21,7 @@
 #include "DrawDebugHelpers.h"
 #endif // WITH_EDITOR
 
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 ADroneBase::ADroneBase()
 	: m_pBodyMesh(NULL)
 	, m_pDroneCollision(NULL)
@@ -61,26 +61,26 @@ ADroneBase::ADroneBase()
 	, m_ShowEffectDistance(50.f)
 	, m_GroundMaterialName(TEXT(""))
 {
-	//©g‚ÌTick()‚ğ–ˆƒtƒŒ[ƒ€ŒÄ‚Ño‚·‚©‚Ç‚¤‚©
+	//è‡ªèº«ã®Tick()ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‘¼ã³å‡ºã™ã‹ã©ã†ã‹
 	PrimaryActorTick.bCanEverTick = true;
 
-	//ƒƒbƒVƒ…ƒAƒZƒbƒg‚ÌƒZƒbƒgƒAƒbƒv
+	//ãƒ¡ãƒƒã‚·ãƒ¥ã‚¢ã‚»ãƒƒãƒˆã®ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—
 	MeshAssetSetup();
-	//ƒRƒŠƒWƒ‡ƒ“‰Šúİ’è
+	//ã‚³ãƒªã‚¸ãƒ§ãƒ³åˆæœŸè¨­å®š
 	InitializeCollision();
-	//ƒƒbƒVƒ…‚Ì‰Šúİ’è
+	//ãƒ¡ãƒƒã‚·ãƒ¥ã®åˆæœŸè¨­å®š
 	(GetLocalRole() == ENetRole::ROLE_Authority) ? InitializeMesh() : Client_InitializeMesh_Implementation();
 	
-	//ƒ^ƒO‚ğ’Ç‰Á
+	//ã‚¿ã‚°ã‚’è¿½åŠ 
 	Tags.Add(TEXT("Drone"));
 
-	//“¯Šú‘ÎÛƒtƒ‰ƒO
+	//åŒæœŸå¯¾è±¡ãƒ•ãƒ©ã‚°
 	bReplicates = true;
-	//Š—LŒ ‚ğ‚ÂƒNƒ‰ƒCƒAƒ“ƒg‚Ì‚İ‚É“¯Šú‚·‚é
+	//æ‰€æœ‰æ¨©ã‚’æŒã¤ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã®ã¿ã«åŒæœŸã™ã‚‹
 	bOnlyRelevantToOwner = false;
 }
 
-//ƒfƒXƒgƒ‰ƒNƒ^
+//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 ADroneBase::~ADroneBase()
 {
 	for (int32 index = m_pWings.Num() - 1; index >= 0; --index)
@@ -92,23 +92,23 @@ ADroneBase::~ADroneBase()
 	}
 }
 
-//ƒQ[ƒ€ŠJn‚É1“x‚¾‚¯ˆ—
+//ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã«1åº¦ã ã‘å‡¦ç†
 void ADroneBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//ƒ‰ƒCƒg‚Ì‰Šúİ’è
+	//ãƒ©ã‚¤ãƒˆã®åˆæœŸè¨­å®š
 	(GetLocalRole() == ENetRole::ROLE_Authority) ? InitializeLight() : Client_InitializeLight_Implementation();
 
 	if (m_pDroneCollision)
 	{
-		//ƒI[ƒo[ƒ‰ƒbƒvAƒqƒbƒg‚ÌƒCƒxƒ“ƒgŠÖ”‚ğƒoƒCƒ“ƒh
+		//ã‚ªãƒ¼ãƒãƒ¼ãƒ©ãƒƒãƒ—ã€ãƒ’ãƒƒãƒˆæ™‚ã®ã‚¤ãƒ™ãƒ³ãƒˆé–¢æ•°ã‚’ãƒã‚¤ãƒ³ãƒ‰
 		m_pDroneCollision->OnComponentBeginOverlap.AddDynamic(this, &ADroneBase::OnDroneCollisionOverlapBegin);
 		m_pDroneCollision->OnComponentHit.AddDynamic(this, &ADroneBase::OnDroneCollisionHit);
 	}
 }
 
-//ƒŒƒvƒŠƒP[ƒg‚ğ“o˜^
+//ãƒ¬ãƒ—ãƒªã‚±ãƒ¼ãƒˆã‚’ç™»éŒ²
 void ADroneBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -116,20 +116,20 @@ void ADroneBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(ADroneBase, m_isControl);
 }
 
-//–ˆƒtƒŒ[ƒ€ˆ—
+//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
 void ADroneBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-//y“ü—ÍƒoƒCƒ“ƒhzƒRƒ“ƒgƒ[ƒ‰[“ü—Íİ’è
+//ã€å…¥åŠ›ãƒã‚¤ãƒ³ãƒ‰ã€‘ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼å…¥åŠ›è¨­å®š
 void ADroneBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-//ƒƒbƒVƒ…ƒAƒZƒbƒg‚ÌƒZƒbƒgƒAƒbƒv
+//ãƒ¡ãƒƒã‚·ãƒ¥ã‚¢ã‚»ãƒƒãƒˆã®ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—
 void ADroneBase::MeshAssetSetup()
 {
 	m_BodyMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/Model/Drone/NewDrone/Drone.Drone"))).LoadSynchronous();
@@ -138,10 +138,10 @@ void ADroneBase::MeshAssetSetup()
 	m_WingMesh.Add(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/Model/Drone/Drone_Mesh/CGAXR_2021_07_31/Wing/CGAXR_FAN_RIGHT_TWIST.CGAXR_FAN_RIGHT_TWIST"))).LoadSynchronous());
 }
 
-//ƒRƒŠƒWƒ‡ƒ“‚Ì‰Šúİ’è
+//ã‚³ãƒªã‚¸ãƒ§ãƒ³ã®åˆæœŸè¨­å®š
 void ADroneBase::InitializeCollision()
 {
-	//ƒhƒ[ƒ“‚Ì“–‚½‚è”»’è¶¬
+	//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®å½“ãŸã‚Šåˆ¤å®šç”Ÿæˆ
 	m_pDroneCollision = CreateDefaultSubobject<USphereComponent>(TEXT("DroneCollision"));
 	if (m_pDroneCollision)
 	{
@@ -150,26 +150,26 @@ void ADroneBase::InitializeCollision()
 	}
 }
 
-//ƒƒbƒVƒ…‚Ì‰Šúİ’è
+//ãƒ¡ãƒƒã‚·ãƒ¥ã®åˆæœŸè¨­å®š
 void ADroneBase::InitializeMesh()
 {
 	if (!m_pDroneCollision) { return; }
 
-	//ƒ{ƒfƒBƒƒbƒVƒ…¶¬
+	//ãƒœãƒ‡ã‚£ãƒ¡ãƒƒã‚·ãƒ¥ç”Ÿæˆ
 	m_pBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
 
 	if (m_pBodyMesh && m_BodyMesh)
 	{
-		//ƒƒbƒVƒ…‚ÌƒAƒ^ƒbƒ`
+		//ãƒ¡ãƒƒã‚·ãƒ¥ã®ã‚¢ã‚¿ãƒƒãƒ
 		m_pBodyMesh->AttachToComponent(m_pDroneCollision, FAttachmentTransformRules::KeepRelativeTransform);
 		m_pBodyMesh->SetStaticMesh(m_BodyMesh);
 
-		//‰H‚ÌƒƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg¶¬
+		//ç¾½ã®ãƒ¡ãƒƒã‚·ãƒ¥ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆç”Ÿæˆ
 		for (int index = 0; index < EWING::NUM; ++index)
 		{
-			//‰E‰ñ‚è‚Ì‰H‚ğ’²‚×‚é
+			//å³å›ã‚Šã®ç¾½ã‚’èª¿ã¹ã‚‹
 			const bool isRightTrun = (index == 0 || index == 3);
-			//‰H‚Ì–¼‘O‚ğİ’è
+			//ç¾½ã®åå‰ã‚’è¨­å®š
 			const FName WingName = isRightTrun ?
 				(index + 1 < 3) ? TEXT("LF_Wing") : TEXT("RB_Wing") :
 				(index + 1 > 2) ? TEXT("LB_Wing") : TEXT("RF_Wing");
@@ -178,7 +178,7 @@ void ADroneBase::InitializeMesh()
 				(index == 0) ? -45.f : 45.f :
 				(index == 2) ? 45.f : -45.f;
 
-			//”z—ñ‚Ì’Ç‰Á(¯•Ê”Ô†A‰H‚ÌƒƒbƒVƒ…)
+			//é…åˆ—ã®è¿½åŠ (è­˜åˆ¥ç•ªå·ã€ç¾½ã®ãƒ¡ãƒƒã‚·ãƒ¥)
 			m_pWings.Add(MakeShareable(new FWing(index, CreateDefaultSubobject<UStaticMeshComponent>(WingName))));
 
 			if (m_pWings.IsValidIndex(index))
@@ -187,11 +187,11 @@ void ADroneBase::InitializeMesh()
 				{
 					if (m_WingMesh.IsValidIndex(0) && m_WingMesh.IsValidIndex(1))
 					{
-						//‰H‚ÌƒƒbƒVƒ…‚ğİ’è
+						//ç¾½ã®ãƒ¡ãƒƒã‚·ãƒ¥ã‚’è¨­å®š
 						pWingMesh->SetStaticMesh(m_WingMesh[isRightTrun]);
-						//‰H‚ÌƒƒbƒVƒ…ƒRƒŠƒWƒ‡ƒ“‚ğ–³Œø‚É‚·‚é
+						//ç¾½ã®ãƒ¡ãƒƒã‚·ãƒ¥ã‚³ãƒªã‚¸ãƒ§ãƒ³ã‚’ç„¡åŠ¹ã«ã™ã‚‹
 						pWingMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-						//ƒ\ƒPƒbƒg‚ÌˆÊ’u‚É‰H‚ğƒAƒ^ƒbƒ`
+						//ã‚½ã‚±ãƒƒãƒˆã®ä½ç½®ã«ç¾½ã‚’ã‚¢ã‚¿ãƒƒãƒ
 						pWingMesh->AttachToComponent(m_pBodyMesh, FAttachmentTransformRules::KeepRelativeTransform, WingName);
 						pWingMesh->SetRelativeRotation(InitRotaion);
 					}
@@ -201,16 +201,16 @@ void ADroneBase::InitializeMesh()
 	}
 }
 
-//ƒNƒ‰ƒCƒAƒ“ƒg—p@InitializeMesh
+//ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆç”¨ã€€InitializeMesh
 void ADroneBase::Client_InitializeMesh_Implementation()
 {
 	InitializeMesh();
 }
 
-//ƒ‰ƒCƒg‚Ì‰Šúİ’è
+//ãƒ©ã‚¤ãƒˆã®åˆæœŸè¨­å®š
 void ADroneBase::InitializeLight()
 {
-	//ƒ‰ƒCƒgƒRƒ“ƒ|[ƒlƒ“ƒg¶¬
+	//ãƒ©ã‚¤ãƒˆã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆç”Ÿæˆ
 	m_pLeftSpotLight = NewObject<USpotLightComponent>(this);
 	m_pRightSpotLight = NewObject<USpotLightComponent>(this);
 
@@ -231,47 +231,47 @@ void ADroneBase::InitializeLight()
 	}
 }
 
-//ƒNƒ‰ƒCƒAƒ“ƒg—p ƒ‰ƒCƒg‚Ì‰Šúİ’è
+//ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆç”¨ ãƒ©ã‚¤ãƒˆã®åˆæœŸè¨­å®š
 void ADroneBase::Client_InitializeLight_Implementation()
 {
 	InitializeLight();
 }
 
-//‰H‚Ì‰Á‘¬“xXVˆ—
+//ç¾½ã®åŠ é€Ÿåº¦æ›´æ–°å‡¦ç†
 void ADroneBase::UpdateWingAccle(const float& DeltaTime)
 {
 }
 
-//‰H‚Ì‰ñ“]XVˆ—
+//ç¾½ã®å›è»¢æ›´æ–°å‡¦ç†
 void ADroneBase::UpdateWingRotation(const float& DeltaTime)
 {
-	//2²‚Ì“ü—Í—Ê‚ğ‡¬‚·‚é
+	//2è»¸ã®å…¥åŠ›é‡ã‚’åˆæˆã™ã‚‹
 	const float InputValueSize = FMath::Clamp((
 		FVector2D(m_AxisValuePerFrame.W, m_AxisValuePerFrame.Z).Size() +
 		FVector2D(m_AxisValuePerFrame.X, m_AxisValuePerFrame.Y).Size()) / 2,
 		0.f, 1.f);
 
-	//–ˆ•bm_rpsMax * WingAccel‰ñ•ª‰ñ“]‚·‚é‚½‚ß‚É–ˆƒtƒŒ[ƒ€‰H‚ğ‰ñ‚·Šp“x‚ğ‹‚ß‚é
+	//æ¯ç§’m_rpsMax * WingAccelå›åˆ†å›è»¢ã™ã‚‹ãŸã‚ã«æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ç¾½ã‚’å›ã™è§’åº¦ã‚’æ±‚ã‚ã‚‹
 	for (TSharedPtr<FWing> pWing : m_pWings)
 	{
 		if (pWing.IsValid())
 		{
 			if (pWing->GetWingMesh())
 			{
-				//‰H‚Ì‰Á‘¬“x‚ğ0‚©‚ç1‚Ì”ÍˆÍ‚ÉC³‚µA³‹K‰»‚·‚é
+				//ç¾½ã®åŠ é€Ÿåº¦ã‚’0ã‹ã‚‰1ã®ç¯„å›²ã«ä¿®æ­£ã—ã€æ­£è¦åŒ–ã™ã‚‹
 				const float NormalizeAccelSize = FMath::Clamp((pWing->AccelState + 1.f) / 3.f, 0.f, 1.f);
-				//³‹K‰»‚µ‚½‰Á‘¬“x‚ğg‚Á‚Ä‰H‚Ì‰Á‘¬‚ÌŠ„‡‚ğ•âŠÔ‚·‚é
+				//æ­£è¦åŒ–ã—ãŸåŠ é€Ÿåº¦ã‚’ä½¿ã£ã¦ç¾½ã®åŠ é€Ÿã®å‰²åˆã‚’è£œé–“ã™ã‚‹
 				const float WingAccel = FMath::Lerp(m_WingAccelMin, m_WingAccelMax, NormalizeAccelSize);
-				//‰E‰ñ‚è‚Ì‰H‚©”»•Ê‚·‚é(¶‘O‚Æ‰EŒã‚ë‚Ì‰H‚ª‰E‰ñ‚è‚É‰ñ“]‚·‚é)
+				//å³å›ã‚Šã®ç¾½ã‹åˆ¤åˆ¥ã™ã‚‹(å·¦å‰ã¨å³å¾Œã‚ã®ç¾½ãŒå³å›ã‚Šã«å›è»¢ã™ã‚‹)
 				const bool isTurnRight = (pWing->GetWingNumber() == EWING::LEFT_FORWARD || pWing->GetWingNumber() == EWING::RIGHT_BACKWARD ? true : false);
-				//1ƒtƒŒ[ƒ€‚É‰ñ“]‚·‚éŠp“x‚ğ‹‚ß‚é
+				//1ãƒ•ãƒ¬ãƒ¼ãƒ ã«å›è»¢ã™ã‚‹è§’åº¦ã‚’æ±‚ã‚ã‚‹
 				const float angularVelocity = m_RPSMax * 360.f * DeltaTime * WingAccel * (isTurnRight ? 1.f : -1.f);
 
-				//‰H‚ğ‰ñ“]‚³‚¹‚é
+				//ç¾½ã‚’å›è»¢ã•ã›ã‚‹
 				pWing->GetWingMesh()->AddLocalRotation(FRotator(0.f, angularVelocity, 0.f));
 
 #ifdef DEBUG_WING
-				//*ƒfƒoƒbƒO—p*‘¬“x‚É‰‚¶‚Ä‰H‚ÌF•ÏX				
+				//*ãƒ‡ãƒãƒƒã‚°ç”¨*é€Ÿåº¦ã«å¿œã˜ã¦ç¾½ã®è‰²å¤‰æ›´				
 				const FVector WingColor = FVector(FLinearColor::LerpUsingHSV(FColor::Blue, FColor::Yellow, NormalizeAccelSize));
 				wing.GetWingMesh()->SetVectorParameterValueOnMaterials(TEXT("WingColor"), WingColor);
 #endif // DEBUG_WING
@@ -280,13 +280,13 @@ void ADroneBase::UpdateWingRotation(const float& DeltaTime)
 	}
 }
 
-//‰ñ“]ˆ—
+//å›è»¢å‡¦ç†
 void ADroneBase::UpdateRotation(const float& DeltaTime)
 {
-	//NULLƒ`ƒFƒbƒN
+	//NULLãƒã‚§ãƒƒã‚¯
 	if (!m_pBodyMesh) { return; }
 
-	//‰H‚Ì‰ñ“]—Ê‚©‚çƒhƒ[ƒ“‚ÌŠp‘¬“x‚ÌÅ‘å’l‚ğİ’è
+	//ç¾½ã®å›è»¢é‡ã‹ã‚‰ãƒ‰ãƒ­ãƒ¼ãƒ³ã®è§’é€Ÿåº¦ã®æœ€å¤§å€¤ã‚’è¨­å®š
 	FVector AngularVelocity;
 	AngularVelocity = FVector(
 		(m_pWings[EWING::LEFT_FORWARD]->AccelState + m_pWings[EWING::LEFT_BACKWARD]->AccelState) - (m_pWings[EWING::RIGHT_FORWARD]->AccelState + m_pWings[EWING::RIGHT_BACKWARD]->AccelState),
@@ -307,7 +307,7 @@ void ADroneBase::UpdateRotation(const float& DeltaTime)
 	m_pBodyMesh->SetRelativeRotation(NewRotation.Quaternion(), true);
 }
 
-//‘¬“xXVˆ—
+//é€Ÿåº¦æ›´æ–°å‡¦ç†
 void ADroneBase::UpdateSpeed(const float& DeltaTime)
 {
 	if (!m_pBodyMesh) { return; }
@@ -321,23 +321,23 @@ void ADroneBase::UpdateSpeed(const float& DeltaTime)
 	m_LocalAxis += BodyQuat.GetForwardVector() * -m_AxisAccel.Y;
 	m_LocalAxis += BodyQuat.GetUpVector() * m_AxisAccel.Z;
 
-	//ƒhƒ[ƒ“‚É‚©‚©‚é—Í‚Ìİ’è
+	//ãƒ‰ãƒ­ãƒ¼ãƒ³ã«ã‹ã‹ã‚‹åŠ›ã®è¨­å®š
 	m_Velocity = CGameUtility::SetDecimalTruncation(m_LocalAxis * m_Speed, 3);
 }
 
-//•—‚ÌƒGƒtƒFƒNƒgXVˆ—
+//é¢¨ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ›´æ–°å‡¦ç†
 void ADroneBase::UpdateWindEffect(const float& DeltaTime)
 {
 	if (!m_pWindEmitter || !m_pBodyMesh) { return; }
 
-	//ƒGƒtƒFƒNƒg‚Æƒhƒ[ƒ“‚ÌÀ•W‚ğæ“¾
+	//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã¨ãƒ‰ãƒ­ãƒ¼ãƒ³ã®åº§æ¨™ã‚’å–å¾—
 	FVector EffectLocation = m_pWindEmitter->GetComponentLocation();
 	FVector  DroneLocation = m_pBodyMesh->GetComponentLocation();
-	//ƒGƒtƒFƒNƒg‚ªis•ûŒü‚ÖŒü‚­‚æ‚¤‚É‚·‚é
+	//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãŒé€²è¡Œæ–¹å‘ã¸å‘ãã‚ˆã†ã«ã™ã‚‹
 	FRotator LookAtRotation = FRotationMatrix::MakeFromX(DroneLocation - EffectLocation).Rotator();
-	//ˆÚ“®—Ê‚Ì‘å‚«‚³‚©‚çƒGƒtƒFƒNƒg‚Ì•s“§–¾“x‚ğİ’è
+	//ç§»å‹•é‡ã®å¤§ãã•ã‹ã‚‰ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ä¸é€æ˜åº¦ã‚’è¨­å®š
 	float AxisValue = FVector2D(m_AxisValuePerFrame.X, m_AxisValuePerFrame.Y).GetSafeNormal().Size();
-	//‰Á‘¬—¦‚ğŒvZ
+	//åŠ é€Ÿç‡ã‚’è¨ˆç®—
 	float AccelRate = FMath::Clamp(m_AxisAccel.Size3() / m_WingAccelMax, 0.f, 1.f);
 	float Opacity = (m_AxisValuePerFrame.Y < 0.f) ? AxisValue * (m_bIsPassedRing ? 1.f : 0.8f) : 0.f;
 	m_WindOpacity = FMath::Lerp(m_WindOpacity, Opacity, DeltaTime * 5.f);
@@ -349,29 +349,29 @@ void ADroneBase::UpdateWindEffect(const float& DeltaTime)
 	m_pWindEmitter->SetRelativeScale3D(FVector(effectScale));
 	m_pWindEmitter->SetWorldRotation(LookAtRotation.Quaternion());
 	m_pWindEmitter->SetRelativeLocation(FVector(effectLocationX, 0.f, 0.f));
-	//ƒGƒtƒFƒNƒg‚Ì•s“§–¾“x‚ğ•ÏX
+	//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ä¸é€æ˜åº¦ã‚’å¤‰æ›´
 	m_pWindEmitter->SetVariableFloat(TEXT("User.Mask"), m_WindNoise);
 	m_pWindEmitter->SetVariableFloat(TEXT("User.WindOpacity"), m_WindOpacity);
 }
 
-//‚“x‚ÌãŒÀ‚ğ‚ğ’´‚¦‚Ä‚¢‚é‚©Šm”F
+//é«˜åº¦ã®ä¸Šé™ã‚’ã‚’è¶…ãˆã¦ã„ã‚‹ã‹ç¢ºèª
 void ADroneBase::UpdateAltitudeCheck(const float& DeltaTime)
 {
-	//ƒŒƒC‚ÌŠJn“_‚ÆI“_‚ğİ’è(ƒhƒ[ƒ“‚ÌÀ•W‚©‚ç‚“x‚ÌãŒÀ‚Ì’·‚³)
+	//ãƒ¬ã‚¤ã®é–‹å§‹ç‚¹ã¨çµ‚ç‚¹ã‚’è¨­å®š(ãƒ‰ãƒ­ãƒ¼ãƒ³ã®åº§æ¨™ã‹ã‚‰é«˜åº¦ã®ä¸Šé™ã®é•·ã•)
 	FVector Start = GetActorLocation();
 	FVector End = Start;
 	End.Z -= m_HeightMax;
-	//ƒqƒbƒgŒ‹‰Ê‚ğŠi”[‚·‚é”z—ñ
+	//ãƒ’ãƒƒãƒˆçµæœã‚’æ ¼ç´ã™ã‚‹é…åˆ—
 	TArray<FHitResult> OutHits;
-	//ƒgƒŒ[ƒX‚·‚é‘ÎÛ(©g‚Í‘ÎÛ‚©‚çŠO‚·)
+	//ãƒˆãƒ¬ãƒ¼ã‚¹ã™ã‚‹å¯¾è±¡(è‡ªèº«ã¯å¯¾è±¡ã‹ã‚‰å¤–ã™)
 	FCollisionQueryParams CollisionParam;
 	CollisionParam.AddIgnoredActor(this);
 
-	//ƒŒƒC‚ğ”ò‚Î‚µAWorldStatic‚ÌƒRƒŠƒWƒ‡ƒ“ƒ`ƒƒƒ“ƒlƒ‹‚ğ‚ÂƒIƒuƒWƒFƒNƒg‚Ìƒqƒbƒg”»’è‚ğæ“¾‚·‚é
+	//ãƒ¬ã‚¤ã‚’é£›ã°ã—ã€WorldStaticã®ã‚³ãƒªã‚¸ãƒ§ãƒ³ãƒãƒ£ãƒ³ãƒãƒ«ã‚’æŒã¤ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ãƒ’ãƒƒãƒˆåˆ¤å®šã‚’å–å¾—ã™ã‚‹
 	bool isHit = GetWorld()->LineTraceMultiByObjectType(OutHits, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
 	bool isHitGround = false;
 
-	//ƒŒƒC‚ªƒqƒbƒg‚µ‚½‚çƒAƒNƒ^[‚Ìƒ^ƒO‚ğŠm”F‚µAGround‚Ìƒ^ƒO‚ğ‚ÂƒAƒNƒ^[‚ª‚ ‚ê‚Î‚“xãŒÀ‚ğ‰z‚¦‚Ä‚¢‚È‚¢‚Ì‚Åƒtƒ‰ƒO‚ğ~‚ë‚·
+	//ãƒ¬ã‚¤ãŒãƒ’ãƒƒãƒˆã—ãŸã‚‰ã‚¢ã‚¯ã‚¿ãƒ¼ã®ã‚¿ã‚°ã‚’ç¢ºèªã—ã€Groundã®ã‚¿ã‚°ã‚’æŒã¤ã‚¢ã‚¯ã‚¿ãƒ¼ãŒã‚ã‚Œã°é«˜åº¦ä¸Šé™ã‚’è¶Šãˆã¦ã„ãªã„ã®ã§ãƒ•ãƒ©ã‚°ã‚’é™ã‚ã™
 	if (isHit)
 	{
 		for (const FHitResult& HitResult : OutHits)
@@ -381,7 +381,7 @@ void ADroneBase::UpdateAltitudeCheck(const float& DeltaTime)
 				if (pHitActor->ActorHasTag(TEXT("Ground")))
 				{
 					isHitGround = true;
-					//’n–Ê‚©‚ç‚Ì‚‚³‚ğŒv‘ª
+					//åœ°é¢ã‹ã‚‰ã®é«˜ã•ã‚’è¨ˆæ¸¬
 					m_HeightFromGround = HitResult.Distance;
 
 					if (pHitActor->ActorHasTag(TEXT("LandScape")))
@@ -390,7 +390,7 @@ void ADroneBase::UpdateAltitudeCheck(const float& DeltaTime)
 					}
 					else
 					{
-						//ƒqƒbƒg‚µ‚½ƒAƒNƒ^[‚Ìƒ}ƒeƒŠƒAƒ‹–¼‚ğæ“¾
+						//ãƒ’ãƒƒãƒˆã—ãŸã‚¢ã‚¯ã‚¿ãƒ¼ã®ãƒãƒ†ãƒªã‚¢ãƒ«åã‚’å–å¾—
 						if (UPrimitiveComponent* pHitComp = HitResult.GetComponent())
 						{
 							if (UMaterialInterface* pMaterial = pHitComp->GetMaterial(0))
@@ -405,7 +405,7 @@ void ADroneBase::UpdateAltitudeCheck(const float& DeltaTime)
 		}
 	}
 
-	//’n–Ê‚Éƒqƒbƒg‚µ‚Ä‚¢‚È‚¢‚Æ‚«‚ÍãŒÀ‚ğ‰z‚¦‚Ä‚¢‚é‚Ì‚ÅAãŒü‚«‚Ì“ü—Í’l‚É•â³‚ğ‚©‚¯‚é
+	//åœ°é¢ã«ãƒ’ãƒƒãƒˆã—ã¦ã„ãªã„ã¨ãã¯ä¸Šé™ã‚’è¶Šãˆã¦ã„ã‚‹ã®ã§ã€ä¸Šå‘ãã®å…¥åŠ›å€¤ã«è£œæ­£ã‚’ã‹ã‘ã‚‹
 	if (!isHitGround)
 	{
 		float ReturnSpeed = -m_WingAccelMax * 0.5f;
@@ -413,36 +413,36 @@ void ADroneBase::UpdateAltitudeCheck(const float& DeltaTime)
 	}
 }
 
-//»šº‚ÌƒGƒtƒFƒNƒg‚Ì•\¦Ø‘Ö
+//ç ‚åŸƒã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®è¡¨ç¤ºåˆ‡æ›¿
 void ADroneBase::UpdateCloudOfDustEffect()
 {
 	if (!m_isControl) { return; }
 	if (!m_pBodyMesh) { return; }
 
-	//’n–Ê‚Æ‚Ì‹——£‚ª‹ß‚­‚È‚Á‚½‚çƒGƒtƒFƒNƒg‚ğ•\¦
+	//åœ°é¢ã¨ã®è·é›¢ãŒè¿‘ããªã£ãŸã‚‰ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’è¡¨ç¤º
 	if (m_HeightFromGround <= m_ShowEffectDistance)
 	{
-		//ƒGƒtƒFƒNƒg‚ğ’n–Ê‚Ì‚‚³‚É’²®‚·‚é
+		//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’åœ°é¢ã®é«˜ã•ã«èª¿æ•´ã™ã‚‹
 		FVector EmitterLocation = m_pBodyMesh->GetUpVector() * (-m_HeightFromGround);
 
 		if (m_pCloudOfDustEmitter)
 		{
-			//’n–Ê‚Ìƒ}ƒeƒŠƒAƒ‹–¼‚Éˆê’v‚·‚éƒGƒtƒFƒNƒg‚ğİ’è
+			//åœ°é¢ã®ãƒãƒ†ãƒªã‚¢ãƒ«åã«ä¸€è‡´ã™ã‚‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’è¨­å®š
 			if (UNiagaraSystem* pNiagaraSystem = m_pDroneEffects.FindRef(m_GroundMaterialName))
 			{
-				//İ’è‚³‚ê‚Ä‚¢‚éƒGƒtƒFƒNƒg‚ªˆá‚¤ê‡‚Í·‚µ‘Ö‚¦‚é
+				//è¨­å®šã•ã‚Œã¦ã„ã‚‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãŒé•ã†å ´åˆã¯å·®ã—æ›¿ãˆã‚‹
 				if (m_pCloudOfDustEmitter->GetAsset() != pNiagaraSystem)
 				{
 					m_pCloudOfDustEmitter = UNiagaraFunctionLibrary::SpawnSystemAttached(pNiagaraSystem, m_pDroneCollision, NAME_None, EmitterLocation, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, false);
 				}
-				//“¯‚¶ƒGƒtƒFƒNƒg‚È‚çˆÊ’u’²®‚Ì‚İs‚¤
+				//åŒã˜ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãªã‚‰ä½ç½®èª¿æ•´ã®ã¿è¡Œã†
 				else
 				{
 					m_pCloudOfDustEmitter->SetRelativeLocation(EmitterLocation);
 					m_pCloudOfDustEmitter->Activate();
 				}
 			}
-			//ƒGƒtƒFƒNƒg‚ğ”­¶‚³‚¹‚È‚¢ƒ}ƒeƒŠƒAƒ‹‚Ìê‡‚ÍƒGƒtƒFƒNƒg‚ğ”ñ•\¦‚É‚·‚é
+			//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ç™ºç”Ÿã•ã›ãªã„ãƒãƒ†ãƒªã‚¢ãƒ«ã®å ´åˆã¯ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’éè¡¨ç¤ºã«ã™ã‚‹
 			else
 			{
 				if (m_pCloudOfDustEmitter->IsActive())
@@ -453,14 +453,14 @@ void ADroneBase::UpdateCloudOfDustEffect()
 		}
 		else
 		{
-			//’n–Ê‚Ìƒ}ƒeƒŠƒAƒ‹–¼‚Æˆê’v‚·‚éƒGƒtƒFƒNƒg‚ğİ’è
+			//åœ°é¢ã®ãƒãƒ†ãƒªã‚¢ãƒ«åã¨ä¸€è‡´ã™ã‚‹ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’è¨­å®š
 			if (UNiagaraSystem* pNiagaraSystem = m_pDroneEffects.FindRef(m_GroundMaterialName))
 			{
 				m_pCloudOfDustEmitter = UNiagaraFunctionLibrary::SpawnSystemAttached(pNiagaraSystem, m_pDroneCollision, NAME_None, EmitterLocation, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, false);
 			}
 		}
 	}
-	//’n–Ê‚Æ‚Ì‹——£‚ª—£‚ê‚½‚ç»‰Œ‚ğ”ñ•\¦‚É‚·‚é
+	//åœ°é¢ã¨ã®è·é›¢ãŒé›¢ã‚ŒãŸã‚‰ç ‚ç…™ã‚’éè¡¨ç¤ºã«ã™ã‚‹
 	else
 	{
 		if (m_pCloudOfDustEmitter)
@@ -473,7 +473,7 @@ void ADroneBase::UpdateCloudOfDustEffect()
 	}
 }
 
-//ƒ{ƒfƒBƒƒbƒVƒ…‚Ì‰ñ“]İ’è
+//ãƒœãƒ‡ã‚£ãƒ¡ãƒƒã‚·ãƒ¥ã®å›è»¢è¨­å®š
 void ADroneBase::SetBodyMeshRotation(const FRotator& NewRotator)
 {
 	if (!m_pBodyMesh) { return; }
@@ -481,7 +481,7 @@ void ADroneBase::SetBodyMeshRotation(const FRotator& NewRotator)
 	 m_pBodyMesh->SetRelativeRotation(NewRotator); 
 }
 
-//ƒ{ƒfƒBƒƒbƒVƒ…‚Ì‰ñ“]İ’è
+//ãƒœãƒ‡ã‚£ãƒ¡ãƒƒã‚·ãƒ¥ã®å›è»¢è¨­å®š
 void ADroneBase::SetBodyMeshRotation(const FQuat& NewRotator)
 {
 	if (!m_pBodyMesh) { return; }
@@ -489,7 +489,7 @@ void ADroneBase::SetBodyMeshRotation(const FQuat& NewRotator)
 	m_pBodyMesh->SetRelativeRotation(NewRotator);
 }
 
-//ƒ{ƒfƒBƒƒbƒVƒ…‚Ì‰ñ“]—Êæ“¾
+//ãƒœãƒ‡ã‚£ãƒ¡ãƒƒã‚·ãƒ¥ã®å›è»¢é‡å–å¾—
 FRotator ADroneBase::GetBodyMeshRotation()const
 {
 	if (!m_pBodyMesh) { return FRotator::ZeroRotator; }
@@ -497,7 +497,7 @@ FRotator ADroneBase::GetBodyMeshRotation()const
 	return m_pBodyMesh->GetComponentRotation(); 
 }
 
-//ƒ{ƒfƒBƒƒbƒVƒ…‚Ì‰ñ“]—Êæ“¾
+//ãƒœãƒ‡ã‚£ãƒ¡ãƒƒã‚·ãƒ¥ã®å›è»¢é‡å–å¾—
 FRotator ADroneBase::GetBodyMeshRelativeRotation()const
 {
 	if (!m_pBodyMesh) { return FRotator::ZeroRotator; }
@@ -505,36 +505,36 @@ FRotator ADroneBase::GetBodyMeshRelativeRotation()const
 	return m_pBodyMesh->GetRelativeRotation();
 }
 
-//ƒI[ƒo[ƒ‰ƒbƒvŠJn‚ÉŒÄ‚Î‚ê‚éˆ—
+//ã‚ªãƒ¼ãƒãƒ¼ãƒ©ãƒƒãƒ—é–‹å§‹æ™‚ã«å‘¼ã°ã‚Œã‚‹å‡¦ç†
 void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor && OtherComp && OtherActor != this)
 	{
-		//ƒ^ƒO‚ªRing‚¾‚Á‚½ê‡
+		//ã‚¿ã‚°ãŒRingã ã£ãŸå ´åˆ
 		if (OtherActor->ActorHasTag(TEXT("Ring")))
 		{
-			//‰Á‘¬ƒtƒ‰ƒO‚ğ—§‚Ä‚é
+			//åŠ é€Ÿãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
 			m_bIsPassedRing = true;
 
-			//‰Á‘¬Œv‘ªƒJƒEƒ“ƒ^[‚ğƒŠƒZƒbƒg
+			//åŠ é€Ÿè¨ˆæ¸¬ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼ã‚’ãƒªã‚»ãƒƒãƒˆ
 			m_SincePassageCount = 0.f;
 		}
 
 		if (OtherActor->ActorHasTag(TEXT("Train")) && !OtherComp->ComponentHasTag(TEXT("Carhorn")))
 		{
-			//ƒhƒ[ƒ“‚ÌŒü‚«‚ğæ“¾
+			//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®å‘ãã‚’å–å¾—
 			FQuat Quat = FRotator(0.f, m_pBodyMesh->GetComponentRotation().Yaw + 90.f, 0.f).Quaternion();
-			//“ü—Í²‚ğæ“¾
+			//å…¥åŠ›è»¸ã‚’å–å¾—
 			FVector AxisAccle = m_AxisAccel;
-			//ƒ[ƒ‹ƒhÀ•W‚É•ÏŠ·
+			//ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã«å¤‰æ›
 			FVector WorldDir = Quat.RotateVector(AxisAccle);
-			//”½ËƒxƒNƒgƒ‹‚ğ‹‚ß‚é
+			//åå°„ãƒ™ã‚¯ãƒˆãƒ«ã‚’æ±‚ã‚ã‚‹
 			FVector ReflectVector = WorldDir - SweepResult.Normal * (2.f * (WorldDir | SweepResult.Normal));
-			//‹‚ß‚½”½ËƒxƒNƒgƒ‹‚ğ“ü—Í²‚ÌÀ•W‚É•ÏŠ·
+			//æ±‚ã‚ãŸåå°„ãƒ™ã‚¯ãƒˆãƒ«ã‚’å…¥åŠ›è»¸ã®åº§æ¨™ã«å¤‰æ›
 			FVector LocalReflectVector = Quat.Inverse().RotateVector(ReflectVector);
 			LocalReflectVector.X = FMath::RandBool() ? m_WingAccelMax : -m_WingAccelMax;
 
-			//”½ËƒxƒNƒgƒ‹‚ğis•ûŒü‚Éİ’è
+			//åå°„ãƒ™ã‚¯ãƒˆãƒ«ã‚’é€²è¡Œæ–¹å‘ã«è¨­å®š
 			m_AxisAccel = FVector4(LocalReflectVector, m_AxisAccel.W);
 		}
 	}
@@ -543,19 +543,19 @@ void ADroneBase::OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedCom
 #endif // DEBUG_OVERLAP_BEGIN
 }
 
-//ƒhƒ[ƒ“‚Ì“–‚½‚è”»’è‚ÉƒIƒuƒWƒFƒNƒg‚ªƒqƒbƒg‚µ‚½ŒÄ‚Î‚ê‚éƒCƒxƒ“ƒgŠÖ”‚ğ“o˜^
+//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®å½“ãŸã‚Šåˆ¤å®šã«ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒãƒ’ãƒƒãƒˆã—ãŸæ™‚å‘¼ã°ã‚Œã‚‹ã‚¤ãƒ™ãƒ³ãƒˆé–¢æ•°ã‚’ç™»éŒ²
 void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (!m_pBodyMesh) { return; }
 
-	//ƒhƒ[ƒ“‚ÌŒü‚«‚ğæ“¾
+	//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®å‘ãã‚’å–å¾—
 	FQuat Quat = FRotator(0.f, m_pBodyMesh->GetComponentRotation().Yaw + 90.f, 0.f).Quaternion();
 
 	//if (OtherComp)
 	//{
 	//	if (OtherComp->ComponentHasTag(TEXT("TrainHead")))
 	//	{
-	//		//‹‚ß‚½”½ËƒxƒNƒgƒ‹‚ğ“ü—Í²‚ÌÀ•W‚É•ÏŠ·
+	//		//æ±‚ã‚ãŸåå°„ãƒ™ã‚¯ãƒˆãƒ«ã‚’å…¥åŠ›è»¸ã®åº§æ¨™ã«å¤‰æ›
 	//		FVector LocalReflectVector = Quat.Inverse().RotateVector(OtherComp->GetForwardVector());
 	//		m_AxisAccel = FVector4(LocalReflectVector * m_Attenuation, m_AxisAccel.W);
 
@@ -565,15 +565,15 @@ void ADroneBase::OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* 
 
 	if (OtherActor && OtherActor != this)
 	{
-		//“ü—Í²‚ğæ“¾
+		//å…¥åŠ›è»¸ã‚’å–å¾—
 		FVector AxisAccle = m_AxisAccel;
-		//ƒ[ƒ‹ƒhÀ•W‚É•ÏŠ·
+		//ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã«å¤‰æ›
 		FVector WorldDir = Quat.RotateVector(AxisAccle);
-		//”½ËƒxƒNƒgƒ‹‚ğ‹‚ß‚é
+		//åå°„ãƒ™ã‚¯ãƒˆãƒ«ã‚’æ±‚ã‚ã‚‹
 		FVector ReflectVector = WorldDir - Hit.Normal * (2.f * (WorldDir | Hit.Normal));
-		//‹‚ß‚½”½ËƒxƒNƒgƒ‹‚ğ“ü—Í²‚ÌÀ•W‚É•ÏŠ·
+		//æ±‚ã‚ãŸåå°„ãƒ™ã‚¯ãƒˆãƒ«ã‚’å…¥åŠ›è»¸ã®åº§æ¨™ã«å¤‰æ›
 		FVector LocalReflectVector = Quat.Inverse().RotateVector(ReflectVector);
-		//”½ËƒxƒNƒgƒ‹‚ğis•ûŒü‚Éİ’è
+		//åå°„ãƒ™ã‚¯ãƒˆãƒ«ã‚’é€²è¡Œæ–¹å‘ã«è¨­å®š
 		m_AxisAccel = FVector4(LocalReflectVector * m_Attenuation, m_AxisAccel.W);
 	}
 }

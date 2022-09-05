@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -26,13 +26,13 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	//ƒXƒvƒ‰ƒCƒ“‚ğæ“¾
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã‚’å–å¾—
 	UFUNCTION(BlueprintCallable)
 		USplineComponent* GetSpline()const { return m_pSpline; }
-	//i‚ñ‚¾‹——£‚©‚çƒXƒvƒ‰ƒCƒ“‚ÌÀ•W‚ğæ“¾
+	//é€²ã‚“ã è·é›¢ã‹ã‚‰ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®åº§æ¨™ã‚’å–å¾—
 	UFUNCTION(BlueprintCallable)
 		FVector GetCurrentLocation(const float& length, const bool& bLoop)const;
-	//i‚ñ‚¾‹——£‚©‚çƒXƒvƒ‰ƒCƒ“‚Ì‰ñ“]‚ğæ“¾
+	//é€²ã‚“ã è·é›¢ã‹ã‚‰ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®å›è»¢ã‚’å–å¾—
 	UFUNCTION(BlueprintCallable)
 		FRotator GetCurrentRotation(const float& length, const bool& bLoop)const;
 

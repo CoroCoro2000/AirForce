@@ -1,22 +1,22 @@
+ï»¿//--------------------------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:RegularlyAlignedProceduralMesh.h
+// æ¦‚è¦				:è¦å‰‡çš„ã«ä¸¦ã¶ãƒ¡ãƒƒã‚·ãƒ¥ã‚’è‡ªå‹•ç”Ÿæˆã™ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2021/08/07
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹			:
 //--------------------------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:RegularlyAlignedProceduralMesh.h
-// ŠT—v				:‹K‘¥“I‚É•À‚ÔƒƒbƒVƒ…‚ğ©“®¶¬‚·‚éƒAƒNƒ^[ƒNƒ‰ƒX
-// ì¬“ú			:2021/08/07
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e			:
-//--------------------------------------------------------------------------------------------
-//ƒCƒ“ƒNƒ‹[ƒhƒK[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ã‚¬ãƒ¼ãƒ‰
 #pragma once
 
-//ƒCƒ“ƒNƒ‹[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "AlignedProceduralMesh.generated.h"
 
-//‘O•ûéŒ¾
+//å‰æ–¹å®£è¨€
 class UHierarchicalInstancedStaticMeshComponent;
 
-//ƒƒbƒVƒ…‚Ì•À‚×•û‚ğw’è‚·‚é—ñ‹“
+//ãƒ¡ãƒƒã‚·ãƒ¥ã®ä¸¦ã¹æ–¹ã‚’æŒ‡å®šã™ã‚‹åˆ—æŒ™
 UENUM(BlueprintType)
 namespace EARRANGEMENT
 {
@@ -41,13 +41,13 @@ struct FGridStatus
 	{}
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		int MeshCountX;					//X²‚ÌƒƒbƒVƒ…‚Ì”
+		int MeshCountX;					//Xè»¸ã®ãƒ¡ãƒƒã‚·ãƒ¥ã®æ•°
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		int MeshCountY;					//Y²‚ÌƒƒbƒVƒ…‚Ì”
+		int MeshCountY;					//Yè»¸ã®ãƒ¡ãƒƒã‚·ãƒ¥ã®æ•°
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		int MeshCountZ;					//Z²‚ÌƒƒbƒVƒ…‚Ì”
+		int MeshCountZ;					//Zè»¸ã®ãƒ¡ãƒƒã‚·ãƒ¥ã®æ•°
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		FVector Distance;				//—×Ú‚·‚éƒƒbƒVƒ…‚Æ‚Ì‹——£
+		FVector Distance;				//éš£æ¥ã™ã‚‹ãƒ¡ãƒƒã‚·ãƒ¥ã¨ã®è·é›¢
 };
 
 USTRUCT(BlueprintType)
@@ -55,7 +55,7 @@ struct FRandomizeStatus
 {
 	GENERATED_USTRUCT_BODY()
 
-		//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+		//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 		FRandomizeStatus()
 		: bRandomizeScale(false)
 		, RandomScaleMax(1.05f)
@@ -85,9 +85,9 @@ struct FRandomizeStatus
 		float RandomRotaionYawAngle;
 };
 
-//ƒfƒoƒbƒO—pdefine
-//#define DEBUG_TRANSFORM			//ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€‚ÌƒƒOo—Í
-//#define DEBUG_INSTANCECOUNT		//•Û‚µ‚Ä‚¢‚éƒƒbƒVƒ…ƒCƒ“ƒXƒ^ƒ“ƒX‚Ì”‚ğo—Í
+//ãƒ‡ãƒãƒƒã‚°ç”¨define
+//#define DEBUG_TRANSFORM			//ãƒˆãƒ©ãƒ³ã‚¹ãƒ•ã‚©ãƒ¼ãƒ ã®ãƒ­ã‚°å‡ºåŠ›
+//#define DEBUG_INSTANCECOUNT		//ä¿æŒã—ã¦ã„ã‚‹ãƒ¡ãƒƒã‚·ãƒ¥ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®æ•°ã‚’å‡ºåŠ›
 
 UCLASS()
 class AIRFORCE_API AAlignedProceduralMesh : public AActor
@@ -106,32 +106,32 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 private:
-	//ƒGƒfƒBƒ^ã‚Å”z’uA‚Ü‚½‚Í“à•”‚Ì’l‚ª•ÏX‚³‚ê‚½‚ÉŒÄ‚Ño‚³‚ê‚éŠÖ”
+	//ã‚¨ãƒ‡ã‚£ã‚¿ä¸Šã§é…ç½®æ™‚ã€ã¾ãŸã¯å†…éƒ¨ã®å€¤ãŒå¤‰æ›´ã•ã‚ŒãŸæ™‚ã«å‘¼ã³å‡ºã•ã‚Œã‚‹é–¢æ•°
 	virtual void OnConstruction(const FTransform& Transform)override;
 
-	//’¼üó‚É¶¬‚·‚éˆ—
+	//ç›´ç·šçŠ¶ã«ç”Ÿæˆã™ã‚‹å‡¦ç†
 	void CreateLinear();
-	//Šiqó‚É¶¬‚·‚éˆ—
+	//æ ¼å­çŠ¶ã«ç”Ÿæˆã™ã‚‹å‡¦ç†
 	void CreateGrid();
-	//ƒƒbƒVƒ…î•ñ‚ÌXV
+	//ãƒ¡ãƒƒã‚·ãƒ¥æƒ…å ±ã®æ›´æ–°
 	void UpdateMesh();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_bFix"))
-		UHierarchicalInstancedStaticMeshComponent* m_pMeshes;							//ƒƒbƒVƒ…
+		UHierarchicalInstancedStaticMeshComponent* m_pMeshes;							//ãƒ¡ãƒƒã‚·ãƒ¥
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_bFix"))
-		TEnumAsByte<EARRANGEMENT::Type> m_ArrangementType;						//ƒƒbƒVƒ…‚ğ‚Ç‚Ì‚æ‚¤‚É•À‚×‚é‚©
+		TEnumAsByte<EARRANGEMENT::Type> m_ArrangementType;						//ãƒ¡ãƒƒã‚·ãƒ¥ã‚’ã©ã®ã‚ˆã†ã«ä¸¦ã¹ã‚‹ã‹
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_bFix && m_ArrangementType != EARRANGEMENT::GRID"))
-		int m_MeshCount;																						//”z’u‚·‚éƒƒbƒVƒ…‚Ì”
+		int m_MeshCount;																						//é…ç½®ã™ã‚‹ãƒ¡ãƒƒã‚·ãƒ¥ã®æ•°
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_bFix && m_ArrangementType != EARRANGEMENT::GRID"))
-		float m_Distance;																						//ƒƒbƒVƒ…“¯m‚ÌŠÔŠu
+		float m_Distance;																						//ãƒ¡ãƒƒã‚·ãƒ¥åŒå£«ã®é–“éš”
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_bFix"))
-		FRotator m_MeshRelativeRotation;																//”z’u‚·‚éƒƒbƒVƒ…‚Ì‘Š‘ÎŠp“x
+		FRotator m_MeshRelativeRotation;																//é…ç½®ã™ã‚‹ãƒ¡ãƒƒã‚·ãƒ¥ã®ç›¸å¯¾è§’åº¦
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_bFix"))
-		FRandomizeStatus m_RandomizeStatus;														//ƒ‰ƒ“ƒ_ƒ€‰»‚·‚éÛ‚Ìƒpƒ‰ƒ[ƒ^[
+		FRandomizeStatus m_RandomizeStatus;														//ãƒ©ãƒ³ãƒ€ãƒ åŒ–ã™ã‚‹éš›ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒ¼
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting", meta = (EditCondition = "!m_bFix && m_ArrangementType == EARRANGEMENT::GRID"))
-		FGridStatus m_GridStatus;																			//Šiqã‚É”z’u‚·‚éÛ‚Éİ’è‚·‚éƒpƒ‰ƒ[ƒ^[
+		FGridStatus m_GridStatus;																			//æ ¼å­ä¸Šã«é…ç½®ã™ã‚‹éš›ã«è¨­å®šã™ã‚‹ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒ¼
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		bool m_bFix;																								//Œ»İ‚Ì”z’u‚ÅŒÅ’è‚·‚é‚©‚Ç‚¤‚©
-	TArray<FTransform> m_TempInstanceTransform;										//”z’u‚³‚ê‚Ä‚¢‚éƒƒbƒVƒ…‚Ìƒgƒ‰ƒ“ƒXƒtƒH[ƒ€‚ğ•Û‘¶‚µ‚Ä‚¨‚­”z—ñ
+		bool m_bFix;																								//ç¾åœ¨ã®é…ç½®ã§å›ºå®šã™ã‚‹ã‹ã©ã†ã‹
+	TArray<FTransform> m_TempInstanceTransform;										//é…ç½®ã•ã‚Œã¦ã„ã‚‹ãƒ¡ãƒƒã‚·ãƒ¥ã®ãƒˆãƒ©ãƒ³ã‚¹ãƒ•ã‚©ãƒ¼ãƒ ã‚’ä¿å­˜ã—ã¦ãŠãé…åˆ—
 };

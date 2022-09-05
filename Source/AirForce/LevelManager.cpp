@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "LevelManager.h"
@@ -32,7 +32,7 @@ void ALevelManager::Tick(float DeltaTime)
 
 void ALevelManager::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
-	//“ü—Íƒ}ƒbƒsƒ“ƒO
+	//å…¥åŠ›ãƒãƒƒãƒ”ãƒ³ã‚°
 	InputComponent->BindAction(TEXT("InputUP"), EInputEvent::IE_Pressed, this, &ALevelManager::InputUp);
 	InputComponent->BindAction(TEXT("InputDown"), EInputEvent::IE_Pressed, this, &ALevelManager::InputDown);
 	InputComponent->BindAction(TEXT("InputLeft"), EInputEvent::IE_Pressed, this, &ALevelManager::InputLeft);
@@ -42,7 +42,7 @@ void ALevelManager::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 
 void ALevelManager::InputUp()
 {
-	//“ü—Í‰Â”\‚Å‚È‚¢‚È‚çˆ—‚µ‚È‚¢
+	//å…¥åŠ›å¯èƒ½ã§ãªã„ãªã‚‰å‡¦ç†ã—ãªã„
 	if (!m_isInputEnable)
 	{
 		return;
@@ -62,7 +62,7 @@ void ALevelManager::InputUp()
 
 void ALevelManager::InputDown()
 {
-	//“ü—Í‰Â”\‚Å‚È‚¢‚È‚çˆ—‚µ‚È‚¢
+	//å…¥åŠ›å¯èƒ½ã§ãªã„ãªã‚‰å‡¦ç†ã—ãªã„
 	if (!m_isInputEnable)
 	{
 		return;
@@ -82,7 +82,7 @@ void ALevelManager::InputDown()
 
 void ALevelManager::InputLeft()
 {
-	//“ü—Í‰Â”\‚Å‚È‚¢‚È‚çˆ—‚µ‚È‚¢
+	//å…¥åŠ›å¯èƒ½ã§ãªã„ãªã‚‰å‡¦ç†ã—ãªã„
 	if (!m_isInputEnable)
 	{
 		return;
@@ -101,7 +101,7 @@ void ALevelManager::InputLeft()
 
 void ALevelManager::InputRight()
 {
-	//“ü—Í‰Â”\‚Å‚È‚¢‚È‚çˆ—‚µ‚È‚¢
+	//å…¥åŠ›å¯èƒ½ã§ãªã„ãªã‚‰å‡¦ç†ã—ãªã„
 	if (!m_isInputEnable)
 	{
 		return;
@@ -120,13 +120,13 @@ void ALevelManager::InputRight()
 
 void ALevelManager::InputA()
 {
-	//“ü—Í‰Â”\‚Å‚È‚¢‚È‚çˆ—‚µ‚È‚¢
+	//å…¥åŠ›å¯èƒ½ã§ãªã„ãªã‚‰å‡¦ç†ã—ãªã„
 	if (!m_isInputEnable)
 	{
 		return;
 	}
 
-	//‘I‘ğ‚µ‚½ƒŒƒxƒ‹‚ğ“Ç‚İ‚Ş
+	//é¸æŠã—ãŸãƒ¬ãƒ™ãƒ«ã‚’èª­ã¿è¾¼ã‚€
 	UGameplayStatics::OpenLevel(GetWorld(), m_LevelName[m_LevelIndex]);
 	m_isInputEnable = false;
 }

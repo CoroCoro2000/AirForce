@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "BlueprintFunctionUtility.h"
@@ -7,32 +7,32 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 UBlueprintFunctionUtility::UBlueprintFunctionUtility(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 
 }
 
-//w’è‚³‚ê‚½ƒ^ƒO‚Æˆê’v‚·‚éƒAƒNƒ^[‚·‚×‚Ä‚ğæ“¾‚·‚éŠÖ”
+//æŒ‡å®šã•ã‚ŒãŸã‚¿ã‚°ã¨ä¸€è‡´ã™ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼ã™ã¹ã¦ã‚’å–å¾—ã™ã‚‹é–¢æ•°
 void UBlueprintFunctionUtility::GetAllActorHasTags(const UObject* WorldContextObject, TSubclassOf<AActor> ActorClass, TArray<FName> FindTags, TArray<AActor*>& OutActors)
 {
-	//ŒŸõ‚·‚éƒ^ƒO‚ª‚ ‚ê‚ÎŒŸõŠJn
+	//æ¤œç´¢ã™ã‚‹ã‚¿ã‚°ãŒã‚ã‚Œã°æ¤œç´¢é–‹å§‹
 	if ((int)FindTags.Num() > 0)
 	{
 		TArray<AActor*> FindActors;
-		//ƒŒƒxƒ‹“à‚ÌƒAƒNƒ^[‚·‚×‚Ä‚ğæ“¾
+		//ãƒ¬ãƒ™ãƒ«å†…ã®ã‚¢ã‚¯ã‚¿ãƒ¼ã™ã¹ã¦ã‚’å–å¾—
 		UGameplayStatics::GetAllActorsOfClass(WorldContextObject, ActorClass, FindActors);
 
-		//ŒŸõŒ‹‰Ê‚ÉƒAƒNƒ^[‚ª‚ ‚ê‚Î
+		//æ¤œç´¢çµæœã«ã‚¢ã‚¯ã‚¿ãƒ¼ãŒã‚ã‚Œã°
 		if ((int)FindActors.Num() > 0)
 		{
-			//Œ©‚Â‚©‚Á‚½ƒAƒNƒ^[‚ğ‡‚É’²‚×‚é
+			//è¦‹ã¤ã‹ã£ãŸã‚¢ã‚¯ã‚¿ãƒ¼ã‚’é †ã«èª¿ã¹ã‚‹
 			for (AActor* pActor : FindActors)
 			{
 				if (pActor)
 				{
-					//ƒ^ƒO‚Æˆê’v‚·‚éƒAƒNƒ^[‚ªŒ©‚Â‚©‚Á‚½‚ç”z—ñ‚É’Ç‰Á
+					//ã‚¿ã‚°ã¨ä¸€è‡´ã™ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼ãŒè¦‹ã¤ã‹ã£ãŸã‚‰é…åˆ—ã«è¿½åŠ 
 					for (FName& findTag : FindTags)
 					{
 						if (pActor->ActorHasTag(findTag))

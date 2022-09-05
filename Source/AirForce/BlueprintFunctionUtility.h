@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -15,11 +15,11 @@ class AIRFORCE_API UBlueprintFunctionUtility : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	UBlueprintFunctionUtility(const FObjectInitializer& ObjectInitializer);
 
 public:
-	//w’è‚³‚ê‚½ƒ^ƒO‚Æˆê’v‚·‚éƒAƒNƒ^[‚·‚×‚Ä‚ğæ“¾‚·‚éŠÖ”
+	//æŒ‡å®šã•ã‚ŒãŸã‚¿ã‚°ã¨ä¸€è‡´ã™ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼ã™ã¹ã¦ã‚’å–å¾—ã™ã‚‹é–¢æ•°
 	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject", DeterminesOutputType = "ActorClass", DynamicOutputParam = "OutActors"))
 		static void GetAllActorHasTags(const UObject* WorldContextObject, TSubclassOf<AActor> ActorClass, TArray<FName> FindTags, TArray<AActor*>& OutActors);
 

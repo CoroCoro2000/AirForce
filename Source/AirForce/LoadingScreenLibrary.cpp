@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "LoadingScreenLibrary.h"
@@ -14,7 +14,7 @@
 #include "Engine/GameViewportClient.h"
 #include "UObject/UObjectGlobals.h"
 
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 FLoadingScreenSystem::FLoadingScreenSystem(URacingD_GameInstance* InGameInstance)
 	: m_pGameInstance(InGameInstance)
 	, m_pLoadingScreenWidget()
@@ -24,27 +24,27 @@ FLoadingScreenSystem::FLoadingScreenSystem(URacingD_GameInstance* InGameInstance
 	, m_Progress(0.f)
 	, m_AsyncLoadingFlushUpdateHandle(FDelegateHandle::EGenerateNewHandleType::GenerateNewHandle)
 {
-	//ƒ[ƒh’†‚ÌƒXƒŒ[ƒgXV‚ğ‚·‚éŠÖ”‚ğƒoƒCƒ“ƒh
+	//ãƒ­ãƒ¼ãƒ‰ä¸­ã®ã‚¹ãƒ¬ãƒ¼ãƒˆæ›´æ–°ã‚’ã™ã‚‹é–¢æ•°ã‚’ãƒã‚¤ãƒ³ãƒ‰
 	m_AsyncLoadingFlushUpdateHandle = FCoreDelegates::OnAsyncLoadingFlushUpdate.AddRaw(this, &FLoadingScreenSystem::OnAsyncLoadingFlushUpdate);
 }
 
-//ƒfƒXƒgƒ‰ƒNƒ^
+//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 FLoadingScreenSystem::~FLoadingScreenSystem()
 {
-	//ƒ[ƒh’†‚ÌƒXƒŒ[ƒgXV‚ğ‚·‚éŠÖ”‚ÌƒoƒCƒ“ƒh‚ğ‰ğœ
+	//ãƒ­ãƒ¼ãƒ‰ä¸­ã®ã‚¹ãƒ¬ãƒ¼ãƒˆæ›´æ–°ã‚’ã™ã‚‹é–¢æ•°ã®ãƒã‚¤ãƒ³ãƒ‰ã‚’è§£é™¤
 	if (m_AsyncLoadingFlushUpdateHandle.IsValid())
 	{
 		FCoreDelegates::OnAsyncLoadingFlushUpdate.Remove(m_AsyncLoadingFlushUpdateHandle);
 	}
 }
 
-//–ˆƒtƒŒ[ƒ€Às‚³‚ê‚éŠÖ”
+//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å®Ÿè¡Œã•ã‚Œã‚‹é–¢æ•°
 void FLoadingScreenSystem::Tick(float DeltaTime)
 {
 
 }
 
-//ƒ[ƒhƒEƒBƒWƒFƒbƒg‚Ì•\¦
+//ãƒ­ãƒ¼ãƒ‰ã‚¦ã‚£ã‚¸ã‚§ãƒƒãƒˆã®è¡¨ç¤º
 void FLoadingScreenSystem::ShowLoadingScreen(const TSubclassOf<UUserWidget> WidgetClass, const FName InPackageName)
 {
 	if (m_bShowing) { return; }
@@ -57,27 +57,27 @@ void FLoadingScreenSystem::ShowLoadingScreen(const TSubclassOf<UUserWidget> Widg
 		{
 			if (UGameViewportClient* pGameViewportClient = m_pGameInstance->GetGameViewportClient())
 			{
-				//ƒ[ƒh‚·‚éƒpƒbƒP[ƒW–¼‚ğ•\¦
+				//ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ãƒ‘ãƒƒã‚±ãƒ¼ã‚¸åã‚’è¡¨ç¤º
 				m_PackageName = InPackageName;
 				m_Progress = 0.f;
-				//ƒ[ƒh‰æ–Ê‚ğ•\¦
+				//ãƒ­ãƒ¼ãƒ‰ç”»é¢ã‚’è¡¨ç¤º
 				const int32 ZOrder = 10000;
 				pGameViewportClient->AddViewportWidgetContent(m_pLoadingScreenWidget.ToSharedRef(), ZOrder);
 
-				// Widget‚ª•\¦‚³‚ê‚Ä‚¢‚é‚Í‚¸‚È‚Ì‚Å3D•`‰æ‚ğŠ®‘S‚ÉƒJƒbƒg‚·‚é
+				// WidgetãŒè¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹ã¯ãšãªã®ã§3Dæç”»ã‚’å®Œå…¨ã«ã‚«ãƒƒãƒˆã™ã‚‹
 				pGameViewportClient->bDisableWorldRendering = true;
 				if (!GIsEditor)
 				{
 					FSlateApplication::Get().Tick();
 				}
-				//•\¦ó‘Ô‚ÉØ‚è‘Ö‚¦‚é
+				//è¡¨ç¤ºçŠ¶æ…‹ã«åˆ‡ã‚Šæ›¿ãˆã‚‹
 				m_bShowing = true;
 			}
 		}
 	}
 }
 
-//ƒ[ƒhƒEƒBƒWƒFƒbƒg‚Ì”ñ•\¦
+//ãƒ­ãƒ¼ãƒ‰ã‚¦ã‚£ã‚¸ã‚§ãƒƒãƒˆã®éè¡¨ç¤º
 void FLoadingScreenSystem::HideLoadingScreen()
 {
 	if (!m_bShowing) { return; }
@@ -87,18 +87,18 @@ void FLoadingScreenSystem::HideLoadingScreen()
 
 	if (UGameViewportClient* pGameViewportClient = m_pGameInstance->GetGameViewportClient())
 	{
-		//3D•`‰æ‚ğON‚É‚·‚é
+		//3Dæç”»ã‚’ONã«ã™ã‚‹
 		pGameViewportClient->bDisableWorldRendering = false;
-		//ƒ[ƒh‰æ–Ê‚ğ”ñ•\¦‚É‚·‚é
+		//ãƒ­ãƒ¼ãƒ‰ç”»é¢ã‚’éè¡¨ç¤ºã«ã™ã‚‹
 		pGameViewportClient->RemoveViewportWidgetContent(m_pLoadingScreenWidget.ToSharedRef());
-		//ƒEƒBƒWƒFƒbƒg‚Ìƒ|ƒCƒ“ƒ^‚ğ‰ğ•ú‚·‚é‚½‚ß‚ÉGC‚ğŒÄ‚Ño‚·
+		//ã‚¦ã‚£ã‚¸ã‚§ãƒƒãƒˆã®ãƒã‚¤ãƒ³ã‚¿ã‚’è§£æ”¾ã™ã‚‹ãŸã‚ã«GCã‚’å‘¼ã³å‡ºã™
 		GEngine->ForceGarbageCollection(true);
-		//”ñ•\¦ó‘Ô‚ÉØ‚è‘Ö‚¦‚é
+		//éè¡¨ç¤ºçŠ¶æ…‹ã«åˆ‡ã‚Šæ›¿ãˆã‚‹
 		m_bShowing = false;
 	}
 }
 
-//ƒ[ƒh‚Ìi’»‚ğæ“¾‚·‚éŠÖ”
+//ãƒ­ãƒ¼ãƒ‰ã®é€²æ—ã‚’å–å¾—ã™ã‚‹é–¢æ•°
 float FLoadingScreenSystem::GetLoadingProgress()
 {
 	float Sum = 0.f;
@@ -162,7 +162,7 @@ float FLoadingScreenSystem::GetLoadingProgress()
 	return m_Progress / 100.f;
 }
 
-/*‚±‚ÌƒfƒŠƒQ[ƒgŠÖ”‚Íƒ[ƒh’†‚É‚•p“x‚ÅŒÄ‚Î‚ê‚é‚Ì‚ÅA“KØ‚ÈŠÔŠu‚ÅƒXƒŒ[ƒg‚ÌXV‚ğŒÄ‚Ô‚æ‚¤‚É‚·‚é*/
+/*ã“ã®ãƒ‡ãƒªã‚²ãƒ¼ãƒˆé–¢æ•°ã¯ãƒ­ãƒ¼ãƒ‰ä¸­ã«é«˜é »åº¦ã§å‘¼ã°ã‚Œã‚‹ã®ã§ã€é©åˆ‡ãªé–“éš”ã§ã‚¹ãƒ¬ãƒ¼ãƒˆã®æ›´æ–°ã‚’å‘¼ã¶ã‚ˆã†ã«ã™ã‚‹*/
 void FLoadingScreenSystem::OnAsyncLoadingFlushUpdate()
 {
 	check(IsInGameThread());
@@ -176,7 +176,7 @@ void FLoadingScreenSystem::OnAsyncLoadingFlushUpdate()
 		m_LastTickTime = CurrentTime;
 		if (m_bShowing) 
 		{
-			// ƒXƒŒ[ƒgXV
+			// ã‚¹ãƒ¬ãƒ¼ãƒˆæ›´æ–°
 			FSlateApplication::Get().Tick();
 
 			{
@@ -189,14 +189,14 @@ void FLoadingScreenSystem::OnAsyncLoadingFlushUpdate()
 	}
 }
 
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 ULoadingScreenLibrary::ULoadingScreenLibrary(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 
 }
 
-//ƒ[ƒh‰æ–Ê‚Ì•\¦
+//ãƒ­ãƒ¼ãƒ‰ç”»é¢ã®è¡¨ç¤º
 void ULoadingScreenLibrary::ShowLoadingScreen(const TSubclassOf<UUserWidget> WidgetClass, FName InPackageName)
 {
 	if (URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
@@ -208,7 +208,7 @@ void ULoadingScreenLibrary::ShowLoadingScreen(const TSubclassOf<UUserWidget> Wid
 	}
 }
 
-//ƒ[ƒh‰æ–Ê‚Ì”ñ•\¦
+//ãƒ­ãƒ¼ãƒ‰ç”»é¢ã®éè¡¨ç¤º
 void ULoadingScreenLibrary::HideLoadingScreen()
 {
 	if (URacingD_GameInstance* pGameInstance = URacingD_GameInstance::Get())
@@ -233,7 +233,7 @@ float ULoadingScreenLibrary::GetLoadingProgress()
 	return progress;
 }
 
-//ƒ[ƒh‰æ–Ê‚ª•\¦’†‚©”»’è
+//ãƒ­ãƒ¼ãƒ‰ç”»é¢ãŒè¡¨ç¤ºä¸­ã‹åˆ¤å®š
 bool ULoadingScreenLibrary::IsShowLoadingScreen()
 {
 	bool isShow = false;

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "DebugLevelStreamingVolume.h"
@@ -12,7 +12,7 @@
 #define LOCTEXT_NAMESPACE "ErrorChecking"
 #endif // WITH_EDITOR
 
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 ADebugLevelStreamingVolume::ADebugLevelStreamingVolume(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -31,14 +31,14 @@ ADebugLevelStreamingVolume::ADebugLevelStreamingVolume(const FObjectInitializer&
 	}
 }
 
-//ƒQ[ƒ€ŠJŽnŽž‚É1“x‚¾‚¯ŽÀs‚³‚ê‚éŠÖ”
+//ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã«1åº¦ã ã‘å®Ÿè¡Œã•ã‚Œã‚‹é–¢æ•°
 void ADebugLevelStreamingVolume::BeginPlay()
 {
 	Super::BeginPlay();
 
 }
 
-//–ˆƒtƒŒ[ƒ€ŽÀs‚³‚ê‚éŠÖ”
+//æ¯Žãƒ•ãƒ¬ãƒ¼ãƒ å®Ÿè¡Œã•ã‚Œã‚‹é–¢æ•°
 void ADebugLevelStreamingVolume::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -115,17 +115,17 @@ void ADebugLevelStreamingVolume::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 	if (!m_pTextComponent) { return; }
 
-	//ƒ{ƒŠƒ…[ƒ€‚ÌƒoƒEƒ“ƒXƒTƒCƒY‚ðŽæ“¾
+	//ãƒœãƒªãƒ¥ãƒ¼ãƒ ã®ãƒã‚¦ãƒ³ã‚¹ã‚µã‚¤ã‚ºã‚’å–å¾—
 	const FBoxSphereBounds& Bounds = GetBounds();
-	//ƒ{ƒŠƒ…[ƒ€‚Ì‘å‚«‚³‚É‡‚í‚¹‚Ä3DƒeƒLƒXƒg‚Ì‘å‚«‚³‚ð’²®
+	//ãƒœãƒªãƒ¥ãƒ¼ãƒ ã®å¤§ãã•ã«åˆã‚ã›ã¦3Dãƒ†ã‚­ã‚¹ãƒˆã®å¤§ãã•ã‚’èª¿æ•´
 	m_pTextComponent->SetWorldSize(Bounds.BoxExtent.Size() * 0.2f);
-	//3DƒeƒLƒXƒg‚ªƒ{ƒŠƒ…[ƒ€‚Ìã‚É•\Ž¦‚³‚ê‚é‚æ‚¤‚É”z’u
+	//3Dãƒ†ã‚­ã‚¹ãƒˆãŒãƒœãƒªãƒ¥ãƒ¼ãƒ ã®ä¸Šã«è¡¨ç¤ºã•ã‚Œã‚‹ã‚ˆã†ã«é…ç½®
 	const float Height = Bounds.BoxExtent.Z * 1.5f;
 	m_pTextComponent->SetRelativeLocation(FVector(0.f, 0.f, Height));
-	//BoxShape‚ÌF‚ðƒeƒLƒXƒgƒJƒ‰[‚É•ÏX
+	//BoxShapeã®è‰²ã‚’ãƒ†ã‚­ã‚¹ãƒˆã‚«ãƒ©ãƒ¼ã«å¤‰æ›´
 	m_pTextComponent->TextRenderColor = m_Color;
 	BrushColor = m_Color;
-	//•\Ž¦‚·‚éƒeƒLƒXƒg‚ðÝ’è
+	//è¡¨ç¤ºã™ã‚‹ãƒ†ã‚­ã‚¹ãƒˆã‚’è¨­å®š
 	m_pTextComponent->SetText(m_Text);
 }
 #endif // WITH_EDITOR

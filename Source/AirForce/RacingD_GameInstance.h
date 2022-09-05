@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -19,22 +19,22 @@ class AIRFORCE_API URacingD_GameInstance : public UGameInstance
 	GENERATED_BODY()
 
 public:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	URacingD_GameInstance();
 
 private:
-	//ƒQ[ƒ€‹N“®‚ÉÀs‚³‚ê‚éŠÖ”
+	//ã‚²ãƒ¼ãƒ èµ·å‹•æ™‚ã«å®Ÿè¡Œã•ã‚Œã‚‹é–¢æ•°
 	virtual void Init() override;
-	//ƒQ[ƒ€I—¹‚ÉÀs‚³‚ê‚éŠÖ”
+	//ã‚²ãƒ¼ãƒ çµ‚äº†æ™‚ã«å®Ÿè¡Œã•ã‚Œã‚‹é–¢æ•°
 	virtual void Shutdown() override;
 
 public:
-	//ƒQ[ƒ€ƒCƒ“ƒXƒ^ƒ“ƒX‚Ìæ“¾
+	//ã‚²ãƒ¼ãƒ ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®å–å¾—
 	UFUNCTION(BlueprintCallable)
 	static URacingD_GameInstance* Get();
-	//ƒ[ƒhƒXƒNƒŠ[ƒ“—p‚ÌƒVƒXƒeƒ€‚ğæ“¾
+	//ãƒ­ãƒ¼ãƒ‰ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ç”¨ã®ã‚·ã‚¹ãƒ†ãƒ ã‚’å–å¾—
 	TSharedPtr<FLoadingScreenSystem> GetLoadingScreenSystem()const { return m_pLoadingScreenSystem; }
 
 private:
-	TSharedPtr<FLoadingScreenSystem> m_pLoadingScreenSystem;						//ƒ[ƒhƒXƒNƒŠ[ƒ“ƒVƒXƒeƒ€
+	TSharedPtr<FLoadingScreenSystem> m_pLoadingScreenSystem;						//ãƒ­ãƒ¼ãƒ‰ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‚·ã‚¹ãƒ†ãƒ 
 };

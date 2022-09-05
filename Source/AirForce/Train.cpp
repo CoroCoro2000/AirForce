@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Train.h"
@@ -26,7 +26,7 @@ ATrain::ATrain()
 		RootComponent = m_pFrontTrainMesh;
 	}
 
-	//ƒ^ƒO‚Ì’Ç‰Á
+	//ã‚¿ã‚°ã®è¿½åŠ 
 	Tags.Add(TEXT("Train"));
 }
 
@@ -35,7 +35,7 @@ void ATrain::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	//ƒƒbƒVƒ…‚Ì‰Šú‰»
+	//ãƒ¡ãƒƒã‚·ãƒ¥ã®åˆæœŸåŒ–
 	InitializeMesh();
 }
 
@@ -44,35 +44,35 @@ void ATrain::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//İ’è‚³‚ê‚½FPS‚ÌŠÔŠu‚ÅTick‚ğXV‚·‚é
+	//è¨­å®šã•ã‚ŒãŸFPSã®é–“éš”ã§Tickã‚’æ›´æ–°ã™ã‚‹
 	const float currentTime = GetWorld()->GetTimeSeconds();
-	//‘z’è‚³‚ê‚é1ƒtƒŒ[ƒ€‚É‚©‚©‚éŠÔ
+	//æƒ³å®šã•ã‚Œã‚‹1ãƒ•ãƒ¬ãƒ¼ãƒ ã«ã‹ã‹ã‚‹æ™‚é–“
 	const float TimePerFrame = 1.f / m_TickFPS;
-	//‘O‰ñÀs‚³‚ê‚Ä‚©‚ç‚ÌŒo‰ßŠÔ
+	//å‰å›å®Ÿè¡Œã•ã‚Œã¦ã‹ã‚‰ã®çµŒéæ™‚é–“
 	const float deltaTime = currentTime - m_LastTickTime;
 
-	//ˆ—‰Â”\‚ÈƒtƒŒ[ƒ€‚Å‚ ‚ê‚ÎXV
+	//å‡¦ç†å¯èƒ½ãªãƒ•ãƒ¬ãƒ¼ãƒ ã§ã‚ã‚Œã°æ›´æ–°
 	if (deltaTime > TimePerFrame && IsProcessableFrame(currentTime))
 	{
 		m_LastTickTime = currentTime;
 
-		//‘¬“xXVˆ—
+		//é€Ÿåº¦æ›´æ–°å‡¦ç†
 		UpdateSpeed(deltaTime);
 
-		//ˆÚ“®XVˆ—
+		//ç§»å‹•æ›´æ–°å‡¦ç†
 		UpdateMove(deltaTime);
 
-		//‰ñ“]XVˆ—
+		//å›è»¢æ›´æ–°å‡¦ç†
 		UpdateRotation(deltaTime);
 	}
 }
 
-//ƒƒbƒVƒ…‚Ì‰Šú‰»
+//ãƒ¡ãƒƒã‚·ãƒ¥ã®åˆæœŸåŒ–
 void ATrain::InitializeMesh()
 {
 	for (int32 index = 0; index < m_pMeshes.Num(); ++index)
 	{
-		//ƒƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg¶¬
+		//ãƒ¡ãƒƒã‚·ãƒ¥ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆç”Ÿæˆ
 		UStaticMeshComponent* pTrainMesh = NewObject<UStaticMeshComponent>(this);
 		if (pTrainMesh)
 		{
@@ -84,7 +84,7 @@ void ATrain::InitializeMesh()
 				pTrainMesh->SetStaticMesh(m_pMeshes[index]);
 			}
 
-			//Ô—¼‚ÌƒAƒ^ƒbƒ`
+			//è»Šä¸¡ã®ã‚¢ã‚¿ãƒƒãƒ
 			const int32 PrevIndex = index - 1;
 			if (m_pTrainMeshes.IsValidIndex(PrevIndex))
 			{
@@ -98,7 +98,7 @@ void ATrain::InitializeMesh()
 	}
 }
 
-//‘¬“x‚ÌXV
+//é€Ÿåº¦ã®æ›´æ–°
 void ATrain::UpdateSpeed(const float& DeltaTime)
 {
 	if (!m_pSplineActor) { return; }
@@ -124,32 +124,32 @@ void ATrain::UpdateSpeed(const float& DeltaTime)
 	}
 }
 
-//ˆÚ“®‚ÌXV
+//ç§»å‹•ã®æ›´æ–°
 void ATrain::UpdateMove(const float& DeltaTime)
 {
 	if (!m_pSplineActor) { return; }
 	if (m_pTrainMeshes.Num() == 0) { return; }
 
-	//i‚ñ‚¾‹——£‚ğXV
+	//é€²ã‚“ã è·é›¢ã‚’æ›´æ–°
 	float Speed = m_CurrentSpeed * DeltaTime;
 	m_MoveDistance += Speed;
 
-	//ˆÚ“®‹——£‚ªƒXƒvƒ‰ƒCƒ“‚Ì’·‚³‚ğ‰z‚¦‚Ä‚¢‚È‚¢‚©Šm”F‚·‚é
+	//ç§»å‹•è·é›¢ãŒã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®é•·ã•ã‚’è¶Šãˆã¦ã„ãªã„ã‹ç¢ºèªã™ã‚‹
 	CheckMoveDistance();
 
-	//ƒXƒvƒ‰ƒCƒ“‚ÌÀ•W‚ğæ“¾
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®åº§æ¨™ã‚’å–å¾—
 	FVector NewLocation = m_pSplineActor->GetCurrentLocation(m_MoveDistance, false);
-	//À•W‚ğXV
+	//åº§æ¨™ã‚’æ›´æ–°
 	SetActorLocation(NewLocation, true);
 }
 
-//‰ñ“]XVˆ—
+//å›è»¢æ›´æ–°å‡¦ç†
 void ATrain::UpdateRotation(const float& DeltaTime)
 {
 	if (!m_pSplineActor) { return; }
 	if (m_pTrainMeshes.Num() == 0) { return; }
 	
-	//æ“ª‚ÌƒƒbƒVƒ…‚ğŠÜ‚ß‚½Ô—¼‚ÌƒƒbƒVƒ…‚Ì”z—ñ‚ğì¬
+	//å…ˆé ­ã®ãƒ¡ãƒƒã‚·ãƒ¥ã‚’å«ã‚ãŸè»Šä¸¡ã®ãƒ¡ãƒƒã‚·ãƒ¥ã®é…åˆ—ã‚’ä½œæˆ
 	TArray<UStaticMeshComponent*> pTrainMeshes = m_pTrainMeshes;
 	pTrainMeshes.Insert(m_pFrontTrainMesh, 0);
 	float RotationSpeed = FMath::Clamp(DeltaTime * 10.f, 0.f, 1.f);
@@ -160,9 +160,9 @@ void ATrain::UpdateRotation(const float& DeltaTime)
 	{
 		if (pTrainMesh)
 		{
-			//ŠeÔ—¼‚ğƒXƒvƒ‰ƒCƒ“‚ÌŒü‚«‚É‡‚í‚¹‚é
+			//å„è»Šä¸¡ã‚’ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®å‘ãã«åˆã‚ã›ã‚‹
 			FRotator NewWorldRotation = m_pSplineActor->GetSpline()->FindRotationClosestToWorldLocation(pTrainMesh->GetComponentLocation(), ESplineCoordinateSpace::World);
-			//q‚ÌÔ—¼‚ªe‚Ì‰ñ“]—Ê‚Ì‰e‹¿‚ğó‚¯‚È‚¢‚æ‚¤‚É•â³‚·‚é
+			//å­ã®è»Šä¸¡ãŒè¦ªã®å›è»¢é‡ã®å½±éŸ¿ã‚’å—ã‘ãªã„ã‚ˆã†ã«è£œæ­£ã™ã‚‹
 			if (PrevRotation.IsZero())
 			{
 				PrevRotation = NewWorldRotation;
@@ -174,28 +174,28 @@ void ATrain::UpdateRotation(const float& DeltaTime)
 				PrevRotation = NewWorldRotation;
 			}
 
-			//‰ñ“]‚ÌXV
+			//å›è»¢ã®æ›´æ–°
 			pTrainMesh->SetWorldRotation(FQuat::FastLerp(pTrainMesh->GetComponentQuat(), NewWorldRotation.Quaternion(), RotationSpeed), true);
 		}
 	}
 }
 
-//ƒXƒvƒ‰ƒCƒ“‚ÌI“_‚É“’…‚µ‚Ä‚¢‚é‚©Šm”F‚·‚éˆ—
+//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®çµ‚ç‚¹ã«åˆ°ç€ã—ã¦ã„ã‚‹ã‹ç¢ºèªã™ã‚‹å‡¦ç†
 void ATrain::CheckMoveDistance()
 {
 	if (!m_pSplineActor) { return; }
 
-	//ˆÚ“®‚µ‚½‹——£‚ªƒXƒvƒ‰ƒCƒ“‚Ì’·‚³‚ğ‰z‚¦‚½‚ç
+	//ç§»å‹•ã—ãŸè·é›¢ãŒã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®é•·ã•ã‚’è¶ŠãˆãŸã‚‰
 	if (m_pSplineActor->GetSpline()->GetSplineLength() <= m_MoveDistance)
 	{
-		//ƒ‹[ƒvƒtƒ‰ƒO‚ª—§‚Á‚Ä‚¢‚½‚çŠJn’n“_‚ÉˆÚ“®‚³‚¹‚é
+		//ãƒ«ãƒ¼ãƒ—ãƒ•ãƒ©ã‚°ãŒç«‹ã£ã¦ã„ãŸã‚‰é–‹å§‹åœ°ç‚¹ã«ç§»å‹•ã•ã›ã‚‹
 		if (m_bLoop)
 		{
 			m_MoveDistance = 0.f;
 			FVector StartLocation = m_pSplineActor->GetCurrentLocation(m_MoveDistance, false);
 			SetActorLocation(StartLocation, true);
 		}
-		//ƒ‹[ƒvƒtƒ‰ƒO‚ª‰º‚è‚Ä‚¢‚éê‡‚Ííœ‚·‚é
+		//ãƒ«ãƒ¼ãƒ—ãƒ•ãƒ©ã‚°ãŒä¸‹ã‚Šã¦ã„ã‚‹å ´åˆã¯å‰Šé™¤ã™ã‚‹
 		else
 		{
 			Destroy();
@@ -203,7 +203,7 @@ void ATrain::CheckMoveDistance()
 	}
 }
 
-//‰Šú‰»
+//åˆæœŸåŒ–
 void ATrain::InitReplay()
 {
 	if (!m_pFrontTrainMesh) { return; }

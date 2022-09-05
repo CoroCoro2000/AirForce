@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -31,11 +31,11 @@ private:
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Mesh")
-		UStaticMeshComponent* m_pSurfaceMesh;								//…–Ê(•\)‚ÌƒƒbƒVƒ…
+		UStaticMeshComponent* m_pSurfaceMesh;								//æ°´é¢(è¡¨)ã®ãƒ¡ãƒƒã‚·ãƒ¥
 	UPROPERTY(EditAnywhere, Category = "Mesh")
-		UStaticMeshComponent* m_pBackfaceMesh;							//…–Ê(— )‚ÌƒƒbƒVƒ…
+		UStaticMeshComponent* m_pBackfaceMesh;							//æ°´é¢(è£)ã®ãƒ¡ãƒƒã‚·ãƒ¥
 	UPROPERTY(EditAnywhere)
-		FVector2D m_Size;																	//‘å‚«‚³
+		FVector2D m_Size;																	//å¤§ãã•
 	UPROPERTY(EditAnywhere)
-		float m_BoundaryThickness;													//…–Ê‚Ì‹«ŠEü‚ÌŒú‚İ
+		float m_BoundaryThickness;													//æ°´é¢ã®å¢ƒç•Œç·šã®åšã¿
 };

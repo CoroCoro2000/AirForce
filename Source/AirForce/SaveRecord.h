@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -8,7 +8,7 @@
 
 USTRUCT(BlueprintType)
 /**
- * @brief ƒŒƒR[ƒh‹L˜^—p\‘¢‘Ì
+ * @brief ãƒ¬ã‚³ãƒ¼ãƒ‰è¨˜éŒ²ç”¨æ§‹é€ ä½“
 */
 struct FRecordTime
 {
@@ -22,30 +22,30 @@ public:
 
 	/**
 	 * @brief 
-	 * @param recordTime ƒŒƒR[ƒh
+	 * @param recordTime ãƒ¬ã‚³ãƒ¼ãƒ‰
 	*/
 	FRecordTime(const FRecordTime& recordTime);
 
 	/**
 	 * @brief 
-	 * @param ticks Œo‰ßŠÔ@•b’PˆÊ
+	 * @param ticks çµŒéæ™‚é–“ã€€ç§’å˜ä½
 	*/
 	FRecordTime(const float& ticks);
 
 	/**
-	 * @brief ƒŒƒR[ƒh‚ÌŠÔXV
+	 * @brief ãƒ¬ã‚³ãƒ¼ãƒ‰ã®æ™‚é–“æ›´æ–°
 	 * @param ticks 
 	*/
 	void UpdateTime(const float& deltaTime);
 
 	/**
-	 * @brief Text •ÏŠ·
+	 * @brief Text å¤‰æ›
 	 * @return 
 	*/
 	FText ToText()const;
 
 	/**
-	 * @brief String •ÏŠ·
+	 * @brief String å¤‰æ›
 	 * @return Record
 	*/
 	FString ToString()const;
@@ -83,58 +83,58 @@ public:
 
 private:
 	/**
-	 * @brief ‰Šú‰»
+	 * @brief åˆæœŸåŒ–
 	*/
 	void Initialize();
 
 public:
 	UPROPERTY(BlueprintReadOnly, SaveGame)
 	/**
-	 * @brief •ª
+	 * @brief åˆ†
 	*/
 	int32 Minutes;
 
 	UPROPERTY(BlueprintReadOnly, SaveGame)
 	/**
-	 * @brief •b
+	 * @brief ç§’
 	*/
 	int32 Second;
 
 	UPROPERTY(BlueprintReadOnly, SaveGame)
 	/**
-	 * @brief ƒ~ƒŠ•b
+	 * @brief ãƒŸãƒªç§’
 	*/
 	int32 Millisecond;
 
 	UPROPERTY(BlueprintReadOnly, SaveGame)
 	/**
-	 * @brief 0‚©‚ç”‚¦‚½Œ»İ‚ÌŠÔ@ƒ~ƒŠ•b’PˆÊ
+	 * @brief 0ã‹ã‚‰æ•°ãˆãŸç¾åœ¨ã®æ™‚é–“ã€€ãƒŸãƒªç§’å˜ä½
 	*/
 	float Ticks;
 
 	/**
-	 * @brief ‹L˜^‚Å‚«‚éTicks‚ÌãŒÀ
+	 * @brief è¨˜éŒ²ã§ãã‚‹Ticksã®ä¸Šé™
 	*/
 	static const float RECORDTICKS_MAX;
 
 	/**
-	 * @brief ‹L˜^‚Å‚«‚éŠÔ‚ÌãŒÀ
+	 * @brief è¨˜éŒ²ã§ãã‚‹æ™‚é–“ã®ä¸Šé™
 	*/
 	static const FRecordTime RECORDTIME_MAX;
 
 private:
 	/**
-	 * @brief •ª‚ÌƒeƒLƒXƒgƒtƒH[ƒ}ƒbƒg
+	 * @brief åˆ†ã®ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆ
 	*/
 	FNumberFormattingOptions MinutesTextFormat;
 
 	/**
-	 * @brief •b‚ÌƒeƒLƒXƒgƒtƒH[ƒ}ƒbƒg
+	 * @brief ç§’ã®ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆ
 	*/
 	FNumberFormattingOptions SecondTextFormat;
 
 	/**
-	 * @brief ƒ~ƒŠ•b‚ÌƒeƒLƒXƒgƒtƒH[ƒ}ƒbƒg
+	 * @brief ãƒŸãƒªç§’ã®ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆ
 	*/
 	FNumberFormattingOptions MillisecondTextFormat;
 };
@@ -149,7 +149,7 @@ class AIRFORCE_API USaveRecord : public USaveGame
 	GENERATED_BODY()
 	
 public:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	USaveRecord(const FObjectInitializer& ObjectInitializer);
 
 

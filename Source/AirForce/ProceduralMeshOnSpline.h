@@ -1,25 +1,25 @@
+ï»¿//--------------------------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:ProceduralMeshOnSpline.h
+// æ¦‚è¦				:ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ä¸Šã«æŒ‡å®šæ•°ã®ãƒ¡ãƒƒã‚·ãƒ¥ã‚’è‡ªå‹•ç”Ÿæˆã™ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2021/08/06
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹			:
 //--------------------------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:ProceduralMeshOnSpline.h
-// ŠT—v				:ƒXƒvƒ‰ƒCƒ“ã‚Éw’è”‚ÌƒƒbƒVƒ…‚ğ©“®¶¬‚·‚éƒAƒNƒ^[ƒNƒ‰ƒX
-// ì¬“ú			:2021/08/06
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e			:
-//--------------------------------------------------------------------------------------------
-//ƒCƒ“ƒNƒ‹[ƒhƒK[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ã‚¬ãƒ¼ãƒ‰
 #pragma once
 
-//ƒCƒ“ƒNƒ‹[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshOnSpline.generated.h"
 
-//‘O•ûéŒ¾
+//å‰æ–¹å®£è¨€
 class USplineComponent;
 class UInstancedStaticMeshComponent;
 
-//ƒfƒoƒbƒO—pdefine
-//#define DEBUG_TRANSFORM			//ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€‚ÌƒƒOo—Í
-#define DEBUG_INSTANCECOUNT		//•Û‚µ‚Ä‚¢‚éƒƒbƒVƒ…ƒCƒ“ƒXƒ^ƒ“ƒX‚Ì”‚ğo—Í
+//ãƒ‡ãƒãƒƒã‚°ç”¨define
+//#define DEBUG_TRANSFORM			//ãƒˆãƒ©ãƒ³ã‚¹ãƒ•ã‚©ãƒ¼ãƒ ã®ãƒ­ã‚°å‡ºåŠ›
+#define DEBUG_INSTANCECOUNT		//ä¿æŒã—ã¦ã„ã‚‹ãƒ¡ãƒƒã‚·ãƒ¥ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®æ•°ã‚’å‡ºåŠ›
 
 UCLASS()
 class AIRFORCE_API AProceduralMeshOnSpline : public AActor
@@ -39,17 +39,17 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	//ƒGƒfƒBƒ^ã‚Å”z’uA‚Ü‚½‚Í“à•”‚Ì’l‚ª•ÏX‚³‚ê‚½‚ÉŒÄ‚Ño‚³‚ê‚éŠÖ”
+	//ã‚¨ãƒ‡ã‚£ã‚¿ä¸Šã§é…ç½®æ™‚ã€ã¾ãŸã¯å†…éƒ¨ã®å€¤ãŒå¤‰æ›´ã•ã‚ŒãŸæ™‚ã«å‘¼ã³å‡ºã•ã‚Œã‚‹é–¢æ•°
 	virtual void OnConstruction(const FTransform& Transform)override;
 
-	//ƒXƒvƒ‰ƒCƒ“ã‚É¶¬‚·‚éƒƒbƒVƒ…î•ñ‚ÌXV
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ä¸Šã«ç”Ÿæˆã™ã‚‹ãƒ¡ãƒƒã‚·ãƒ¥æƒ…å ±ã®æ›´æ–°
 	void UpdateMeshOnSpline();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline")
-		USplineComponent* m_pSpline;							//ƒIƒuƒWƒFƒNƒg‚ğ”z’u‚·‚éˆÊ’u‚ğ¦‚·ƒXƒvƒ‰ƒCƒ“
+		USplineComponent* m_pSpline;							//ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’é…ç½®ã™ã‚‹ä½ç½®ã‚’ç¤ºã™ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		UInstancedStaticMeshComponent* m_pMeshes;	//ƒXƒvƒ‰ƒCƒ“ã‚É”z’u‚³‚ê‚éƒƒbƒVƒ…
+		UInstancedStaticMeshComponent* m_pMeshes;	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ä¸Šã«é…ç½®ã•ã‚Œã‚‹ãƒ¡ãƒƒã‚·ãƒ¥
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MeshSetting")
-		int m_MeshCount;												//”z’u‚·‚éƒƒbƒVƒ…‚Ì”
+		int m_MeshCount;												//é…ç½®ã™ã‚‹ãƒ¡ãƒƒã‚·ãƒ¥ã®æ•°
 };

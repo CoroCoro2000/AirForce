@@ -1,11 +1,11 @@
+ï»¿//--------------------------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:ComponentOnSplineActor.cpp
+// æ¦‚è¦				:ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ä¸Šã«ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’è‡ªå‹•ç”Ÿæˆã™ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2021/08/30
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹			:
 //--------------------------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:ComponentOnSplineActor.cpp
-// ŠT—v				:ƒXƒvƒ‰ƒCƒ“ã‚ÉƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ©“®¶¬‚·‚éƒAƒNƒ^[ƒNƒ‰ƒX
-// ì¬“ú			:2021/08/30
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e			:
-//--------------------------------------------------------------------------------------------
-//ƒCƒ“ƒNƒ‹[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #include "ComponentOnSplineActor.h"
 #include "Components/SplineComponent.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
@@ -20,10 +20,10 @@ AComponentOnSplineActor::AComponentOnSplineActor()
 	, m_ComponentCount(1)
 	, m_ComponentRelativeRotation(FRotator::ZeroRotator)
 {
-	//ˆ—‚ÍƒGƒfƒBƒ^ã‚Å‚µ‚©Às‚µ‚È‚¢ˆ×ATick‚Í–³Œø‚É‚·‚é
+	//å‡¦ç†ã¯ã‚¨ãƒ‡ã‚£ã‚¿ä¸Šã§ã—ã‹å®Ÿè¡Œã—ãªã„ç‚ºã€Tickã¯ç„¡åŠ¹ã«ã™ã‚‹
 	PrimaryActorTick.bCanEverTick = false;
 
-	//ƒXƒvƒ‰ƒCƒ“¶¬
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ç”Ÿæˆ
 	m_pSpline = CreateDefaultSubobject<USplineComponent>(TEXT("Spline"));
 	if (m_pSpline)
 	{
@@ -38,7 +38,7 @@ void AComponentOnSplineActor::BeginPlay()
 
 	if (m_ComponentType == EComponent::Niagara)
 	{
-		//ƒXƒvƒ‰ƒCƒ“ã‚ÉNiagaraƒGƒtƒFƒNƒg‚ğ¶¬
+		//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ä¸Šã«Niagaraã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆ
 		SpawnNiagaraOnSpline();
 	}
 }
@@ -50,25 +50,25 @@ void AComponentOnSplineActor::Tick(float DeltaTime)
 
 }
 
-//ƒXƒvƒ‰ƒCƒ“ã‚É¶¬‚·‚éNiagaraƒGƒtƒFƒNƒgî•ñ‚ÌXV
+//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ä¸Šã«ç”Ÿæˆã™ã‚‹Niagaraã‚¨ãƒ•ã‚§ã‚¯ãƒˆæƒ…å ±ã®æ›´æ–°
 void AComponentOnSplineActor::SpawnNiagaraOnSpline()
 {
 	if (!m_pSpline) { return; }
 	if (!m_pNiagaraEffect) { return; }
 	if (m_ComponentCount <= 0) { return; }
 
-	//ƒXƒvƒ‰ƒCƒ“‚Ì’·‚³‚ğæ“¾
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®é•·ã•ã‚’å–å¾—
 	const float splineLength = m_pSpline->GetSplineLength();
 
 	for (int index = 0; index < m_ComponentCount; ++index)
 	{
-		//ƒXƒvƒ‰ƒCƒ“ã‚Ì‚Ç‚ÌˆÊ’u‚ÉƒGƒtƒFƒNƒg‚ğ¶¬‚·‚é‚©Œˆ‚ß‚é
+		//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ä¸Šã®ã©ã®ä½ç½®ã«ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆã™ã‚‹ã‹æ±ºã‚ã‚‹
 		const float rate = (float)index / (float)m_ComponentCount;
 		const float distance = rate * splineLength;
 		const FVector initLocation = m_pSpline->GetLocationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::World);
 		FRotator initRotation = m_pSpline->GetRotationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::World) + m_ComponentRelativeRotation;
 
-		//ƒGƒtƒFƒNƒgƒRƒ“ƒ|[ƒlƒ“ƒg¶¬
+		//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆç”Ÿæˆ
 		m_pNiagaraEffectComponents.Add(UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, m_pNiagaraEffect, initLocation, initRotation));
 	}
 }

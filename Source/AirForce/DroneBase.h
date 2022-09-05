@@ -1,21 +1,21 @@
-//------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:DroneBase.h
-// ŠT—v				:ƒhƒ[ƒ“‚Ìƒx[ƒXƒNƒ‰ƒX
-// ì¬“ú			:2021/04/19
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e			:2021/04/19 ƒvƒŒƒCƒ„[‚ÆƒGƒlƒ~[‚Ì‹¤’Ê€‚Ì’Ç‰Á
+ï»¿//------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:DroneBase.h
+// æ¦‚è¦				:ãƒ‰ãƒ­ãƒ¼ãƒ³ã®ãƒ™ãƒ¼ã‚¹ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2021/04/19
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹			:2021/04/19 ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ã‚¨ãƒãƒŸãƒ¼ã®å…±é€šé …ã®è¿½åŠ 
 //------------------------------------------------------------------------
 
-//ƒCƒ“ƒNƒ‹[ƒhƒK[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ã‚¬ãƒ¼ãƒ‰
 #pragma once
 
-//ƒCƒ“ƒNƒ‹[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Components/BoxComponent.h"
 #include "DroneBase.generated.h"
 
-//‘O•ûéŒ¾
+//å‰æ–¹å®£è¨€
 class UStaticMeshComponent;
 class USphereComponent;
 class UNiagaraSystem;
@@ -24,7 +24,7 @@ class USoundBase;
 class USpotLightComponent;
 class FName;
 
-//‰H‚Ì”Ô†‚Ì—ñ‹“
+//ç¾½ã®ç•ªå·ã®åˆ—æŒ™
 UENUM(BlueprintType)
 namespace EWING
 {
@@ -38,35 +38,35 @@ namespace EWING
 	};
 }
 
-//‰H‚Ìî•ñ‚ğŠÇ—‚·‚é\‘¢‘Ì
+//ç¾½ã®æƒ…å ±ã‚’ç®¡ç†ã™ã‚‹æ§‹é€ ä½“
 struct FWing
 {
 public:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	FWing(const uint32 wingNum, UStaticMeshComponent* wingMesh)
 		: WingNumber(wingNum)
 		, pWingMesh(wingMesh)
 		, AccelState(0.f)
 	{}
-	//ƒfƒXƒgƒ‰ƒNƒ^
+	//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	~FWing() {}
 
 public:
-	uint32 GetWingNumber()const { return WingNumber; }							//‰H”Ô†æ“¾
-	UStaticMeshComponent* GetWingMesh()const { return pWingMesh; }		//‰H‚ÌƒƒbƒVƒ…æ“¾
+	uint32 GetWingNumber()const { return WingNumber; }							//ç¾½ç•ªå·å–å¾—
+	UStaticMeshComponent* GetWingMesh()const { return pWingMesh; }		//ç¾½ã®ãƒ¡ãƒƒã‚·ãƒ¥å–å¾—
 
 private:
-	uint32 WingNumber;																				//¯•Ê”Ô†(1:¶‘OA2:‰E‘OA3:¶Œã‚ëA4:‰EŒã‚ë)
-	UStaticMeshComponent* pWingMesh;														//ƒƒbƒVƒ…
+	uint32 WingNumber;																				//è­˜åˆ¥ç•ªå·(1:å·¦å‰ã€2:å³å‰ã€3:å·¦å¾Œã‚ã€4:å³å¾Œã‚)
+	UStaticMeshComponent* pWingMesh;														//ãƒ¡ãƒƒã‚·ãƒ¥
 
 public:
-	float AccelState;																						//‰Á‘¬“x‚Ì’iŠK(-1:Å¬‚Ì‰Á‘¬“xA0:‰Á‘¬“x‚È‚µA1:‰Á‘¬“x‚ ‚èA2:Å‘å‚Ì‰Á‘¬“x)
+	float AccelState;																						//åŠ é€Ÿåº¦ã®æ®µéš(-1:æœ€å°ã®åŠ é€Ÿåº¦ã€0:åŠ é€Ÿåº¦ãªã—ã€1:åŠ é€Ÿåº¦ã‚ã‚Šã€2:æœ€å¤§ã®åŠ é€Ÿåº¦)
 };
 
-//defineƒ}ƒNƒ
-//Œ»İ‚ÌFPS‚ğŒv‘ª
+//defineãƒã‚¯ãƒ­
+//ç¾åœ¨ã®FPSã‚’è¨ˆæ¸¬
 #define GetFPS (1.f / DeltaTime)
-//ƒtƒŒ[ƒ€ƒŒ[ƒg‚ª’á‰º‚µ‚Ä‚àˆÚ“®—Ê‚É‰e‹¿‚ª–³‚¢‚æ‚¤•â³‚·‚é’l
+//ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆãŒä½ä¸‹ã—ã¦ã‚‚ç§»å‹•é‡ã«å½±éŸ¿ãŒç„¡ã„ã‚ˆã†è£œæ­£ã™ã‚‹å€¤
 #define MOVE_CORRECTION (60.f / GetFPS)
 #define SLOPE_MIN 0.f
 #define SPEED_MIN -10.5f
@@ -80,217 +80,217 @@ class AIRFORCE_API ADroneBase : public APawn
 	GENERATED_BODY()
 
 public:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	ADroneBase();
-	//ƒfƒXƒgƒ‰ƒNƒ^
+	//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	virtual ~ADroneBase();
 
 protected:
-	//ƒQ[ƒ€ŠJn‚É1“x‚¾‚¯ˆ—
+	//ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã«1åº¦ã ã‘å‡¦ç†
 	virtual void BeginPlay() override;
 
-	//ƒŒƒvƒŠƒP[ƒg‚ğ“o˜^
+	//ãƒ¬ãƒ—ãƒªã‚±ãƒ¼ãƒˆã‚’ç™»éŒ²
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const override;
 public:
-	//–ˆƒtƒŒ[ƒ€ˆ—
+	//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
 	virtual void Tick(float DeltaTime) override;
 
-	//y“ü—ÍƒoƒCƒ“ƒhzƒRƒ“ƒgƒ[ƒ‰[“ü—Íİ’è
+	//ã€å…¥åŠ›ãƒã‚¤ãƒ³ãƒ‰ã€‘ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼å…¥åŠ›è¨­å®š
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	//	“ü—Íƒtƒ‰ƒO‚Ìİ’è
+	//	å…¥åŠ›ãƒ•ãƒ©ã‚°ã®è¨­å®š
 	void SetisControl(const bool _isControl) { m_isControl = _isControl; }
 
 protected:
-	//ƒhƒ[ƒ“‚Ì“–‚½‚è”»’è‚ÉƒIƒuƒWƒFƒNƒg‚ªƒI[ƒo[ƒ‰ƒbƒv‚µ‚½ŒÄ‚Î‚ê‚éƒCƒxƒ“ƒgŠÖ”‚ğ“o˜^
+	//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®å½“ãŸã‚Šåˆ¤å®šã«ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒã‚ªãƒ¼ãƒãƒ¼ãƒ©ãƒƒãƒ—ã—ãŸæ™‚å‘¼ã°ã‚Œã‚‹ã‚¤ãƒ™ãƒ³ãƒˆé–¢æ•°ã‚’ç™»éŒ²
 	UFUNCTION()
 		virtual void OnDroneCollisionOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	//ƒhƒ[ƒ“‚Ì“–‚½‚è”»’è‚ÉƒIƒuƒWƒFƒNƒg‚ªƒqƒbƒg‚µ‚½ŒÄ‚Î‚ê‚éƒCƒxƒ“ƒgŠÖ”‚ğ“o˜^
+	//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®å½“ãŸã‚Šåˆ¤å®šã«ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒãƒ’ãƒƒãƒˆã—ãŸæ™‚å‘¼ã°ã‚Œã‚‹ã‚¤ãƒ™ãƒ³ãƒˆé–¢æ•°ã‚’ç™»éŒ²
 	UFUNCTION()
 		void OnDroneCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 public:
-	//‘€ì‰Â”\ƒtƒ‰ƒOæ“¾
+	//æ“ä½œå¯èƒ½ãƒ•ãƒ©ã‚°å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Drone")
 		bool GetisControl() const { return  m_isControl; }
 
-	//ƒ{ƒfƒBƒƒbƒVƒ…‚Ì‰ñ“]İ’è
+	//ãƒœãƒ‡ã‚£ãƒ¡ãƒƒã‚·ãƒ¥ã®å›è»¢è¨­å®š
 	UFUNCTION(BlueprintCallable, Category = "Drone")
 		void SetBodyMeshRotation(const FRotator& NewRotator);
-	//ƒ{ƒfƒBƒƒbƒVƒ…‚Ì‰ñ“]İ’è
+	//ãƒœãƒ‡ã‚£ãƒ¡ãƒƒã‚·ãƒ¥ã®å›è»¢è¨­å®š
 	void SetBodyMeshRotation(const FQuat& NewRotator);
-	//ƒ{ƒfƒBƒƒbƒVƒ…‚Ì‰ñ“]—Êæ“¾
+	//ãƒœãƒ‡ã‚£ãƒ¡ãƒƒã‚·ãƒ¥ã®å›è»¢é‡å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Drone")
 		FRotator GetBodyMeshRotation()const;
-	//ƒ{ƒfƒBƒƒbƒVƒ…‚Ì‰ñ“]—Êæ“¾
+	//ãƒœãƒ‡ã‚£ãƒ¡ãƒƒã‚·ãƒ¥ã®å›è»¢é‡å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Drone")
 		FRotator GetBodyMeshRelativeRotation()const;
 
-	//	ƒhƒ[ƒ“‚Ì‘¬(kilometers per hour)æ“¾
+	//	ãƒ‰ãƒ­ãƒ¼ãƒ³ã®æ™‚é€Ÿ(kilometers per hour)å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Drone|Speed")
 		float GetKPH(const float DeltaTime)const { return m_Velocity.Size() * (60.f / (1.f / DeltaTime)) / 100000.f / DeltaTime * 3600.f * 2.f; }
 	
-	//	ƒhƒ[ƒ“‚Ì‰Á‘¬ƒtƒ‰ƒOæ“¾
+	//	ãƒ‰ãƒ­ãƒ¼ãƒ³ã®åŠ é€Ÿãƒ•ãƒ©ã‚°å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Drone|Speed")
 		bool GetIsOverAccle()const { return m_bIsPassedRing; }
 
-	//ƒXƒe[ƒWƒpƒXæ“¾
+	//ã‚¹ãƒ†ãƒ¼ã‚¸ãƒ‘ã‚¹å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "SaveFilePath")
 		void SetStagePath(FString _StagePath) { m_SaveStageFolderPath = _StagePath; }
-	//ƒ[ƒJƒ‹²‚ğæ“¾
+	//ãƒ­ãƒ¼ã‚«ãƒ«è»¸ã‚’å–å¾—
 	FVector GetLocalAxis()const { return m_LocalAxis; }
 
-	//“ü—Í’l‚Ìİ’è
+	//å…¥åŠ›å€¤ã®è¨­å®š
 	UFUNCTION(BlueprintCallable)
 		void SetAxisValue(const FVector4& NewAxisValue) { m_AxisValuePerFrame = NewAxisValue; }
-	//“ü—Í’l‚Ìæ“¾
+	//å…¥åŠ›å€¤ã®å–å¾—
 	UFUNCTION(BlueprintCallable)
 		FVector4 GetAxisValue()const { return m_AxisValuePerFrame; }
 
 protected:
-	//ƒƒbƒVƒ…ƒAƒZƒbƒg‚ÌƒZƒbƒgƒAƒbƒv
+	//ãƒ¡ãƒƒã‚·ãƒ¥ã‚¢ã‚»ãƒƒãƒˆã®ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—
 	virtual void MeshAssetSetup();
-	//ƒRƒŠƒWƒ‡ƒ“‚Ì‰Šúİ’è
+	//ã‚³ãƒªã‚¸ãƒ§ãƒ³ã®åˆæœŸè¨­å®š
 	virtual void InitializeCollision();
-	//ƒƒbƒVƒ…‚Ì‰Šúİ’è
+	//ãƒ¡ãƒƒã‚·ãƒ¥ã®åˆæœŸè¨­å®š
 	virtual void InitializeMesh();
 	UFUNCTION(Client, Reliable)
 		virtual void Client_InitializeMesh();
-	//ƒ‰ƒCƒg‚Ì‰Šúİ’è
+	//ãƒ©ã‚¤ãƒˆã®åˆæœŸè¨­å®š
 	virtual void InitializeLight();
 	UFUNCTION(Client, Reliable)
 		virtual void Client_InitializeLight();
 
-	//‰H‚Ì‰Á‘¬“xXVˆ—
+	//ç¾½ã®åŠ é€Ÿåº¦æ›´æ–°å‡¦ç†
 	virtual void UpdateWingAccle(const float& DeltaTime);
-	//‰ñ“]ˆ—
+	//å›è»¢å‡¦ç†
 	virtual void UpdateRotation(const float& DeltaTime);
-	//‘¬“xXVˆ—
+	//é€Ÿåº¦æ›´æ–°å‡¦ç†
 	virtual void UpdateSpeed(const float& DeltaTime);
-	//‰H‚Ì‰ñ“]XVˆ—
+	//ç¾½ã®å›è»¢æ›´æ–°å‡¦ç†
 	virtual void UpdateWingRotation(const float& DeltaTime);
-	//•—‚ÌƒGƒtƒFƒNƒgXVˆ—
+	//é¢¨ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ›´æ–°å‡¦ç†
 	virtual void UpdateWindEffect(const float& DeltaTime);
 
-	//is²‚Æ“ü—Í²‚ª‹tŒü‚«‚©Šm”F
+	//é€²è¡Œè»¸ã¨å…¥åŠ›è»¸ãŒé€†å‘ãã‹ç¢ºèª
 	bool IsReverseInput(const float& _movingAxis, const float& _axisValue)const { return (_movingAxis < 0.f && 0.f < _axisValue) || (_movingAxis > 0.f && 0.f > _axisValue); }
-	//‚“x‚ÌãŒÀ‚ğ‚ğ’´‚¦‚Ä‚¢‚é‚©Šm”F
+	//é«˜åº¦ã®ä¸Šé™ã‚’ã‚’è¶…ãˆã¦ã„ã‚‹ã‹ç¢ºèª
 	void UpdateAltitudeCheck(const float& DeltaTime);
 
-	//»šº‚ÌƒGƒtƒFƒNƒg‚Ì•\¦Ø‘Ö
+	//ç ‚åŸƒã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®è¡¨ç¤ºåˆ‡æ›¿
 	void UpdateCloudOfDustEffect();
 
 protected:
 	//-------------------------------------------------------------------------------------------------------
 	//BODY
 	UPROPERTY(EditAnywhere, Category = "Mesh|Body")
-		UStaticMesh* m_BodyMesh;													//‹@‘Ì‚ÌƒƒbƒVƒ…
+		UStaticMesh* m_BodyMesh;													//æ©Ÿä½“ã®ãƒ¡ãƒƒã‚·ãƒ¥
 	UPROPERTY(EditAnywhere, Category = "Mesh|Body")
 		UStaticMeshComponent* m_pBodyMesh;
-	//ƒhƒ[ƒ“‚ÌƒRƒŠƒWƒ‡ƒ“
+	//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®ã‚³ãƒªã‚¸ãƒ§ãƒ³
 	UPROPERTY(EditAnywhere, Category = "Collision")
 		USphereComponent* m_pDroneCollision;
-	//‰H
+	//ç¾½
 	UPROPERTY(EditAnywhere, EditFixedSize, Category = "Mesh|Wing")
-		TArray<UStaticMesh*> m_WingMesh;													//‰H‚ÌƒƒbƒVƒ…
-	TArray<TSharedPtr<FWing>>  m_pWings;												//‰H‚ğŠÇ—‚·‚é\‘¢‘Ì
-	//1•bŠÔ‚Ì‰H‚ÌÅ‘å‰ñ“]”
+		TArray<UStaticMesh*> m_WingMesh;													//ç¾½ã®ãƒ¡ãƒƒã‚·ãƒ¥
+	TArray<TSharedPtr<FWing>>  m_pWings;												//ç¾½ã‚’ç®¡ç†ã™ã‚‹æ§‹é€ ä½“
+	//1ç§’é–“ã®ç¾½ã®æœ€å¤§å›è»¢æ•°
 	UPROPERTY(EditAnywhere, Category = "Wing")
 		float m_RPSMax;
-	//‰H‚Ì‰Á‘¬“x
+	//ç¾½ã®åŠ é€Ÿåº¦
 	UPROPERTY(EditAnywhere, Category = "Wing")
 		float m_WingAccele;
-	//Å¬‚Ì‰Á‘¬“x‚Ì”{—¦
+	//æœ€å°ã®åŠ é€Ÿåº¦ã®å€ç‡
 	UPROPERTY(EditAnywhere, Category = "Wing")
 		float m_WingAccelMin;
-	//Å‘å‚Ì‰Á‘¬“x‚Ì”{—¦
+	//æœ€å¤§ã®åŠ é€Ÿåº¦ã®å€ç‡
 	UPROPERTY(EditAnywhere, Category = "Wing")
 		float m_WingAccelMax;
 
 	UPROPERTY(EditAnywhere, Category = "Physical")
-		float m_TiltLimit;									//ŒX‚«‚ÌãŒÀ
+		float m_TiltLimit;									//å‚¾ãã®ä¸Šé™
 	UPROPERTY(EditAnywhere, Category = "Physical")
-		float  m_Speed;									//ƒhƒ[ƒ“‚Ì•b‘¬(m)
+		float  m_Speed;									//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®ç§’é€Ÿ(m)
 
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
-		float m_SpeedPerSecondMax;						//ƒhƒ[ƒ“‚ÌÅ‘å•b‘¬(m)
+		float m_SpeedPerSecondMax;						//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®æœ€å¤§ç§’é€Ÿ(m)
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
-		FVector4 m_AxisAccel;						//Še²‚Ì‰Á‘¬“x
+		FVector4 m_AxisAccel;						//å„è»¸ã®åŠ é€Ÿåº¦
 	UPROPERTY(EditAnywhere, Category = "Physical")
-		float m_Acceleration;							//‰Á‘¬“x
+		float m_Acceleration;							//åŠ é€Ÿåº¦
 	UPROPERTY(EditAnywhere, Category = "Physical")
-		float m_Deceleration;							//Œ¸‘¬“x
+		float m_Deceleration;							//æ¸›é€Ÿåº¦
 	UPROPERTY(EditAnywhere, Category = "Physical")
-		float m_Turning;								//‹t“ü—Í‚µ‚½‚ÌŒ¸‘¬—¦
+		float m_Turning;								//é€†å…¥åŠ›ã—ãŸæ™‚ã®æ¸›é€Ÿç‡
 	UPROPERTY(EditAnywhere, Category = "Physical")
-		float m_Attenuation;							//Õ“Ë‚Ì‘¬“xŒ¸Š—¦
+		float m_Attenuation;							//è¡çªæ™‚ã®é€Ÿåº¦æ¸›è¡°ç‡
 	UPROPERTY(EditAnywhere, Category = "Physical")
-		float m_DroneWeight;							//ƒhƒ[ƒ“‚Ìd—Ê(kg)
+		float m_DroneWeight;							//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®é‡é‡(kg)
 	UPROPERTY(VisibleAnywhere, Category = "Physical")
-		FVector m_Velocity;								//‚±‚Ìƒhƒ[ƒ“‚É‚©‚©‚Á‚Ä‚¢‚é—Í‚Ì—Ê
+		FVector m_Velocity;								//ã“ã®ãƒ‰ãƒ­ãƒ¼ãƒ³ã«ã‹ã‹ã£ã¦ã„ã‚‹åŠ›ã®é‡
 	UPROPERTY(EditAnywhere, Category = "Sound")
-		USoundBase* m_pWingRotationSE;			//‰H‚Ì‰ñ“]SE
+		USoundBase* m_pWingRotationSE;			//ç¾½ã®å›è»¢SE
 
 	UPROPERTY(EditAnywhere, Category = "Drone")
-		float m_HeightMax;															//ƒhƒ[ƒ“‚ª”ò‚Ô‚±‚Æ‚Ì‚Å‚«‚é’n–Ê‚©‚ç‚Ì‚‚³‚Ì”ÍˆÍ
+		float m_HeightMax;															//ãƒ‰ãƒ­ãƒ¼ãƒ³ãŒé£›ã¶ã“ã¨ã®ã§ãã‚‹åœ°é¢ã‹ã‚‰ã®é«˜ã•ã®ç¯„å›²
 	UPROPERTY(EditAnywhere, Category = "Drone")
-		float m_HeightFromGround;												//’n–Ê‚©‚ç‚Ì‚‚³
+		float m_HeightFromGround;												//åœ°é¢ã‹ã‚‰ã®é«˜ã•
 	UPROPERTY(EditAnywhere, Category = "Drone")
-		float m_DistanceToSlope;													//Î–Ê‚Ü‚Å‚Ì‹——£
+		float m_DistanceToSlope;													//æ–œé¢ã¾ã§ã®è·é›¢
 
 	UPROPERTY(EditAnywhere, Category = "Drone", Replicated/*, ReplicatedUsing = OnRep_m_isControl*/)
-		bool m_isControl;								//‘€ì‰Â”\ƒtƒ‰ƒO
+		bool m_isControl;								//æ“ä½œå¯èƒ½ãƒ•ãƒ©ã‚°
 
 	UPROPERTY(EditAnywhere, Category = "Drone")
-		FVector4 m_AxisValuePerFrame;													//–ˆƒtƒŒ[ƒ€XV‚³‚ê‚é“ü—Í‚Ì’l
+		FVector4 m_AxisValuePerFrame;													//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°ã•ã‚Œã‚‹å…¥åŠ›ã®å€¤
 
-	FVector m_LocalAxis;																//ƒhƒ[ƒ“‚Ìƒ[ƒJƒ‹²
+	FVector m_LocalAxis;																//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®ãƒ­ãƒ¼ã‚«ãƒ«è»¸
 	UPROPERTY(EditAnywhere, Category = "Effect")
-		UNiagaraSystem* m_pWindEffect;										//•—‚ÌƒGƒtƒFƒNƒg
+		UNiagaraSystem* m_pWindEffect;										//é¢¨ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
 	UPROPERTY(EditAnywhere, Category = "Effect")
-		UNiagaraComponent* m_pWindEmitter;									//•—‚ÌƒGƒtƒFƒNƒg
+		UNiagaraComponent* m_pWindEmitter;									//é¢¨ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
 	UPROPERTY(EditAnywhere, Category = "Effect")
-		float m_WindRotationSpeed;											//•—‚ÌƒGƒtƒFƒNƒg‚Ì‰ñ“]‘¬“x
+		float m_WindRotationSpeed;											//é¢¨ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®å›è»¢é€Ÿåº¦
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		float m_WindOpacity;
 	UPROPERTY(EditAnywhere, Category = "Effect")
 		float m_WindNoise;
 
-	TArray<TArray<FString>> m_SaveVelocityText;			//“Ç‚İ‚ñ‚¾–ˆƒtƒŒ[ƒ€‚ÌˆÚ“®—Ê‚ğŠi”[‚·‚é”z—ñ
-	TArray<TArray<FString>> m_SaveQuatText;				//“Ç‚İ‚ñ‚¾–ˆƒtƒŒ[ƒ€‚Ì‰ñ“]—Ê‚ğŠi”[‚·‚é”z—ñ
+	TArray<TArray<FString>> m_SaveVelocityText;			//èª­ã¿è¾¼ã‚“ã æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã®ç§»å‹•é‡ã‚’æ ¼ç´ã™ã‚‹é…åˆ—
+	TArray<TArray<FString>> m_SaveQuatText;				//èª­ã¿è¾¼ã‚“ã æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã®å›è»¢é‡ã‚’æ ¼ç´ã™ã‚‹é…åˆ—
 	UPROPERTY(EditAnywhere, Category = "Drone")
 		int m_PlaybackFlame;
 	UPROPERTY(EditAnywhere, Category = "Drone")
 		int m_PlayableFramesNum;
 
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
-		FString m_SaveRecordFolderPath;									//ƒŒƒR[ƒh‚ğ‚½‚Ç‚éƒpƒX‚ğİ’è
+		FString m_SaveRecordFolderPath;									//ãƒ¬ã‚³ãƒ¼ãƒ‰ã‚’ãŸã©ã‚‹ãƒ‘ã‚¹ã‚’è¨­å®š
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
-		FString m_SaveStageFolderPath;									//ƒXƒe[ƒW‚ğ‚½‚Ç‚éƒpƒX‚ğİ’è
+		FString m_SaveStageFolderPath;									//ã‚¹ãƒ†ãƒ¼ã‚¸ã‚’ãŸã©ã‚‹ãƒ‘ã‚¹ã‚’è¨­å®š
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
-		TArray<FString> m_SaveVelocityLoadPath;							//ˆÚ“®—Ê‚ª‘‚«‚±‚Ü‚ê‚½ƒtƒ@ƒCƒ‹‚ğ‚½‚Ç‚éƒpƒX‚ğİ’è
+		TArray<FString> m_SaveVelocityLoadPath;							//ç§»å‹•é‡ãŒæ›¸ãã“ã¾ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãŸã©ã‚‹ãƒ‘ã‚¹ã‚’è¨­å®š
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
-		TArray<FString> m_SaveQuatLoadPath;								//‰ñ“]—Ê‚ª‘‚«‚±‚Ü‚ê‚½ƒtƒ@ƒCƒ‹‚ğ‚½‚Ç‚éƒpƒX‚ğİ’è
+		TArray<FString> m_SaveQuatLoadPath;								//å›è»¢é‡ãŒæ›¸ãã“ã¾ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãŸã©ã‚‹ãƒ‘ã‚¹ã‚’è¨­å®š
 
 	UPROPERTY(VisibleAnywhere, Category = "Ring")
-		bool m_bIsPassedRing;															//ƒŠƒ“ƒO‚ğ‚­‚®‚Á‚½‚©‚Ç‚¤‚©
+		bool m_bIsPassedRing;															//ãƒªãƒ³ã‚°ã‚’ããã£ãŸã‹ã©ã†ã‹
 	UPROPERTY(VisibleAnywhere, Category = "Ring")
-		float m_SincePassageCount;													//ƒŠƒ“ƒO‚ğ‚­‚®‚Á‚Ä‚©‚ç‚ÌŒo‰ßŠÔ
+		float m_SincePassageCount;													//ãƒªãƒ³ã‚°ã‚’ããã£ã¦ã‹ã‚‰ã®çµŒéæ™‚é–“
 	UPROPERTY(EditAnywhere, Category = "Ring")
-		float m_CountLimitTime;															//ƒŠƒ“ƒO‚ğ‚­‚®‚Á‚Ä‚©‚ç”‚¦‚éŠÔ‚ÌãŒÀ	
+		float m_CountLimitTime;															//ãƒªãƒ³ã‚°ã‚’ããã£ã¦ã‹ã‚‰æ•°ãˆã‚‹æ™‚é–“ã®ä¸Šé™	
 	UPROPERTY(EditAnywhere, Category = "Ring")
-		float m_OverAccelerator;														//ƒŠƒ“ƒO‚ğ‚­‚®‚Á‚½‚Æ‚«‚Ì‰Á‘¬”{—¦
+		float m_OverAccelerator;														//ãƒªãƒ³ã‚°ã‚’ããã£ãŸã¨ãã®åŠ é€Ÿå€ç‡
 
 	UPROPERTY(EditAnywhere, Category = "Light")
 		USpotLightComponent* m_pLeftSpotLight;
 	UPROPERTY(EditAnywhere, Category = "Light")
 		USpotLightComponent* m_pRightSpotLight;
 	UPROPERTY(EditAnywhere, Category = "Effect")
-		TMap<FString, UNiagaraSystem*> m_pDroneEffects;				//ƒhƒ[ƒ“‚ÌƒGƒtƒFƒNƒg‚ğŠi”[‚·‚é”z—ñ
+		TMap<FString, UNiagaraSystem*> m_pDroneEffects;				//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’æ ¼ç´ã™ã‚‹é…åˆ—
 	UPROPERTY(EditAnywhere, Category = "Effect")
-		UNiagaraComponent* m_pCloudOfDustEmitter;								//»‰Œ‚ÌƒGƒtƒFƒNƒg
+		UNiagaraComponent* m_pCloudOfDustEmitter;								//ç ‚ç…™ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
 	UPROPERTY(EditAnywhere, Category = "Effect")
-		float m_ShowEffectDistance;															//ƒGƒtƒFƒNƒg‚ğ•\¦‚·‚é‹——£
+		float m_ShowEffectDistance;															//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’è¡¨ç¤ºã™ã‚‹è·é›¢
 	UPROPERTY(EditAnywhere, Category = "Effect")
-		FString m_GroundMaterialName;														//ƒŒƒC‚ªƒqƒbƒg‚µ‚½’n–Ê‚Ìƒ}ƒeƒŠƒAƒ‹–¼
+		FString m_GroundMaterialName;														//ãƒ¬ã‚¤ãŒãƒ’ãƒƒãƒˆã—ãŸåœ°é¢ã®ãƒãƒ†ãƒªã‚¢ãƒ«å
 };

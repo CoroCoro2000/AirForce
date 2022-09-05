@@ -1,12 +1,12 @@
-//-------------------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼	:GameManager.h
-// ŠT—v				:ƒQ[ƒ€‚Ìis‚ğŠÇ—‚·‚éƒNƒ‰ƒX
-// ì¬“ú			:2021/07/07
-// ì¬Ò			:19CU0104 ’r“cãÄˆê˜Y
-// XV“à—e		:
+ï»¿//-------------------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å	:GameManager.h
+// æ¦‚è¦				:ã‚²ãƒ¼ãƒ ã®é€²è¡Œã‚’ç®¡ç†ã™ã‚‹ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2021/07/07
+// ä½œæˆè€…			:19CU0104 æ± ç”°ç¿”ä¸€éƒ
+// æ›´æ–°å†…å®¹		:
 //-------------------------------------------------------------------------------------
 
-//ƒCƒ“ƒNƒ‹[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #include "GameManager.h"
 #include "PlayerDrone.h"
 #include "Train.h"
@@ -17,7 +17,7 @@
 
 #include "GhostDrone.h"
 
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 AGameManager::AGameManager()
 	: m_CurrentScene(ECURRENTSCENE::SCENE_TITLE)
 	, m_NextScene()
@@ -43,14 +43,14 @@ AGameManager::AGameManager()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-//ƒQ[ƒ€ŠJn‚É1“x‚¾‚¯ˆ—
+//ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã«1åº¦ã ã‘å‡¦ç†
 void AGameManager::BeginPlay()
 {
 	Super::BeginPlay();
-	//ƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+	//ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿
 	FFileHelper::LoadFileToStringArray(m_RapTimeText, *(FPaths::ProjectDir() + m_SaveRecordFolderPath + m_SaveStageFolderPath + m_SaveRapTimeTextPath));
 
-	//	ƒhƒ[ƒ“‚ÌŒŸõ
+	//	ãƒ‰ãƒ­ãƒ¼ãƒ³ã®æ¤œç´¢
 	AActor* pDrone = CGameUtility::GetActorFromTag(this, TEXT("Drone"));
 	if (pDrone)
 	{
@@ -60,24 +60,24 @@ void AGameManager::BeginPlay()
 
 	if (m_CurrentScene == ECURRENTSCENE::SCENE_FIRST)
 	{
-		//Šù‚ÉƒvƒŒƒC‚µ‚½l‚ª‚¢‚½‚È‚ç
+		//æ—¢ã«ãƒ—ãƒ¬ã‚¤ã—ãŸäººãŒã„ãŸãªã‚‰
 		if (m_RapTimeText.Num() > 0)
 		{
-			//ƒS[ƒXƒgƒhƒ[ƒ“‚ğ¶¬
+			//ã‚´ãƒ¼ã‚¹ãƒˆãƒ‰ãƒ­ãƒ¼ãƒ³ã‚’ç”Ÿæˆ
 			FString ghostPath = TEXT("/Game/BP/GhostDroneBP.GhostDroneBP_C");
-			TSubclassOf<AActor> ghostSoftClass = TSoftClassPtr<AActor>(FSoftObjectPath(*ghostPath)).LoadSynchronous(); // ã‹L‚Åİ’è‚µ‚½ƒpƒX‚ÉŠY“–‚·‚éƒNƒ‰ƒX‚ğæ“¾
+			TSubclassOf<AActor> ghostSoftClass = TSoftClassPtr<AActor>(FSoftObjectPath(*ghostPath)).LoadSynchronous(); // ä¸Šè¨˜ã§è¨­å®šã—ãŸãƒ‘ã‚¹ã«è©²å½“ã™ã‚‹ã‚¯ãƒ©ã‚¹ã‚’å–å¾—
 			if (ghostSoftClass)
 			{
-				AActor* ghostDrone = GetWorld()->SpawnActor<AActor>(ghostSoftClass); // ƒXƒ|[ƒ“ˆ—
+				AActor* ghostDrone = GetWorld()->SpawnActor<AActor>(ghostSoftClass); // ã‚¹ãƒãƒ¼ãƒ³å‡¦ç†
 				m_GhostDrone = Cast<AGhostDrone>(ghostDrone);
 				if (m_GhostDrone)
 				{
 					m_GhostDrone->SetActorLocation(m_PlayerDrone->GetActorLocation());
 					m_GhostDrone->SetActorRotation(m_PlayerDrone->GetActorRotation());
 					m_GhostDrone->SetStagePath(m_SaveStageFolderPath);
-					//ƒŒ[ƒX‚ÌÀ•Wƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+					//ãƒ¬ãƒ¼ã‚¹ã®åº§æ¨™ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿
 					m_GhostDrone->LoadingRaceVectorFile();
-					//ƒŒ[ƒX‚ÌƒNƒI[ƒ^ƒjƒIƒ“ƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+					//ãƒ¬ãƒ¼ã‚¹ã®ã‚¯ã‚ªãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿
 					m_GhostDrone->LoadingRaceQuaternionFile();
 				}
 			}
@@ -85,7 +85,7 @@ void AGameManager::BeginPlay()
 	}
 }
 
-//–ˆƒtƒŒ[ƒ€ˆ—
+//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
 void AGameManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -97,11 +97,11 @@ void AGameManager::Tick(float DeltaTime)
 		break;
 	case ECURRENTSCENE::SCENE_FIRST:
 
-		//ƒJƒEƒ“ƒgƒ_ƒEƒ“ˆ—
+		//ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³å‡¦ç†
 		CountDown(DeltaTime);
 	
 		
-		//ƒŒ[ƒX‚ªn‚Ü‚Á‚Ä‚¢‚é‚È‚çƒ‰ƒbƒvƒ^ƒCƒ€‚ğŒv‘ª‚·‚é
+		//ãƒ¬ãƒ¼ã‚¹ãŒå§‹ã¾ã£ã¦ã„ã‚‹ãªã‚‰ãƒ©ãƒƒãƒ—ã‚¿ã‚¤ãƒ ã‚’è¨ˆæ¸¬ã™ã‚‹
 		if (m_isStart && !m_isGoal)
 		{
 			m_RapTime += DeltaTime;
@@ -113,18 +113,18 @@ void AGameManager::Tick(float DeltaTime)
 			m_RecordTime.UpdateTime(DeltaTime);
 		}
 		
-		//ƒŠƒUƒ‹ƒgˆ—
+		//ãƒªã‚¶ãƒ«ãƒˆå‡¦ç†
 		Result(DeltaTime);
 
 		if (m_PlayerDrone)
 		{
-			//ƒŒ[ƒX‚ªƒXƒ^[ƒg‚µ‚ÄAƒS[ƒ‹‚µ‚Ä‚¢‚È‚¢ŠÔ‘€ì‰Â”\‚É‚·‚é
+			//ãƒ¬ãƒ¼ã‚¹ãŒã‚¹ã‚¿ãƒ¼ãƒˆã—ã¦ã€ã‚´ãƒ¼ãƒ«ã—ã¦ã„ãªã„é–“æ“ä½œå¯èƒ½ã«ã™ã‚‹
 			m_PlayerDrone->SetisControl((m_isStart && !m_isGoal));
 		}
 
 		if (m_GhostDrone)
 		{
-			//ƒŒ[ƒX‚ªƒXƒ^[ƒg‚µ‚Ä‚¢‚éŠÔ‘€ì‰Â”\‚É‚·‚é
+			//ãƒ¬ãƒ¼ã‚¹ãŒã‚¹ã‚¿ãƒ¼ãƒˆã—ã¦ã„ã‚‹é–“æ“ä½œå¯èƒ½ã«ã™ã‚‹
 			m_GhostDrone->SetisControl((m_isStart));
 		}
 
@@ -136,27 +136,27 @@ void AGameManager::Tick(float DeltaTime)
 	}
 }
 
-//“ü—Í‰Â”\‚É‚·‚é
+//å…¥åŠ›å¯èƒ½ã«ã™ã‚‹
 void AGameManager::EnableResultInput()
 {
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (PlayerController)
 	{
 		EnableInput(PlayerController);
-		//“ü—Íƒ}ƒbƒsƒ“ƒO
+		//å…¥åŠ›ãƒãƒƒãƒ”ãƒ³ã‚°
 		InputComponent->BindAction(TEXT("InputUp"), EInputEvent::IE_Pressed, this, &AGameManager::NextSceneUp);
 		InputComponent->BindAction(TEXT("InputDown"), EInputEvent::IE_Pressed, this, &AGameManager::NextSceneDown);
 	}
 }
 
-//ƒJƒEƒ“ƒgƒ_ƒEƒ“ˆ—
+//ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³å‡¦ç†
 void AGameManager::CountDown(float DeltaTime)
 {
-	//ƒXƒ^[ƒg‚µ‚½‚È‚çˆ—‚µ‚È‚¢
+	//ã‚¹ã‚¿ãƒ¼ãƒˆã—ãŸãªã‚‰å‡¦ç†ã—ãªã„
 	if (m_isStart) { return; }
 	if (!m_isCountDownEnable) { return; }
 
-	FString m_prevCountDownText = m_CountDownText;	//1ƒtƒŒ[ƒ€‘O‚ÌƒJƒEƒ“ƒgƒ_ƒEƒ“ƒeƒLƒXƒg
+	FString m_prevCountDownText = m_CountDownText;	//1ãƒ•ãƒ¬ãƒ¼ãƒ å‰ã®ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³ãƒ†ã‚­ã‚¹ãƒˆ
 
 	m_CountDownTime -= DeltaTime;
 	m_CountDownText = FString::FromInt(int(m_CountDownTime) + 1);
@@ -172,7 +172,7 @@ void AGameManager::CountDown(float DeltaTime)
 		m_CountDownText = "";
 		m_isStart = true;
 
-		//ƒŒ[ƒXŠJn‚Æ“¯‚É“dÔ‚ÌˆÚ“®‚ğŠJn‚·‚é
+		//ãƒ¬ãƒ¼ã‚¹é–‹å§‹ã¨åŒæ™‚ã«é›»è»Šã®ç§»å‹•ã‚’é–‹å§‹ã™ã‚‹
 		if (ATrain* pTrain = CGameUtility::GetActorFromTag<ATrain>(this, TEXT("Train")))
 		{
 			pTrain->SetIsMove(true);
@@ -180,24 +180,24 @@ void AGameManager::CountDown(float DeltaTime)
 	}
 }
 
-//ƒŠƒUƒ‹ƒgˆ—
+//ãƒªã‚¶ãƒ«ãƒˆå‡¦ç†
 void AGameManager::Result(float DeltaTime)
 {
-	//ƒS[ƒ‹‚µ‚Ä‚¢‚È‚¢‚È‚çˆ—‚µ‚È‚¢
+	//ã‚´ãƒ¼ãƒ«ã—ã¦ã„ãªã„ãªã‚‰å‡¦ç†ã—ãªã„
 	if (!m_isGoal) { return; }
 
-	//ƒXƒRƒA‚ğ‘‚«‚İ‚µ‚½‚©Šm”F
+	//ã‚¹ã‚³ã‚¢ã‚’æ›¸ãè¾¼ã¿ã—ãŸã‹ç¢ºèª
 	if (!m_isScoreWrite)
 	{
-		//ƒ‰ƒbƒvƒ^ƒCƒ€‚ğƒeƒLƒXƒgƒtƒ@ƒCƒ‹‚É‹L“ü
+		//ãƒ©ãƒƒãƒ—ã‚¿ã‚¤ãƒ ã‚’ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã«è¨˜å…¥
 		m_RapTime = CGameUtility::SetDecimalTruncation(m_RapTime, 3);
 		FString rapText = GetRapMinuteText().ToString() + ":" + GetRapSecondText().ToString() + "." + GetRapMiliSecondText().ToString();
 		m_RapTimeText.Add(rapText);
 
-		//ƒ‰ƒbƒvƒ^ƒCƒ€•À‚Ñ‘Ö‚¦
+		//ãƒ©ãƒƒãƒ—ã‚¿ã‚¤ãƒ ä¸¦ã³æ›¿ãˆ
 		RapTimeSort();
 
-		//¡‰ñ‚Ìƒ^ƒCƒ€‚Ìƒ‰ƒ“ƒLƒ“ƒOŠm”F
+		//ä»Šå›ã®ã‚¿ã‚¤ãƒ ã®ãƒ©ãƒ³ã‚­ãƒ³ã‚°ç¢ºèª
 		for (int i = m_RapTimeText.Num() - 1; i >= 0; i--)
 		{
 			if (rapText == m_RapTimeText[i])
@@ -209,13 +209,13 @@ void AGameManager::Result(float DeltaTime)
 
 		APlayerDrone* player = Cast<APlayerDrone>(m_PlayerDrone);
 		
-		//¡‰ñ‚Ìƒ^ƒCƒ€‚ª1ˆÊ‚¾‚Á‚½‚ç
+		//ä»Šå›ã®ã‚¿ã‚¤ãƒ ãŒ1ä½ã ã£ãŸã‚‰
 		if (m_PlayerRank == 0)
 		{
 			m_isNewRecord = true;
 		}
 
-		//ƒ‰ƒ“ƒLƒ“ƒOŠO‚ÌƒXƒRƒA‚ğíœ
+		//ãƒ©ãƒ³ã‚­ãƒ³ã‚°å¤–ã®ã‚¹ã‚³ã‚¢ã‚’å‰Šé™¤
 		if (m_RapTimeText.Num() > m_RankingDisplayNum)
 		{
 			for (int i = m_RankingDisplayNum; i < m_RapTimeText.Num(); i++)
@@ -224,10 +224,10 @@ void AGameManager::Result(float DeltaTime)
 			}
 		}
 
-		//ƒeƒLƒXƒgƒtƒ@ƒCƒ‹‘‚«‚İ
+		//ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«æ›¸ãè¾¼ã¿
 		FFileHelper::SaveStringArrayToFile(m_RapTimeText, *(FPaths::ProjectDir() + m_SaveRecordFolderPath + m_SaveStageFolderPath + m_SaveRapTimeTextPath));
 
-		//‘‚«‚İƒtƒ‰ƒO‚ğON‚É‚·‚é
+		//æ›¸ãè¾¼ã¿ãƒ•ãƒ©ã‚°ã‚’ONã«ã™ã‚‹
 		m_isScoreWrite = true;
 	}
 }
@@ -266,12 +266,12 @@ void AGameManager::NextSceneDown()
 #endif // WITH_EDITOR
 }
 
-//ƒ‰ƒbƒvƒ^ƒCƒ€•À‚Ñ‘Ö‚¦
+//ãƒ©ãƒƒãƒ—ã‚¿ã‚¤ãƒ ä¸¦ã³æ›¿ãˆ
 void AGameManager::RapTimeSort()
 {
-	FString SortRapTime;	//ƒ\[ƒg—pƒ‰ƒbƒvƒ^ƒCƒ€
+	FString SortRapTime;	//ã‚½ãƒ¼ãƒˆç”¨ãƒ©ãƒƒãƒ—ã‚¿ã‚¤ãƒ 
 
-	//ƒoƒuƒ‹ƒ\[ƒg‚Å•À‚Ñ‘Ö‚¦
+	//ãƒãƒ–ãƒ«ã‚½ãƒ¼ãƒˆã§ä¸¦ã³æ›¿ãˆ
 	for (int i = 0; i < m_RapTimeText.Num()-1; i++)
 	{
 		for (int j = i+1; j < m_RapTimeText.Num(); j++)

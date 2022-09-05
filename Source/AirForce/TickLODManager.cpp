@@ -1,9 +1,9 @@
-//------------------------------------------------------------------------------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:TickLODManager.cpp
-// ŠT—v				:ƒAƒNƒ^[‚ÌTickLODƒŒƒxƒ‹‚ğŠÇ—‚·‚éƒ}ƒl[ƒWƒƒ[ƒNƒ‰ƒX
-// ì¬“ú			:2022/03/09
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e			:2021/03/09		:ƒvƒŒƒCƒ„[‚©‚ç—£‚ê‚½ˆÊ’u‚ÌƒAƒNƒ^[‚ÌFPS‚ğ‰º‚°‚éˆ—‚Ì’Ç‰Á
+ï»¿//------------------------------------------------------------------------------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:TickLODManager.cpp
+// æ¦‚è¦				:ã‚¢ã‚¯ã‚¿ãƒ¼ã®TickLODãƒ¬ãƒ™ãƒ«ã‚’ç®¡ç†ã™ã‚‹ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2022/03/09
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹			:2021/03/09		:ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‹ã‚‰é›¢ã‚ŒãŸä½ç½®ã®ã‚¢ã‚¯ã‚¿ãƒ¼ã®FPSã‚’ä¸‹ã’ã‚‹å‡¦ç†ã®è¿½åŠ 
 //------------------------------------------------------------------------------------------------------------------------------------------------
 
 #include "TickLODManager.h"
@@ -21,10 +21,10 @@ ATickLODManager::ATickLODManager()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//1•b‚É1‰ñTickXV‚ğs‚¤
+	//1ç§’ã«1å›Tickæ›´æ–°ã‚’è¡Œã†
 	PrimaryActorTick.TickInterval = 1.f;
 
-	//ƒAƒNƒ^[‚ÌTickLODİ’è
+	//ã‚¢ã‚¯ã‚¿ãƒ¼ã®TickLODè¨­å®š
 	m_TickLODSettings.Add(FTickLODSetting());
 }
 
@@ -33,10 +33,10 @@ void ATickLODManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	//LODƒAƒNƒ^[‚Ì‰Šú‰»
+	//LODã‚¢ã‚¯ã‚¿ãƒ¼ã®åˆæœŸåŒ–
 	InitializeActorArray();
 
-	//ƒvƒŒƒCƒ„[‚ÌƒJƒƒ‰‚ğæ“¾
+	//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚«ãƒ¡ãƒ©ã‚’å–å¾—
 	m_pPlayerCamera = UGameplayStatics::GetPlayerCameraManager(this, 0);
 }
 
@@ -45,11 +45,11 @@ void ATickLODManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//LOD‚ğXV
+	//LODã‚’æ›´æ–°
 	UpdateLOD(DeltaTime);
 }
 
-//LOD‚ÌƒAƒNƒ^[”z—ñ‚Ì‰Šú‰»
+//LODã®ã‚¢ã‚¯ã‚¿ãƒ¼é…åˆ—ã®åˆæœŸåŒ–
 void ATickLODManager::InitializeActorArray()
 {
 	TArray<AActor*> OutActors;
@@ -59,10 +59,10 @@ void ATickLODManager::InitializeActorArray()
 	{
 		if (pActor)
 		{
-			//ƒŒƒxƒ‹ã‚ÌATickLODActor‚ğŒp³‚µ‚Ä‚¢‚éƒAƒNƒ^[‚ğ‘S‚Ä”z—ñ‚ÉŠi”[
+			//ãƒ¬ãƒ™ãƒ«ä¸Šã®ATickLODActorã‚’ç¶™æ‰¿ã—ã¦ã„ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼ã‚’å…¨ã¦é…åˆ—ã«æ ¼ç´
 			if (ATickLODActor* pTickLODActor = Cast<ATickLODActor>(pActor))
 			{
-				//ƒAƒNƒ^[‚É”Ô†‚ğİ’è
+				//ã‚¢ã‚¯ã‚¿ãƒ¼ã«ç•ªå·ã‚’è¨­å®š
 				pTickLODActor->SetNumber(m_pTickLODActors.Num());
 				m_pTickLODActors.Add(pTickLODActor);
 			}
@@ -70,7 +70,7 @@ void ATickLODManager::InitializeActorArray()
 	}
 }
 
-//LOD‚ÌXV
+//LODã®æ›´æ–°
 void ATickLODManager::UpdateLOD(const float& DeltaTime)
 {
 	if (!m_pPlayerCamera) { return; }
@@ -82,10 +82,10 @@ void ATickLODManager::UpdateLOD(const float& DeltaTime)
 	{
 		if (pTickLODActor)
 		{
-			//ƒJƒƒ‰‚ÆƒAƒNƒ^[‚Ì‹——£
+			//ã‚«ãƒ¡ãƒ©ã¨ã‚¢ã‚¯ã‚¿ãƒ¼ã®è·é›¢
 			const float Distance = FVector::Dist(CameraLocation, pTickLODActor->GetActorLocation());
 
-			//LODİ’è‚Ì‹——£‚ª‰“‚¢‡‚ÉŠm”F‚µAƒAƒNƒ^[‚ÌˆÊ’u‚É‚ ‚Á‚½LODİ’è‚ğŠ„‚è“–‚Ä‚é
+			//LODè¨­å®šã®è·é›¢ãŒé ã„é †ã«ç¢ºèªã—ã€ã‚¢ã‚¯ã‚¿ãƒ¼ã®ä½ç½®ã«ã‚ã£ãŸLODè¨­å®šã‚’å‰²ã‚Šå½“ã¦ã‚‹
 			for (const FTickLODSetting& TickLODSetting : m_TickLODSettings)
 			{
 				if (TickLODSetting.Distance <= Distance)
@@ -99,14 +99,14 @@ void ATickLODManager::UpdateLOD(const float& DeltaTime)
 	}
 }
 
-//”z’u‚ÉÀs‚³‚ê‚éŠÖ”
+//é…ç½®æ™‚ã«å®Ÿè¡Œã•ã‚Œã‚‹é–¢æ•°
 void ATickLODManager::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
 	if (m_TickLODSettings.Num() <= 1) { return; }
 
-	//LODİ’è‚Ì”z—ñ‚ğ‹——£‚ª‰“‚¢‡‚Éƒ\[ƒg‚·‚é
+	//LODè¨­å®šã®é…åˆ—ã‚’è·é›¢ãŒé ã„é †ã«ã‚½ãƒ¼ãƒˆã™ã‚‹
 	int32 i = 0, j = 0;
 	int32 Max = m_TickLODSettings.Num();
 	FTickLODSetting tmpTickLODSetting;
@@ -116,7 +116,7 @@ void ATickLODManager::OnConstruction(const FTransform& Transform)
 		{
 			if (m_TickLODSettings.IsValidIndex(i) && m_TickLODSettings.IsValidIndex(j))
 			{
-				//‹——£‚ğ”äŠr‚µA•À‚Ñ‘Ö‚¦‚é
+				//è·é›¢ã‚’æ¯”è¼ƒã—ã€ä¸¦ã³æ›¿ãˆã‚‹
 				if (m_TickLODSettings[i].Distance < m_TickLODSettings[j].Distance)
 				{
 					tmpTickLODSetting = m_TickLODSettings[i];

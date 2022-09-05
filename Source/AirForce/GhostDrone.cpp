@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "GhostDrone.h"
@@ -6,12 +6,12 @@
 #include "Components/SphereComponent.h"
 #include "Misc/FileHelper.h"
 
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 AGhostDrone::AGhostDrone()
 	: m_LoadVelocity(FVector::ZeroVector)
 	, m_LoadQuat(FQuat::Identity)
 {
-	//©g‚ÌTick()‚ğ–ˆƒtƒŒ[ƒ€ŒÄ‚Ño‚·‚©‚Ç‚¤‚©
+	//è‡ªèº«ã®Tick()ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‘¼ã³å‡ºã™ã‹ã©ã†ã‹
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = m_pDroneCollision;
@@ -21,24 +21,24 @@ AGhostDrone::AGhostDrone()
 		m_pBodyMesh->SetupAttachment(m_pDroneCollision);
 	}
 }
-//ƒQ[ƒ€ŠJn‚É1“x‚¾‚¯ˆ—
+//ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã«1åº¦ã ã‘å‡¦ç†
 void AGhostDrone::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-//–ˆƒtƒŒ[ƒ€ˆ—
+//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
 void AGhostDrone::Tick(float DeltaTime)
 {
 	if (m_isControl)
 	{
-			//‰H‚Ì‰ñ“]XVˆ—
+			//ç¾½ã®å›è»¢æ›´æ–°å‡¦ç†
 			UpdateWingRotation(DeltaTime);
 
-			//ƒhƒ[ƒ“‚Ì‰ñ“]ˆ—
+			//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®å›è»¢å‡¦ç†
 			UpdateRotation(DeltaTime);
 
-			//ˆÚ“®ˆ—
+			//ç§»å‹•å‡¦ç†
 			UpdateSpeed(DeltaTime);
 
 			m_PlaybackFlame++;
@@ -50,10 +50,10 @@ void AGhostDrone::Tick(float DeltaTime)
 	}
 }
 
-//ƒhƒ[ƒ“‚Ì‰ñ“]ˆ—
+//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®å›è»¢å‡¦ç†
 void AGhostDrone::UpdateRotation(const float& DeltaTime)
 {
-	//“Ç‚İ‚ñ‚¾ˆÚ“®—Ê‚ÌƒeƒLƒXƒgƒtƒ@ƒCƒ‹‚ğfloat‚É•ÏŠ·‚·‚é
+	//èª­ã¿è¾¼ã‚“ã ç§»å‹•é‡ã®ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’floatã«å¤‰æ›ã™ã‚‹
 	bool IsValidTextArray = true;
 	bool IsValidAxisTextArray = true;
 
@@ -77,12 +77,12 @@ void AGhostDrone::UpdateRotation(const float& DeltaTime)
 	m_pBodyMesh->SetWorldRotation(m_LoadQuat * MOVE_CORRECTION);
 }
 
-//ˆÚ“®ˆ—
+//ç§»å‹•å‡¦ç†
 void AGhostDrone::UpdateSpeed(const float& DeltaTime)
 {
 	if (!m_pBodyMesh) { return; }
 
-	//“Ç‚İ‚ñ‚¾ˆÚ“®—Ê‚ÌƒeƒLƒXƒgƒtƒ@ƒCƒ‹‚ğfloat‚É•ÏŠ·‚·‚é
+	//èª­ã¿è¾¼ã‚“ã ç§»å‹•é‡ã®ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’floatã«å¤‰æ›ã™ã‚‹
 	int index = 0;
 	for (const TArray<FString> SaveVelocityText : m_SaveVelocityText)
 	{
@@ -95,23 +95,23 @@ void AGhostDrone::UpdateSpeed(const float& DeltaTime)
 	AddActorWorldOffset(m_LoadVelocity * MOVE_CORRECTION);
 }
 
-//ƒŒ[ƒX‚ÌÀ•Wƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+//ãƒ¬ãƒ¼ã‚¹ã®åº§æ¨™ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿
 void AGhostDrone::LoadingRaceVectorFile()
 {
-	//ˆÚ“®²‚Ì”‚¾‚¯”z—ñ‚ğ—pˆÓ‚·‚é
+	//ç§»å‹•è»¸ã®æ•°ã ã‘é…åˆ—ã‚’ç”¨æ„ã™ã‚‹
 	m_SaveVelocityText.Empty();
 	m_SaveVelocityText.SetNum(VECTOR3_COMPONENT_NUM);
 
-	//İ’è‚µ‚½ƒpƒX‚ª²‚Æ“¯‚¶”İ’è‚³‚ê‚Ä‚¢‚ê‚Îƒ[ƒh‚·‚é
+	//è¨­å®šã—ãŸãƒ‘ã‚¹ãŒè»¸ã¨åŒã˜æ•°è¨­å®šã•ã‚Œã¦ã„ã‚Œã°ãƒ­ãƒ¼ãƒ‰ã™ã‚‹
 	if (m_SaveVelocityText.Num() == m_SaveVelocityLoadPath.Num())
 	{
-		//ƒtƒ@ƒCƒ‹‚ğŠJ‚¢‚Ä•Û‘¶‚³‚ê‚Ä‚¢‚é’l‚ğ“Ç‚İ‚Ş
+		//ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã„ã¦ä¿å­˜ã•ã‚Œã¦ã„ã‚‹å€¤ã‚’èª­ã¿è¾¼ã‚€
 		for (int index = 0; index < (int)m_SaveVelocityText.Num(); ++index)
 		{
 			FString LoadFilePath = FPaths::ProjectDir() + m_SaveRecordFolderPath + m_SaveStageFolderPath + m_SaveTypeFolderPath + m_SaveVelocityLoadPath[index];
 			FFileHelper::LoadFileToStringArray(m_SaveVelocityText[index], *LoadFilePath);
 
-			//Ä¶‰Â”\‚ÈƒtƒŒ[ƒ€”‚ğæ“¾
+			//å†ç”Ÿå¯èƒ½ãªãƒ•ãƒ¬ãƒ¼ãƒ æ•°ã‚’å–å¾—
 			int PlayableFrame = m_SaveVelocityText[index].Num() - 1;
 			if (index != 0)
 			{
@@ -128,23 +128,23 @@ void AGhostDrone::LoadingRaceVectorFile()
 	}
 }
 
-//ƒŒ[ƒX‚ÌƒNƒI[ƒ^ƒjƒIƒ“ƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+//ãƒ¬ãƒ¼ã‚¹ã®ã‚¯ã‚ªãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿
 void AGhostDrone::LoadingRaceQuaternionFile()
 {
-	//ƒNƒH[ƒ^ƒjƒIƒ“‚Ì²‚Ì”‚¾‚¯”z—ñ‚ğ—pˆÓ‚·‚é
+	//ã‚¯ã‚©ãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³ã®è»¸ã®æ•°ã ã‘é…åˆ—ã‚’ç”¨æ„ã™ã‚‹
 	m_SaveQuatText.Empty();
 	m_SaveQuatText.SetNum(VECTOR4_COMPONENT_NUM);
 
-	//İ’è‚µ‚½ƒpƒX‚ª²‚Æ“¯‚¶”İ’è‚³‚ê‚Ä‚¢‚ê‚Îƒ[ƒh‚·‚é
+	//è¨­å®šã—ãŸãƒ‘ã‚¹ãŒè»¸ã¨åŒã˜æ•°è¨­å®šã•ã‚Œã¦ã„ã‚Œã°ãƒ­ãƒ¼ãƒ‰ã™ã‚‹
 	if (m_SaveQuatText.Num() == m_SaveQuatLoadPath.Num())
 	{
-		//ƒtƒ@ƒCƒ‹‚ğŠJ‚¢‚Ä•Û‘¶‚³‚ê‚Ä‚¢‚é’l‚ğ“Ç‚İ‚Ş
+		//ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã„ã¦ä¿å­˜ã•ã‚Œã¦ã„ã‚‹å€¤ã‚’èª­ã¿è¾¼ã‚€
 		for (int index = 0; index < (int)m_SaveQuatText.Num(); ++index)
 		{
 			FString LoadFilePath = FPaths::ProjectDir() + m_SaveRecordFolderPath + m_SaveStageFolderPath + m_SaveTypeFolderPath + m_SaveQuatLoadPath[index];
 			FFileHelper::LoadFileToStringArray(m_SaveQuatText[index], *LoadFilePath);
 
-			//Ä¶‰Â”\‚ÈƒtƒŒ[ƒ€”‚ğæ“¾
+			//å†ç”Ÿå¯èƒ½ãªãƒ•ãƒ¬ãƒ¼ãƒ æ•°ã‚’å–å¾—
 			int PlayableFrame = m_SaveQuatText[index].Num() - 1;
 			if (PlayableFrame < m_PlayableFramesNum)
 			{

@@ -1,15 +1,15 @@
-//-------------------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼	:GameManager.h
-// ŠT—v			:ƒQ[ƒ€‚Ìis‚ğŠÇ—‚·‚éƒNƒ‰ƒX
-// ì¬“ú		:2021/07/07
-// ì¬Ò		:19CU0104 ’r“cãÄˆê˜Y
-// XV“à—e		:
+ï»¿//-------------------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å	:GameManager.h
+// æ¦‚è¦			:ã‚²ãƒ¼ãƒ ã®é€²è¡Œã‚’ç®¡ç†ã™ã‚‹ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥		:2021/07/07
+// ä½œæˆè€…		:19CU0104 æ± ç”°ç¿”ä¸€éƒ
+// æ›´æ–°å†…å®¹		:
 //-------------------------------------------------------------------------------------
 
-//ƒCƒ“ƒNƒ‹[ƒhƒK[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ã‚¬ãƒ¼ãƒ‰
 #pragma once
 
-//ƒCƒ“ƒNƒ‹[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/KismetTextLibrary.h"
@@ -20,7 +20,7 @@ class USoundBase;
 class ADroneBase;
 class AGhostDrone;
 
-//ƒV[ƒ“ŠÇ——ñ‹“
+//ã‚·ãƒ¼ãƒ³ç®¡ç†åˆ—æŒ™
 UENUM(BlueprintType)
 namespace ECURRENTSCENE
 {
@@ -32,7 +32,7 @@ namespace ECURRENTSCENE
 	};
 }
 
-//ƒV[ƒ“ŠÇ——ñ‹“
+//ã‚·ãƒ¼ãƒ³ç®¡ç†åˆ—æŒ™
 UENUM(BlueprintType)
 namespace ENEXTSCENE
 {
@@ -87,176 +87,176 @@ class AIRFORCE_API AGameManager : public AActor
 	GENERATED_BODY()
 	
 public:	
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	AGameManager();
 
 protected:
-	//ƒQ[ƒ€ŠJn‚É1“x‚¾‚¯ˆ—
+	//ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã«1åº¦ã ã‘å‡¦ç†
 	virtual void BeginPlay() override;
 
 public:	
-	//–ˆƒtƒŒ[ƒ€ˆ—
+	//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
 	virtual void Tick(float DeltaTime) override;
 
-	//“ü—Í‰Â”\‚É‚·‚é
+	//å…¥åŠ›å¯èƒ½ã«ã™ã‚‹
 	UFUNCTION(BlueprintCallable)
 	void EnableResultInput();
 
-	//ƒJƒEƒ“ƒgƒ_ƒEƒ“ˆ—
+	//ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³å‡¦ç†
 	void CountDown(float DeltaTime);
 
-	//ƒŠƒUƒ‹ƒgˆ—
+	//ãƒªã‚¶ãƒ«ãƒˆå‡¦ç†
 	void Result(float DeltaTime);
 
 	void NextSceneUp();
 	void NextSceneDown();
 
-	//ƒJƒEƒ“ƒgƒ_ƒEƒ“‚Ìİ’è
+	//ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³ã®è¨­å®š
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		void SetIsCountDownEnable(bool _isCountDown) { m_isCountDownEnable = _isCountDown; }
-	//ƒ|[ƒY‚Ìİ’è
+	//ãƒãƒ¼ã‚ºã®è¨­å®š
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		void SetIsPause() { m_isPause = !m_isPause; }
-	//ƒV[ƒ“‘JˆÚƒtƒ‰ƒO‚Ìİ’è
+	//ã‚·ãƒ¼ãƒ³é·ç§»ãƒ•ãƒ©ã‚°ã®è¨­å®š
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		void SetisSceneTransition(const bool b) { m_isSceneTransition = b; }
 	void SetLeftStickInputValue(const float n) { m_LeftStickInputValue = n; }
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetIsPause() const {return m_isPause; }
-	//ƒŒ[ƒXŠJnƒtƒ‰ƒO‚Ìæ“¾
+	//ãƒ¬ãƒ¼ã‚¹é–‹å§‹ãƒ•ãƒ©ã‚°ã®å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetIsStart()const { return m_isStart; }
-	//ƒS[ƒ‹ƒtƒ‰ƒO‚Ìæ“¾
+	//ã‚´ãƒ¼ãƒ«ãƒ•ãƒ©ã‚°ã®å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		void SetIsGoal(const bool& _isGoal) { m_isGoal = _isGoal; }
-	//ƒS[ƒ‹ƒtƒ‰ƒO‚Ìæ“¾
+	//ã‚´ãƒ¼ãƒ«ãƒ•ãƒ©ã‚°ã®å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetIsGoal()const { return m_isGoal; }
-	//ƒXƒRƒA‘‚«‚İƒtƒ‰ƒO‚Ìæ“¾
+	//ã‚¹ã‚³ã‚¢æ›¸ãè¾¼ã¿ãƒ•ãƒ©ã‚°ã®å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetIsScoreWrite()const { return m_isScoreWrite; }
-	//ƒV[ƒ“‘JˆÚƒtƒ‰ƒO‚Ìæ“¾
+	//ã‚·ãƒ¼ãƒ³é·ç§»ãƒ•ãƒ©ã‚°ã®å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetisSceneTransition()const { return m_isSceneTransition; }
-	//ƒŒ[ƒX‘O‚Ì€”õ‚ªŠ®—¹‚µ‚½‚©İ’è
+	//ãƒ¬ãƒ¼ã‚¹å‰ã®æº–å‚™ãŒå®Œäº†ã—ãŸã‹è¨­å®š
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		void SetIsAllSetup(const bool& _isAllSetup) { m_bAllSetup = _isAllSetup; }
-	//ƒŒ[ƒX‘O‚Ì€”õ‚ªŠ®—¹‚µ‚½‚©Šm”F‚·‚éƒtƒ‰ƒO
+	//ãƒ¬ãƒ¼ã‚¹å‰ã®æº–å‚™ãŒå®Œäº†ã—ãŸã‹ç¢ºèªã™ã‚‹ãƒ•ãƒ©ã‚°
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetIsAllSetup()const { return m_bAllSetup; }
-	//ƒŒ[ƒX‘O‚ÌƒJƒEƒ“ƒgƒ_ƒEƒ“ŠÔ‚Ìæ“¾
+	//ãƒ¬ãƒ¼ã‚¹å‰ã®ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³æ™‚é–“ã®å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		float GetCountDownTime()const { return m_CountDownTime; }
-	//ƒŒ[ƒX‘O‚ÌƒJƒEƒ“ƒgƒ_ƒEƒ“ƒeƒLƒXƒg‚Ìæ“¾
+	//ãƒ¬ãƒ¼ã‚¹å‰ã®ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		FString GetCountDownText()const { return m_CountDownText; }
 
-	//ƒ‰ƒbƒvƒ^ƒCƒ€‚Ìæ“¾
+	//ãƒ©ãƒƒãƒ—ã‚¿ã‚¤ãƒ ã®å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int GetRapTime()const { return m_RapTime; }
-	//ƒ‰ƒbƒvƒ^ƒCƒ€‚Ì•ªæ“¾
+	//ãƒ©ãƒƒãƒ—ã‚¿ã‚¤ãƒ ã®åˆ†å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		FText GetRapMinuteText()const { return UKismetTextLibrary::Conv_IntToText((int)m_RapTime / 60, false, true, 1); }
-	//ƒ‰ƒbƒvƒ^ƒCƒ€‚Ì•bæ“¾
+	//ãƒ©ãƒƒãƒ—ã‚¿ã‚¤ãƒ ã®ç§’å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		FText GetRapSecondText()const { return UKismetTextLibrary::Conv_IntToText((int)m_RapTime % 60, false, true, 2); }
-	//ƒ‰ƒbƒvƒ^ƒCƒ€‚Ìƒ~ƒŠ•bæ“¾
+	//ãƒ©ãƒƒãƒ—ã‚¿ã‚¤ãƒ ã®ãƒŸãƒªç§’å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		FText GetRapMiliSecondText()const { return UKismetTextLibrary::Conv_IntToText((m_RapTime - (int)m_RapTime) * 1000, false, true, 3); }
 
-	//ƒ‰ƒbƒvƒ^ƒCƒ€‚Ì•ªæ“¾
+	//ãƒ©ãƒƒãƒ—ã‚¿ã‚¤ãƒ ã®åˆ†å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int GetRapMinute()const { return (int)m_RapTime / 60; }
-	//ƒ‰ƒbƒvƒ^ƒCƒ€‚Ì•bæ“¾m_isGoal
+	//ãƒ©ãƒƒãƒ—ã‚¿ã‚¤ãƒ ã®ç§’å–å¾—m_isGoal
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int GetRapSecond()const { return (int)m_RapTime % 60; }
-	//ƒ‰ƒbƒvƒ^ƒCƒ€‚Ìƒ~ƒŠ•bæ“¾
+	//ãƒ©ãƒƒãƒ—ã‚¿ã‚¤ãƒ ã®ãƒŸãƒªç§’å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int GetRapMiliSecond()const { return (m_RapTime - (int)m_RapTime) * 1000; }
 
-	//ƒŒ[ƒXŒã‚ÌƒV[ƒ“‘JˆÚæ“¾
+	//ãƒ¬ãƒ¼ã‚¹å¾Œã®ã‚·ãƒ¼ãƒ³é·ç§»å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		TEnumAsByte<ENEXTSCENE::Type> GetNextScene()const { return m_NextScene.GetNextScene(); }
 
-	//ƒ‰ƒbƒvƒ^ƒCƒ€ƒeƒLƒXƒgæ“¾
+	//ãƒ©ãƒƒãƒ—ã‚¿ã‚¤ãƒ ãƒ†ã‚­ã‚¹ãƒˆå–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Result")
 		FText GetRapTimeRanking(int n) { return n < m_RapTimeText.Num() ? FText::FromString(m_RapTimeText[n]) : FText::FromString(m_RapDefaultText); }
 
-	//ƒvƒŒƒCƒ„[ƒhƒ[ƒ“î•ñæ“¾
+	//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ‰ãƒ­ãƒ¼ãƒ³æƒ…å ±å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Drone")
 		ADroneBase* GetPlayerDrone() {return m_PlayerDrone;}
 
-	//¡‰ñ‚Ìƒ^ƒCƒ€‚ÌƒvƒŒƒCƒ„[‚Ì‡ˆÊæ“¾
+	//ä»Šå›ã®ã‚¿ã‚¤ãƒ ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®é †ä½å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Result")
 		int GetPlayerRank() { return m_PlayerRank; }
-	//ƒ‰ƒbƒvƒ^ƒCƒ€•À‚Ñ‘Ö‚¦
+	//ãƒ©ãƒƒãƒ—ã‚¿ã‚¤ãƒ ä¸¦ã³æ›¿ãˆ
 	UFUNCTION(BlueprintCallable, Category = "Result")
 		void RapTimeSort();
 
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		/**
-		 * @brief ƒŒƒR[ƒhæ“¾
+		 * @brief ãƒ¬ã‚³ãƒ¼ãƒ‰å–å¾—
 		 * @return 
 		*/
 		FRecordTime GetRecordTime()const { return m_RecordTime; }
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Flag")
-		TEnumAsByte<ECURRENTSCENE::Type> m_CurrentScene;				//Œ»İ‚ÌƒV[ƒ“ƒXƒe[ƒg
+		TEnumAsByte<ECURRENTSCENE::Type> m_CurrentScene;				//ç¾åœ¨ã®ã‚·ãƒ¼ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆ
 	UPROPERTY(EditAnywhere, Category = "Flag")
-		FNEXTSCENE m_NextScene;																//Ÿ‚ÌƒV[ƒ“ƒXƒe[ƒg
+		FNEXTSCENE m_NextScene;																//æ¬¡ã®ã‚·ãƒ¼ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆ
 
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
-		bool m_isCountDownEnable;								//ƒŒ[ƒXŠJnƒtƒ‰ƒO
+		bool m_isCountDownEnable;								//ãƒ¬ãƒ¼ã‚¹é–‹å§‹ãƒ•ãƒ©ã‚°
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
-		bool m_isPause;							//ƒ|[ƒYƒtƒ‰ƒO
+		bool m_isPause;							//ãƒãƒ¼ã‚ºãƒ•ãƒ©ã‚°
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
-		bool m_isStart;								//ƒŒ[ƒXŠJnƒtƒ‰ƒO
+		bool m_isStart;								//ãƒ¬ãƒ¼ã‚¹é–‹å§‹ãƒ•ãƒ©ã‚°
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
-		bool m_isGoal;								//ƒS[ƒ‹ƒtƒ‰ƒO
+		bool m_isGoal;								//ã‚´ãƒ¼ãƒ«ãƒ•ãƒ©ã‚°
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
-		bool m_isSceneTransition;					//ƒŒ[ƒXŒã‚ÌƒV[ƒ“‘JˆÚƒtƒ‰ƒO
+		bool m_isSceneTransition;					//ãƒ¬ãƒ¼ã‚¹å¾Œã®ã‚·ãƒ¼ãƒ³é·ç§»ãƒ•ãƒ©ã‚°
 
 	UPROPERTY(EditAnywhere, Category = "Stage")
-		bool m_bAllSetup;								//ƒŒ[ƒX‚Ì–‘Oİ’è‚ª‚·‚×‚ÄŠ®—¹‚µ‚½‚©Šm”F‚·‚éƒtƒ‰ƒO
+		bool m_bAllSetup;								//ãƒ¬ãƒ¼ã‚¹ã®äº‹å‰è¨­å®šãŒã™ã¹ã¦å®Œäº†ã—ãŸã‹ç¢ºèªã™ã‚‹ãƒ•ãƒ©ã‚°
 	UPROPERTY(EditAnywhere, Category = "Stage")
-		float m_CountDownTime;						//ƒŒ[ƒX‘O‚ÌƒJƒEƒ“ƒgƒ_ƒEƒ“
+		float m_CountDownTime;						//ãƒ¬ãƒ¼ã‚¹å‰ã®ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³
 	UPROPERTY(VisibleAnywhere, Category = "Stage")
-		FString m_CountDownText;					//ƒŒ[ƒX‘O‚ÌƒJƒEƒ“ƒgƒ_ƒEƒ“•\¦ƒeƒLƒXƒg
+		FString m_CountDownText;					//ãƒ¬ãƒ¼ã‚¹å‰ã®ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³è¡¨ç¤ºãƒ†ã‚­ã‚¹ãƒˆ
 	UPROPERTY(VisibleAnywhere, Category = "Stage")
-		float m_RapTime;							//ƒS[ƒ‹‚·‚é‚Ü‚Å‚ÌŠÔ
+		float m_RapTime;							//ã‚´ãƒ¼ãƒ«ã™ã‚‹ã¾ã§ã®æ™‚é–“
 
 	UPROPERTY(VisibleAnywhere, Category = "Stage")
-		FRecordTime m_RecordTime;					//ƒ^ƒCƒ€
+		FRecordTime m_RecordTime;					//ã‚¿ã‚¤ãƒ 
 
 	UPROPERTY(VisibleAnywhere, Category = "Result")
-		TArray<FString> m_RapTimeText;			//ƒ‰ƒbƒvƒeƒLƒXƒg
+		TArray<FString> m_RapTimeText;			//ãƒ©ãƒƒãƒ—ãƒ†ã‚­ã‚¹ãƒˆ
 	UPROPERTY(EditAnywhere, Category = "Result")
-		FString m_RapDefaultText;				//ƒ‰ƒbƒvƒfƒtƒHƒ‹ƒgƒeƒLƒXƒg
+		FString m_RapDefaultText;				//ãƒ©ãƒƒãƒ—ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ†ã‚­ã‚¹ãƒˆ
 
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
-		FString m_SaveRecordFolderPath;					//ƒŒƒR[ƒh‚ğ‚½‚Ç‚éƒpƒX‚ğİ’è
+		FString m_SaveRecordFolderPath;					//ãƒ¬ã‚³ãƒ¼ãƒ‰ã‚’ãŸã©ã‚‹ãƒ‘ã‚¹ã‚’è¨­å®š
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
-		FString m_SaveStageFolderPath;					//ƒXƒe[ƒW‚ğ‚½‚Ç‚éƒpƒX‚ğİ’è
+		FString m_SaveStageFolderPath;					//ã‚¹ãƒ†ãƒ¼ã‚¸ã‚’ãŸã©ã‚‹ãƒ‘ã‚¹ã‚’è¨­å®š
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
-		FString m_SaveRapTimeTextPath;					//ƒ‰ƒbƒvƒeƒLƒXƒgƒpƒX‚ğ‚½‚Ç‚éƒpƒX‚ğİ’è
+		FString m_SaveRapTimeTextPath;					//ãƒ©ãƒƒãƒ—ãƒ†ã‚­ã‚¹ãƒˆãƒ‘ã‚¹ã‚’ãŸã©ã‚‹ãƒ‘ã‚¹ã‚’è¨­å®š
 
 	UPROPERTY(EditAnywhere, Category = "Result")
-		int m_PlayerRank;						//ƒvƒŒƒCƒ„[‚Ì‡ˆÊ
+		int m_PlayerRank;						//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®é †ä½
 	UPROPERTY(EditAnywhere, Category = "Result")
-		int m_RankingDisplayNum;					//ƒ‰ƒ“ƒLƒ“ƒO‚Éc‚·”
+		int m_RankingDisplayNum;					//ãƒ©ãƒ³ã‚­ãƒ³ã‚°ã«æ®‹ã™æ•°
 	UPROPERTY(VisibleAnywhere, Category = "Result")
-		bool m_isScoreWrite;						//ƒXƒRƒA‘‚«‚İƒtƒ‰ƒO
+		bool m_isScoreWrite;						//ã‚¹ã‚³ã‚¢æ›¸ãè¾¼ã¿ãƒ•ãƒ©ã‚°
 	UPROPERTY(VisibleAnywhere, Category = "Result")
-		bool m_isNewRecord;							//Å‘¬ƒ^ƒCƒ€XVƒtƒ‰ƒO
+		bool m_isNewRecord;							//æœ€é€Ÿã‚¿ã‚¤ãƒ æ›´æ–°ãƒ•ãƒ©ã‚°
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
-		ADroneBase* m_PlayerDrone;						//ƒvƒŒƒCƒ„[ƒhƒ[ƒ“
+		ADroneBase* m_PlayerDrone;						//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ‰ãƒ­ãƒ¼ãƒ³
 	UPROPERTY(VisibleAnywhere, Category = "Drone")
-		AGhostDrone* m_GhostDrone;						//ƒS[ƒXƒgƒhƒ[ƒ“
+		AGhostDrone* m_GhostDrone;						//ã‚´ãƒ¼ã‚¹ãƒˆãƒ‰ãƒ­ãƒ¼ãƒ³
 	UPROPERTY(EditAnywhere, Category = "Sound")
-		USoundBase* m_CountDownSE;						//ƒJƒEƒ“ƒgƒ_ƒEƒ“SE
+		USoundBase* m_CountDownSE;						//ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³SE
 	UPROPERTY(EditAnywhere, Category = "Sound")
-		USoundBase* m_StartSE;						//ƒXƒ^[ƒgSE
+		USoundBase* m_StartSE;						//ã‚¹ã‚¿ãƒ¼ãƒˆSE
 
 	float m_LeftStickInputValue;
 };

@@ -1,12 +1,12 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "NetworkPlayerController.generated.h"
 
 /**
- * @brief ƒƒOƒCƒ“Š®—¹‚ÌƒfƒŠƒQ[ƒg
- * @param  Success ƒƒOƒCƒ“‚É¬Œ÷‚µ‚½‚©
+ * @brief ãƒ­ã‚°ã‚¤ãƒ³å®Œäº†æ™‚ã®ãƒ‡ãƒªã‚²ãƒ¼ãƒˆ
+ * @param  Success ãƒ­ã‚°ã‚¤ãƒ³ã«æˆåŠŸã—ãŸã‹
 */
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLoginCompleted, bool, Success);
 
@@ -16,27 +16,27 @@ class AIRFORCE_API ANetworkPlayerController : public APlayerController
 	GENERATED_BODY()
 	
 public:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	ANetworkPlayerController();
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Racing-D|Network", meta = (WorldContext = WorldContextObject))
 	/**
-	 * @brief ƒvƒŒƒCƒ„[ƒRƒ“ƒgƒ[ƒ‰[æ“¾
+	 * @brief ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼å–å¾—
 	 * @return 
 	*/
 	static ANetworkPlayerController* GetNetworkPlayerController(const UObject* WorldContextObject);
 
 	UFUNCTION(BlueprintCallable, Category = "Racing-D|Network")
 	/**
-	 * @brief EOS‚ÉƒƒOƒCƒ“
-	 * @param _loginCompleted ƒƒOƒCƒ“Œã‚ÌƒfƒŠƒQ[ƒg
+	 * @brief EOSã«ãƒ­ã‚°ã‚¤ãƒ³
+	 * @param _loginCompleted ãƒ­ã‚°ã‚¤ãƒ³å¾Œã®ãƒ‡ãƒªã‚²ãƒ¼ãƒˆ
 	*/
 	void LoginEOS(const FLoginCompleted& _loginCompleted);
 
 private:
 	/**
-	 * @brief ƒƒOƒCƒ“Œã‚Ì“à•”ˆ—
+	 * @brief ãƒ­ã‚°ã‚¤ãƒ³å¾Œã®å†…éƒ¨å‡¦ç†
 	 * @param _localUserNum 
 	 * @param _bWasSuccessful 
 	 * @param _userId 
@@ -47,7 +47,7 @@ private:
 private:
 	UPROPERTY()
 	/**
-	 * @brief ƒƒOƒCƒ“¬Œ÷‚ÌƒfƒŠƒQ[ƒg
+	 * @brief ãƒ­ã‚°ã‚¤ãƒ³æˆåŠŸæ™‚ã®ãƒ‡ãƒªã‚²ãƒ¼ãƒˆ
 	*/
 	FLoginCompleted OnLoginCompleted;
 };

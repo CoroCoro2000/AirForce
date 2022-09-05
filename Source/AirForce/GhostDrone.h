@@ -1,9 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
-//ƒCƒ“ƒNƒ‹[ƒhƒK[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ã‚¬ãƒ¼ãƒ‰
 #pragma once
 
-//ƒCƒ“ƒNƒ‹[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #include "CoreMinimal.h"
 #include "DroneBase.h"
 #include "GhostDrone.generated.h"
@@ -17,27 +17,27 @@ class AIRFORCE_API AGhostDrone : public ADroneBase
 	GENERATED_BODY()
 	
 public:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	AGhostDrone();
 protected:
-	//ƒQ[ƒ€ŠJn‚É1“x‚¾‚¯ˆ—
+	//ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã«1åº¦ã ã‘å‡¦ç†
 	virtual void BeginPlay() override;
 
 public:
-	//–ˆƒtƒŒ[ƒ€ˆ—
+	//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
 	virtual void Tick(float DeltaTime) override;
 
-	//ƒŒ[ƒX‚ÌÀ•Wƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+	//ãƒ¬ãƒ¼ã‚¹ã®åº§æ¨™ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿
 	void LoadingRaceVectorFile();
 
-	//ƒŒ[ƒX‚ÌƒNƒI[ƒ^ƒjƒIƒ“ƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+	//ãƒ¬ãƒ¼ã‚¹ã®ã‚¯ã‚ªãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿
 	void LoadingRaceQuaternionFile();
 
 private:
-	//‰ñ“]ˆ—
+	//å›è»¢å‡¦ç†
 	void UpdateRotation(const float& DeltaTime);
 
-	//ˆÚ“®ˆ—
+	//ç§»å‹•å‡¦ç†
 	void UpdateSpeed(const float& DeltaTime)override;
 
 private:

@@ -1,8 +1,8 @@
-//------------------------------------------------------------------------------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:TickLODActor.h
-// ŠT—v				:1ƒtƒŒ[ƒ€“–‚½‚è‚ÌTickXV‰ñ”‚ğ•ÏX‚Å‚«‚éƒAƒNƒ^[‚Ìƒx[ƒXƒNƒ‰ƒX
-// ì¬“ú			:2022/03/09
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
+ï»¿//------------------------------------------------------------------------------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:TickLODActor.h
+// æ¦‚è¦				:1ãƒ•ãƒ¬ãƒ¼ãƒ å½“ãŸã‚Šã®Tickæ›´æ–°å›æ•°ã‚’å¤‰æ›´ã§ãã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼ã®ãƒ™ãƒ¼ã‚¹ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2022/03/09
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
 //------------------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
@@ -29,23 +29,23 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	//FPS‚ğİ’è
+	//FPSã‚’è¨­å®š
 	void SetTickFPS(const float& NewTickFPS) { m_TickFPS = NewTickFPS; }
-	//FPS‚ğæ“¾
+	//FPSã‚’å–å¾—
 	UFUNCTION(BlueprintCallable)
 		float GetTickFPS()const { return m_TickFPS; }
-	//LODƒAƒNƒ^[‚Ì”Ô†‚ğİ’è
+	//LODã‚¢ã‚¯ã‚¿ãƒ¼ã®ç•ªå·ã‚’è¨­å®š
 	void SetNumber(const uint32& Number) { m_ActorNumber = Number; }
 
 protected:
-	//ˆ—‰Â”\‚ÈƒtƒŒ[ƒ€‚©”»’è
+	//å‡¦ç†å¯èƒ½ãªãƒ•ãƒ¬ãƒ¼ãƒ ã‹åˆ¤å®š
 	bool IsProcessableFrame(const float& currentTime)const;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "TickLOD")
 		float m_TickFPS;																					//FPS
 	UPROPERTY(VisibleAnywhere, Category = "TickLOD")
-		float m_LastTickTime;																				//ÅŒã‚ÉTick‚ªÀs‚³‚ê‚½
+		float m_LastTickTime;																				//æœ€å¾Œã«TickãŒå®Ÿè¡Œã•ã‚ŒãŸæ™‚åˆ»
 	UPROPERTY(VisibleAnywhere, Category = "TickLOD")
-		uint32 m_ActorNumber;																				//”Ô†
+		uint32 m_ActorNumber;																				//ç•ªå·
 };

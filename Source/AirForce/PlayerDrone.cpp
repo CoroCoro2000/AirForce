@@ -1,16 +1,16 @@
+ï»¿//------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å	:PlayerDrone.cpp
+// æ¦‚è¦				:ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ãƒ‰ãƒ­ãƒ¼ãƒ³ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2021/04/19
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹		:
 //------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼	:PlayerDrone.cpp
-// ŠT—v				:ƒvƒŒƒCƒ„[‚Ìƒhƒ[ƒ“ƒNƒ‰ƒX
-// ì¬“ú			:2021/04/19
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e		:
-//------------------------------------------------------------------------
-// XVÒ		:19CU0104 ’r“cãÄˆê˜Y
-// XV“à—e		:2021/06/07 ƒhƒ[ƒ“‚Ì‹OÕƒGƒtƒFƒNƒg‚ğ’Ç‰Á
-//				:2021/06/16 ƒhƒ[ƒ“‚Ì‰H‚Ì‰ñ“]ˆ—‚Ì’Ç‰Á
+// æ›´æ–°è€…		:19CU0104 æ± ç”°ç¿”ä¸€éƒ
+// æ›´æ–°å†…å®¹		:2021/06/07 ãƒ‰ãƒ­ãƒ¼ãƒ³ã®è»Œè·¡ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’è¿½åŠ 
+//				:2021/06/16 ãƒ‰ãƒ­ãƒ¼ãƒ³ã®ç¾½ã®å›è»¢å‡¦ç†ã®è¿½åŠ 
 //-----------------------------------------------------------------------
 
-//ƒCƒ“ƒNƒ‹[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #include "PlayerDrone.h"
 #include "GameUtility.h"
 #include "Components/InputComponent.h"
@@ -35,7 +35,7 @@
 
 //#define DEBUG_CAMERA
 
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 APlayerDrone::APlayerDrone()
 	: m_pSpringArm(NULL)
 	, m_pCamera(NULL)
@@ -54,7 +54,7 @@ APlayerDrone::APlayerDrone()
 	, m_CameraRotationYaw(0.f)
 	, m_PlayerId(-1)
 {
-	//©g‚ÌTick()‚ğ–ˆƒtƒŒ[ƒ€ŒÄ‚Ño‚·‚©‚Ç‚¤‚©
+	//è‡ªèº«ã®Tick()ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‘¼ã³å‡ºã™ã‹ã©ã†ã‹
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = m_pDroneCollision;
@@ -64,55 +64,55 @@ APlayerDrone::APlayerDrone()
 		m_pBodyMesh->AttachToComponent(m_pDroneCollision,FAttachmentTransformRules::KeepRelativeTransform);
 	}
 
-	//ƒXƒvƒŠƒ“ƒOƒA[ƒ€¶¬
+	//ã‚¹ãƒ—ãƒªãƒ³ã‚°ã‚¢ãƒ¼ãƒ ç”Ÿæˆ
 	m_pSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	if (m_pSpringArm && m_pBodyMesh)
 	{
 		m_pSpringArm->AttachToComponent(m_pDroneCollision, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 
-	//ƒJƒƒ‰¶¬
+	//ã‚«ãƒ¡ãƒ©ç”Ÿæˆ
 	m_pCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("m_pCamera"));
 	if (m_pCamera && m_pSpringArm)
 	{
 		m_pCamera->AttachToComponent(m_pSpringArm, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 
-	//ƒJƒƒ‰‚Ì‰Šúİ’è
+	//ã‚«ãƒ¡ãƒ©ã®åˆæœŸè¨­å®š
 	InitializeCamera();
 
-	//ƒfƒtƒHƒ‹ƒgƒvƒŒƒCƒ„[‚Æ‚µ‚Äİ’è
+	//ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ã—ã¦è¨­å®š
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
-	//ƒvƒŒƒCƒ„[ƒ^ƒO‚ğ’Ç‰Á
+	//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¿ã‚°ã‚’è¿½åŠ 
 	Tags.Add(TEXT("Player"));
 
-	//“¯Šú‘ÎÛƒtƒ‰ƒO
+	//åŒæœŸå¯¾è±¡ãƒ•ãƒ©ã‚°
 	bReplicates = true;
-	//Š—LŒ ‚ğ‚ÂƒNƒ‰ƒCƒAƒ“ƒg‚Ì‚İ‚É“¯Šú‚·‚é
+	//æ‰€æœ‰æ¨©ã‚’æŒã¤ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã®ã¿ã«åŒæœŸã™ã‚‹
 	bOnlyRelevantToOwner = false;
 }
 
-//ƒQ[ƒ€ŠJn‚É1“x‚¾‚¯ˆ—
+//ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã«1åº¦ã ã‘å‡¦ç†
 void APlayerDrone::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//ƒGƒtƒFƒNƒg‚Ì‰Šúİ’è
+	//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®åˆæœŸè¨­å®š
 	InitializeEmitter();
 
-	//²‚Ì”‚¾‚¯”z—ñ‚ğ—pˆÓ‚·‚é
+	//è»¸ã®æ•°ã ã‘é…åˆ—ã‚’ç”¨æ„ã™ã‚‹
 	m_SaveQuatText.Empty();
 	m_SaveVelocityText.Empty();
 	m_SaveQuatText.SetNum(4);
 	m_SaveVelocityText.SetNum(3);
 
-	//‰ŠúˆÊ’u‚ÆƒƒbƒVƒ…‚Ì‰ñ“]‚ğ•Û‘¶
+	//åˆæœŸä½ç½®ã¨ãƒ¡ãƒƒã‚·ãƒ¥ã®å›è»¢ã‚’ä¿å­˜
 	m_StartLocation = this->GetActorLocation();
 	m_StartQuaternion = m_pBodyMesh->GetComponentQuat();
 }
 
-//ƒŒƒvƒŠƒP[ƒg‚ğ“o˜^
+//ãƒ¬ãƒ—ãƒªã‚±ãƒ¼ãƒˆã‚’ç™»éŒ²
 void APlayerDrone::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -120,83 +120,83 @@ void APlayerDrone::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
 }
 
-//–ˆƒtƒŒ[ƒ€ˆ—
+//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
 void APlayerDrone::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//“ü—Í—Ê‚ğƒtƒŒ[ƒ€‚É“¯Šú
+	//å…¥åŠ›é‡ã‚’ãƒ•ãƒ¬ãƒ¼ãƒ ã«åŒæœŸ
 	m_AxisValuePerFrame = m_AxisValue;
 	
-	//‰H‚ÌXVˆ—
+	//ç¾½ã®æ›´æ–°å‡¦ç†
 	UpdateWingAccle(DeltaTime);
 
-	//‰H‚ÌXVˆ—
+	//ç¾½ã®æ›´æ–°å‡¦ç†
 	UpdateWingRotation(DeltaTime);
 
-	//“ü—Í‚Ì‰Á‘¬“xXVˆ—
+	//å…¥åŠ›ã®åŠ é€Ÿåº¦æ›´æ–°å‡¦ç†
 	UpdateAxisAcceleration(DeltaTime);
 
-	//‰ñ“]ˆ—
+	//å›è»¢å‡¦ç†
 	UpdateRotation(DeltaTime);
 
-	//‚“xƒ`ƒFƒbƒN
+	//é«˜åº¦ãƒã‚§ãƒƒã‚¯
 	UpdateAltitudeCheck(DeltaTime);
 
-	//ˆÚ“®ˆ—
+	//ç§»å‹•å‡¦ç†
 	UpdateSpeed(DeltaTime);
 
-	//ƒŠƒvƒŒƒCXVˆ—
+	//ãƒªãƒ—ãƒ¬ã‚¤æ›´æ–°å‡¦ç†
 	UpdateReplay(DeltaTime);
 
-	//ƒJƒƒ‰‚ÌXVˆ—
+	//ã‚«ãƒ¡ãƒ©ã®æ›´æ–°å‡¦ç†
 	UpdateCamera(DeltaTime);
 
-	//ƒJƒƒ‰‚Æ‚ÌÕ•Á•¨‚ÌƒRƒŠƒWƒ‡ƒ“”»’è
+	//ã‚«ãƒ¡ãƒ©ã¨ã®é®è”½ç‰©ã®ã‚³ãƒªã‚¸ãƒ§ãƒ³åˆ¤å®š
 	UpdateCameraCollsion(DeltaTime);
 
-	//•—‚ÌƒGƒtƒFƒNƒgXVˆ—
+	//é¢¨ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ›´æ–°å‡¦ç†
 	UpdateWindEffect(DeltaTime);
 
-	//»‰Œ‚ÌƒGƒtƒFƒNƒg‚ÌXVˆ—
+	//ç ‚ç…™ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®æ›´æ–°å‡¦ç†
 	UpdateCloudOfDustEffect();
 }
 
-//ƒGƒtƒFƒNƒg‚Ì‰Šúİ’è
+//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®åˆæœŸè¨­å®š
 void APlayerDrone::InitializeEmitter()
 {
 	if (!m_pCamera) { return; }
 
-	//•—‚ÌƒGƒtƒFƒNƒg¶¬
+	//é¢¨ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆç”Ÿæˆ
 	m_pWindEmitter = UNiagaraFunctionLibrary::SpawnSystemAttached(m_pWindEffect, m_pCamera, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, false);
 }
 
-//ƒJƒƒ‰‚Ì‰Šúİ’è
+//ã‚«ãƒ¡ãƒ©ã®åˆæœŸè¨­å®š
 void APlayerDrone::InitializeCamera()
 {
-	//NULLƒ`ƒFƒbƒN
+	//NULLãƒã‚§ãƒƒã‚¯
 	if (!m_pCamera || !m_pSpringArm) { return; }
 	
-	//ƒXƒvƒŠƒ“ƒOƒA[ƒ€‚Ì’·‚³‚ğİ’è
+	//ã‚¹ãƒ—ãƒªãƒ³ã‚°ã‚¢ãƒ¼ãƒ ã®é•·ã•ã‚’è¨­å®š
 	m_pSpringArm->TargetArmLength = m_CameraTargetLength;
-	//ƒXƒvƒŠƒ“ƒOƒA[ƒ€‚Ì‰ñ“]ƒ‰ƒO‚ğ“K—p‚·‚é
+	//ã‚¹ãƒ—ãƒªãƒ³ã‚°ã‚¢ãƒ¼ãƒ ã®å›è»¢ãƒ©ã‚°ã‚’é©ç”¨ã™ã‚‹
 	m_pSpringArm->bEnableCameraRotationLag = true;
 	m_pSpringArm->CameraRotationLagSpeed = 10.f;
 
-	//ƒJƒƒ‰‚ÌƒRƒŠƒWƒ‡ƒ“ƒeƒXƒg‚ğs‚í‚È‚¢‚æ‚¤‚É‚·‚é
+	//ã‚«ãƒ¡ãƒ©ã®ã‚³ãƒªã‚¸ãƒ§ãƒ³ãƒ†ã‚¹ãƒˆã‚’è¡Œã‚ãªã„ã‚ˆã†ã«ã™ã‚‹
 	m_pSpringArm->bDoCollisionTest = false;
 	m_pSpringArm->TargetOffset.Z = 20.f;
-	//ƒJƒƒ‰‚Ì‹–ìŠp‚Ìİ’è
+	//ã‚«ãƒ¡ãƒ©ã®è¦–é‡è§’ã®è¨­å®š
 	m_pCamera->SetFieldOfView(m_FieldOfView);
 }
 
-//‰E‚ÌƒXƒeƒBƒbƒN“ü—Í‚©‚ç‰H‚Ì‰Á‘¬“x‚É•ÏŠ·‚·‚éˆ—
+//å³ã®ã‚¹ãƒ†ã‚£ãƒƒã‚¯å…¥åŠ›ã‹ã‚‰ç¾½ã®åŠ é€Ÿåº¦ã«å¤‰æ›ã™ã‚‹å‡¦ç†
 float APlayerDrone::RightInputValueToWingAcceleration(const int _arrayIndex)
 {
-	//‰H‚Ì‰Á‘¬“x
+	//ç¾½ã®åŠ é€Ÿåº¦
 	float wingsAccel[EWING::NUM] = { 0.f,0.f,0.f,0.f };
 
-	//ƒXƒƒbƒgƒ‹‚Ì“ü—Í‚ª‚ ‚é
+	//ã‚¹ãƒ­ãƒƒãƒˆãƒ«ã®å…¥åŠ›ãŒã‚ã‚‹æ™‚
 	if (m_AxisValuePerFrame.Z != 0.f)
 	{
 		for (float& wingAccel : wingsAccel)
@@ -205,10 +205,10 @@ float APlayerDrone::RightInputValueToWingAcceleration(const int _arrayIndex)
 		}
 	}
 
-	//ƒ‰ƒ_[‚Ì“ü—Í‚ª‚ ‚é
+	//ãƒ©ãƒ€ãƒ¼ã®å…¥åŠ›ãŒã‚ã‚‹æ™‚
 	if (m_AxisValuePerFrame.W != 0.f)
 	{
-		//‰E“ü—Í‚ª‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©
+		//å³å…¥åŠ›ãŒã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹
 		const bool isRight = (m_AxisValuePerFrame.W > 0.f ? true : false);
 		wingsAccel[EWING::LEFT_FORWARD] += FMath::Abs(m_AxisValuePerFrame.W) * (isRight ? -1.f : 1.f);
 		wingsAccel[EWING::LEFT_BACKWARD] += FMath::Abs(m_AxisValuePerFrame.W) * (isRight ? 1.f : -1.f);
@@ -218,25 +218,25 @@ float APlayerDrone::RightInputValueToWingAcceleration(const int _arrayIndex)
 	return wingsAccel[_arrayIndex];
 }
 
-//¶‚ÌƒXƒeƒBƒbƒN“ü—Í‚©‚ç‰H‚Ì‰Á‘¬“x‚É•ÏŠ·‚·‚éˆ—
+//å·¦ã®ã‚¹ãƒ†ã‚£ãƒƒã‚¯å…¥åŠ›ã‹ã‚‰ç¾½ã®åŠ é€Ÿåº¦ã«å¤‰æ›ã™ã‚‹å‡¦ç†
 float APlayerDrone::LeftInputValueToWingAcceleration(const int _arrayIndex)
 {
 	float wingAccel[EWING::NUM] = { 0.f,0.f,0.f,0.f };
 
-	//ƒGƒŒƒx[ƒ^[‚Ì“ü—Í‚ª‚ ‚é
+	//ã‚¨ãƒ¬ãƒ™ãƒ¼ã‚¿ãƒ¼ã®å…¥åŠ›ãŒã‚ã‚‹æ™‚
 	if (m_AxisValuePerFrame.Y != 0.f)
 	{
-		//‘O“ü—Í‚ª‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©
+		//å‰å…¥åŠ›ãŒã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹
 		const bool isForward = (m_AxisValuePerFrame.Y > 0.f ? true : false);
 		const float axisAbsValue = FMath::Abs(m_AxisValuePerFrame.Y);
 		wingAccel[(isForward ? EWING::LEFT_BACKWARD : EWING::LEFT_FORWARD)] += axisAbsValue;
 		wingAccel[(isForward ? EWING::RIGHT_BACKWARD : EWING::RIGHT_FORWARD)] += axisAbsValue;
 	}
 
-	//ƒGƒ‹ƒƒ“‚Ì“ü—Í‚ª‚ ‚é
+	//ã‚¨ãƒ«ãƒ­ãƒ³ã®å…¥åŠ›ãŒã‚ã‚‹æ™‚
 	if (m_AxisValuePerFrame.X != 0.f)
 	{
-		//‰E“ü—Í‚ª‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©
+		//å³å…¥åŠ›ãŒã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹
 		const bool isRight = (m_AxisValuePerFrame.X > 0.f ? true : false);
 		const float axisAbsValue = FMath::Abs(m_AxisValuePerFrame.X);
 		wingAccel[(isRight ? EWING::LEFT_FORWARD : EWING::RIGHT_FORWARD)] += axisAbsValue;
@@ -245,14 +245,14 @@ float APlayerDrone::LeftInputValueToWingAcceleration(const int _arrayIndex)
 	return wingAccel[_arrayIndex];
 }
 
-//‰H‚Ì‰Á‘¬“xXVˆ—
+//ç¾½ã®åŠ é€Ÿåº¦æ›´æ–°å‡¦ç†
 void APlayerDrone::UpdateWingAccle(const float& DeltaTime)
 {
-	//ŠeƒXƒeƒBƒbƒN‚Ì“ü—Í‚Ì’l‚ğ‚ğæ“¾
+	//å„ã‚¹ãƒ†ã‚£ãƒƒã‚¯ã®å…¥åŠ›ã®å€¤ã‚’ã‚’å–å¾—
 	FVector2D RightAxis = FVector2D(m_AxisValuePerFrame.W, m_AxisValuePerFrame.Z);
 	FVector2D LeftAxis = FVector2D(m_AxisValuePerFrame.X, m_AxisValuePerFrame.Y);
 
-	//“ü—Í‚ª‚È‚¯‚ê‚ÎI—¹
+	//å…¥åŠ›ãŒãªã‘ã‚Œã°çµ‚äº†
 	if ((RightAxis.IsZero() && LeftAxis.IsZero()) || !m_isControl)
 	{
 		for (TSharedPtr<FWing> pWing : m_pWings)
@@ -265,7 +265,7 @@ void APlayerDrone::UpdateWingAccle(const float& DeltaTime)
 		return;
 	}
 
-	//—¼•û‚Ì“ü—Í‚ª‚ ‚éê‡
+	//ä¸¡æ–¹ã®å…¥åŠ›ãŒã‚ã‚‹å ´åˆ
 	if (!RightAxis.IsZero() && !LeftAxis.IsZero())
 	{
 		const float moveCorrection = MOVE_CORRECTION;
@@ -273,14 +273,14 @@ void APlayerDrone::UpdateWingAccle(const float& DeltaTime)
 		{
 			if (pWing.IsValid())
 			{
-				//‰H‚Ì‰ñ“]—Ê‚Ì‡¬
+				//ç¾½ã®å›è»¢é‡ã®åˆæˆ
 				pWing->AccelState = (RightInputValueToWingAcceleration(pWing->GetWingNumber()) + LeftInputValueToWingAcceleration(pWing->GetWingNumber())) * moveCorrection;
 			}
 		}
 		return;
 	}
 
-	//‰EƒXƒeƒBƒbƒN‚Ì‚İ‚Ìê‡
+	//å³ã‚¹ãƒ†ã‚£ãƒƒã‚¯ã®ã¿ã®å ´åˆ
 	if (!RightAxis.IsZero())
 	{
 		const float moveCorrection = MOVE_CORRECTION;
@@ -289,7 +289,7 @@ void APlayerDrone::UpdateWingAccle(const float& DeltaTime)
 			pWing->AccelState = RightInputValueToWingAcceleration(pWing->GetWingNumber()) * moveCorrection;
 		}
 	}
-	//¶ƒXƒeƒBƒbƒN‚Ì‚İ‚Ìê‡
+	//å·¦ã‚¹ãƒ†ã‚£ãƒƒã‚¯ã®ã¿ã®å ´åˆ
 	else if (!LeftAxis.IsZero())
 	{
 		const float moveCorrection = MOVE_CORRECTION;
@@ -300,35 +300,35 @@ void APlayerDrone::UpdateWingAccle(const float& DeltaTime)
 	}
 }
 
-//“ü—Í‚Ì‰Á‘¬“xXVˆ—
+//å…¥åŠ›ã®åŠ é€Ÿåº¦æ›´æ–°å‡¦ç†
 void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 {
-	//ƒŠƒ“ƒO‚ğ‚­‚®‚Á‚Ä‚¢‚½‚ç
+	//ãƒªãƒ³ã‚°ã‚’ããã£ã¦ã„ãŸã‚‰
 	if (m_bIsPassedRing)
 	{
-		//ãŒÀ‚É‚È‚é‚Ü‚ÅŠÔ‚ğŒv‘ª
+		//ä¸Šé™ã«ãªã‚‹ã¾ã§æ™‚é–“ã‚’è¨ˆæ¸¬
 		if (m_SincePassageCount < m_CountLimitTime)
 		{
 			m_SincePassageCount += DeltaTime;
 		}
-		//ãŒÀ‚ğ‰z‚¦‚½‚çAƒtƒ‰ƒO‚ğ~‚ë‚·
+		//ä¸Šé™ã‚’è¶ŠãˆãŸã‚‰ã€ãƒ•ãƒ©ã‚°ã‚’é™ã‚ã™
 		else
 		{
 			m_bIsPassedRing = false;
 		}
 	}
 
-	//“ü—Í²‚ğ³‹K‰»‚·‚é(ƒxƒNƒgƒ‹‚Ì‘å‚«‚³‚ªãŒÀ‚ğ‰z‚¦‚È‚¢‚æ‚¤‚É)
+	//å…¥åŠ›è»¸ã‚’æ­£è¦åŒ–ã™ã‚‹(ãƒ™ã‚¯ãƒˆãƒ«ã®å¤§ãã•ãŒä¸Šé™ã‚’è¶Šãˆãªã„ã‚ˆã†ã«)
 	FVector NormalizeValue = m_AxisValuePerFrame.GetSafeNormal();
 
-	//“ü—Í‚ª‚ ‚é‚Æ‚«‰Á‘¬‚·‚é
-	//XYZ²
+	//å…¥åŠ›ãŒã‚ã‚‹ã¨ãåŠ é€Ÿã™ã‚‹
+	//XYZè»¸
 	for (int i = 0; i < VECTOR3_COMPONENT_NUM; i++)
 	{
 		float Acceleration = m_Acceleration;
 		float MaxAcceleration = m_WingAccelMax;
 		float AttenRate = DeltaTime * (m_AxisValuePerFrame[i] != 0.f ? Acceleration : m_Deceleration);
-		//ƒŠƒ“ƒO‚ğ‚­‚®‚Á‚Ä‚¢‚½‚ç‰Á‘¬‚·‚é
+		//ãƒªãƒ³ã‚°ã‚’ããã£ã¦ã„ãŸã‚‰åŠ é€Ÿã™ã‚‹
 		if (m_bIsPassedRing)
 		{
 			Acceleration *= m_OverAccelerator;
@@ -336,24 +336,24 @@ void APlayerDrone::UpdateAxisAcceleration(const float& DeltaTime)
 			AttenRate = DeltaTime * Acceleration * m_OverAccelerator;
 		}
 
-		//“ü—Í—Ê‚É‰‚¶‚Ä‰Á‘¬“x‚ğ‘Œ¸‚³‚¹‚é
+		//å…¥åŠ›é‡ã«å¿œã˜ã¦åŠ é€Ÿåº¦ã‚’å¢—æ¸›ã•ã›ã‚‹
 		m_AxisAccel[i] = FMath::Lerp(m_AxisAccel[i], NormalizeValue[i] * MaxAcceleration, FMath::Clamp(AttenRate, 0.f, 1.f));
 	}
 
-	//ù‰ñ(W²)
+	//æ—‹å›(Wè»¸)
 	const float AttenRate = FMath::Clamp((m_AxisValuePerFrame.W != 0.f ? DeltaTime * m_Acceleration : 1.f), 0.f, 1.f);
-	//“ü—Í‚ª‚ ‚é‚Í™X‚Éù‰ñ‚µA‚È‚¢‚Æ‚«‚Í‰ñ‚³‚È‚¢
+	//å…¥åŠ›ãŒã‚ã‚‹æ™‚ã¯å¾ã€…ã«æ—‹å›ã—ã€ãªã„ã¨ãã¯å›ã•ãªã„
 	m_AxisAccel.W = FMath::Lerp(m_AxisAccel.W, m_AxisValuePerFrame.W * m_WingAccelMax, AttenRate);
 }
 
-//ƒhƒ[ƒ“‚Ì‰ñ“]ˆ—
+//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®å›è»¢å‡¦ç†
 void APlayerDrone::UpdateRotation(const float& DeltaTime)
 {
 	if (!m_pBodyMesh) { return; }
 
 	if (m_isReplay && !IsEndPlayBackReplay())
 	{
-		//“Ç‚İ‚ñ‚¾ˆÚ“®—Ê‚ÌƒeƒLƒXƒgƒtƒ@ƒCƒ‹‚ğfloat‚É•ÏŠ·‚·‚é
+		//èª­ã¿è¾¼ã‚“ã ç§»å‹•é‡ã®ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’floatã«å¤‰æ›ã™ã‚‹
 		bool IsValidTextArray = true;
 		bool IsValidAxisTextArray = true;
 
@@ -382,7 +382,7 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 
 	Super::UpdateRotation(DeltaTime);
 
-	//ƒRƒ“ƒgƒ[ƒ‹‰Â”\‚È‚ç‰ñ“]—Ê‚ğ•Û‘¶‚·‚é
+	//ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«å¯èƒ½ãªã‚‰å›è»¢é‡ã‚’ä¿å­˜ã™ã‚‹
 	if (m_isControl)
 	{
 		FQuat BodyQuat = m_pBodyMesh->GetComponentQuat();
@@ -406,12 +406,12 @@ void APlayerDrone::UpdateRotation(const float& DeltaTime)
 	}
 }
 
-//‘¬“xXVˆ—
+//é€Ÿåº¦æ›´æ–°å‡¦ç†
 void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 {
 	Super::UpdateSpeed(DeltaTime);
 
-	//ƒRƒ“ƒgƒ[ƒ‹‰Â”\‚È‚çˆÚ“®—Ê‚ğ•Û‘¶‚·‚é
+	//ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«å¯èƒ½ãªã‚‰ç§»å‹•é‡ã‚’ä¿å­˜ã™ã‚‹
 	if (m_isControl)
 	{
 		int index = 0;
@@ -423,7 +423,7 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 	}
 	else if (m_isReplay && !IsEndPlayBackReplay())
 	{
-		//“Ç‚İ‚ñ‚¾ˆÚ“®—Ê‚ÌƒeƒLƒXƒgƒtƒ@ƒCƒ‹‚ğfloat‚É•ÏŠ·‚·‚é
+		//èª­ã¿è¾¼ã‚“ã ç§»å‹•é‡ã®ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’floatã«å¤‰æ›ã™ã‚‹
 		int index = 0;
 		for (const TArray<FString> SaveVelocityText : m_SaveVelocityText)
 		{
@@ -441,39 +441,39 @@ void APlayerDrone::UpdateSpeed(const float& DeltaTime)
 			m_Velocity = FMath::Lerp(m_Velocity, FVector::ZeroVector, DeltaTime * m_Deceleration);
 		}
 	}
-	//À•W‚ğXV
+	//åº§æ¨™ã‚’æ›´æ–°
 	AddActorWorldOffset(m_Velocity, true);
 }
 
-//ƒJƒƒ‰XVˆ—
+//ã‚«ãƒ¡ãƒ©æ›´æ–°å‡¦ç†
 void APlayerDrone::UpdateCamera(const float& DeltaTime)
 {
-	//NULLƒ`ƒFƒbƒN
+	//NULLãƒã‚§ãƒƒã‚¯
 	if (!m_pCamera || !m_pSpringArm || !m_pBodyMesh) { return; }
 
-	//ˆÚ“®—Ê‚É‰‚¶‚ÄƒJƒƒ‰‚ÌƒuƒŒ‚ğ‘å‚«‚­‚·‚é
+	//ç§»å‹•é‡ã«å¿œã˜ã¦ã‚«ãƒ¡ãƒ©ã®ãƒ–ãƒ¬ã‚’å¤§ããã™ã‚‹
 	bool isMove = !m_AxisValuePerFrame.IsNearlyZero3();
 
-	//ƒŒƒC‚ÌŠJn“_‚ÆI“_‚ğİ’è(ƒhƒ[ƒ“‚ÌÀ•W‚©‚ç‘O•û‚ÉŒü‚©‚Á‚Ä)
+	//ãƒ¬ã‚¤ã®é–‹å§‹ç‚¹ã¨çµ‚ç‚¹ã‚’è¨­å®š(ãƒ‰ãƒ­ãƒ¼ãƒ³ã®åº§æ¨™ã‹ã‚‰å‰æ–¹ã«å‘ã‹ã£ã¦)
 	float RotYaw = m_pBodyMesh->GetComponentRotation().Yaw;
 	FQuat BodyQuat = FRotator(0.f, RotYaw, 0.f).Quaternion();
 
 	float RayLength = 2000.f;
 	FVector Start = GetActorLocation();
 	FVector End = Start + BodyQuat.GetForwardVector() * RayLength;
-	//ƒqƒbƒgŒ‹‰Ê‚ğŠi”[‚·‚é”z—ñ
+	//ãƒ’ãƒƒãƒˆçµæœã‚’æ ¼ç´ã™ã‚‹é…åˆ—
 	TArray<FHitResult> OutHits;
-	//ƒgƒŒ[ƒX‚·‚é‘ÎÛ(©g‚Í‘ÎÛ‚©‚çŠO‚·)
+	//ãƒˆãƒ¬ãƒ¼ã‚¹ã™ã‚‹å¯¾è±¡(è‡ªèº«ã¯å¯¾è±¡ã‹ã‚‰å¤–ã™)
 	FCollisionQueryParams CollisionParam;
 	CollisionParam.AddIgnoredActor(this);
 
-	//ƒŒƒC‚ğ”ò‚Î‚µAWorldStatic‚ÌƒRƒŠƒWƒ‡ƒ“ƒ`ƒƒƒ“ƒlƒ‹‚ğ‚ÂƒIƒuƒWƒFƒNƒg‚Ìƒqƒbƒg”»’è‚ğæ“¾‚·‚é
+	//ãƒ¬ã‚¤ã‚’é£›ã°ã—ã€WorldStaticã®ã‚³ãƒªã‚¸ãƒ§ãƒ³ãƒãƒ£ãƒ³ãƒãƒ«ã‚’æŒã¤ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ãƒ’ãƒƒãƒˆåˆ¤å®šã‚’å–å¾—ã™ã‚‹
 	bool isHit = GetWorld()->LineTraceMultiByObjectType(OutHits, Start, End, ECollisionChannel::ECC_WorldStatic, CollisionParam);
 	bool isClimbingSlope = false;
-	//ƒŒƒC‚ªƒqƒbƒg‚µ‚½‚çƒAƒNƒ^[‚Ìƒ^ƒO‚ğŠm”F
+	//ãƒ¬ã‚¤ãŒãƒ’ãƒƒãƒˆã—ãŸã‚‰ã‚¢ã‚¯ã‚¿ãƒ¼ã®ã‚¿ã‚°ã‚’ç¢ºèª
 	if (isHit)
 	{
-		//Slope‚Ìƒ^ƒO‚ğ‚ÂƒAƒNƒ^[‚ª‚ ‚ê‚ÎƒJƒƒ‰‚ğã‚°‚éƒtƒ‰ƒO‚ğ—§‚Ä‚é
+		//Slopeã®ã‚¿ã‚°ã‚’æŒã¤ã‚¢ã‚¯ã‚¿ãƒ¼ãŒã‚ã‚Œã°ã‚«ãƒ¡ãƒ©ã‚’ä¸Šã’ã‚‹ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
 		for (const FHitResult& HitResult : OutHits)
 		{
 			if (AActor* pHitActor = HitResult.GetActor())
@@ -481,7 +481,7 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 				if (pHitActor->ActorHasTag(TEXT("Slope")))
 				{
 					isClimbingSlope = true;
-					//ŒXÎ‚Æ‚Ì‹——£‚ğ‘ª’è‚·‚é
+					//å‚¾æ–œã¨ã®è·é›¢ã‚’æ¸¬å®šã™ã‚‹
 					m_DistanceToSlope = HitResult.Distance;
 					break;
 				}
@@ -489,17 +489,17 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 		}
 	}
 
-	//ƒJƒƒ‰‚Æ‹@‘Ì‚ÌŠp“x‚ğæ“¾
+	//ã‚«ãƒ¡ãƒ©ã¨æ©Ÿä½“ã®è§’åº¦ã‚’å–å¾—
 	FRotator CameraRotation = m_pCamera->GetRelativeRotation();
 	FRotator BodyRotation = m_pBodyMesh->GetRelativeRotation();
 
-	//Œ¸Š”ä—¦‚ğİ’è(ƒtƒŒ[ƒ€—‚¿‚µ‚½Û‚ÉLerp‚ÌãŒÀ‚ğ‰z‚¦‚È‚¢‚æ‚¤‚ÉãŒÀ‚ğ1‚ÅƒNƒ‰ƒ“ƒv‚·‚é)
+	//æ¸›è¡°æ¯”ç‡ã‚’è¨­å®š(ãƒ•ãƒ¬ãƒ¼ãƒ è½ã¡ã—ãŸéš›ã«Lerpã®ä¸Šé™ã‚’è¶Šãˆãªã„ã‚ˆã†ã«ä¸Šé™ã‚’1ã§ã‚¯ãƒ©ãƒ³ãƒ—ã™ã‚‹)
 	FRotator AttenRate = FRotator(
 		FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Pitch, 0.f, 1.f),
 		FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Yaw, 0.f, 1.f),
 		FMath::Clamp(DeltaTime * m_CameraRotationAttenRate.Roll, 0.f, 1.f));
 
-	//Î–Ê‚ğ“o‚Á‚Ä‚¢‚é‚Æ‚«‚ÍŒ©ã‚°‚é‚æ‚¤‚ÈŠp“x‚É‚·‚é
+	//æ–œé¢ã‚’ç™»ã£ã¦ã„ã‚‹ã¨ãã¯è¦‹ä¸Šã’ã‚‹ã‚ˆã†ãªè§’åº¦ã«ã™ã‚‹
 	if (isClimbingSlope)
 	{
 		float radSlope = FMath::Atan2(m_HeightFromGround, m_DistanceToSlope);
@@ -513,7 +513,7 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	m_CameraRotationYaw = FMath::Lerp(0.f, m_AxisValuePerFrame.W * 5.f, AttenRate.Yaw);
 	CameraRotation.Roll = FMath::Lerp(CameraRotation.Roll, BodyRotation.Roll * 0.7f, AttenRate.Roll);
 
-	//ƒ\ƒPƒbƒg‚ÌˆÊ’u‚ğXV
+	//ã‚½ã‚±ãƒƒãƒˆã®ä½ç½®ã‚’æ›´æ–°
 	FVector SocketAttenRate = FVector(
 		FMath::Clamp(DeltaTime * 1.5f, 0.f, 1.f),
 		FMath::Clamp(DeltaTime * 0.8f, 0.f, 1.f),
@@ -526,7 +526,7 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	m_pSpringArm->SocketOffset.Z = FMath::Lerp(m_pSpringArm->SocketOffset.Z, -CameraRotation.Pitch * 1.5f, SocketAttenRate.Z);
 	m_pSpringArm->TargetArmLength = FMath::Lerp(m_pSpringArm->TargetArmLength, (isClimbingSlope ? 150.f : 90.f), SocketAttenRate.Z);
 
-	//ƒJƒƒ‰‚Ì‰ñ“]‚ğXV
+	//ã‚«ãƒ¡ãƒ©ã®å›è»¢ã‚’æ›´æ–°
 	m_pCamera->SetRelativeRotation(CameraRotation.Quaternion());
 
 	FQuat SprignArm = FQuat::FastLerp(m_pSpringArm->GetComponentQuat(), (FRotator(0.f, m_pBodyMesh->GetComponentRotation().Yaw, 0.f).Quaternion()), FMath::Clamp(DeltaTime * 5.f, 0.f, 1.f));
@@ -534,13 +534,13 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 
 	if (!m_isReplay)
 	{
-		//ˆÚ“®‚É‰‚¶‚Ä‹–ìŠp‚ğ•ÏX
+		//ç§»å‹•ã«å¿œã˜ã¦è¦–é‡è§’ã‚’å¤‰æ›´
 		float FOV = isMove ? (m_bIsPassedRing ? 125.f : 105.f) : 90.f;
 		float FOVAttenRate = FMath::Clamp(DeltaTime * 3.f, 0.f, 1.f);
 		float NewFOV = FMath::Lerp(m_pCamera->FieldOfView, FOV, FOVAttenRate);
 		m_pCamera->SetFieldOfView(NewFOV);
 
-		//ˆÚ“®‚É‰‚¶‚Äƒ‚[ƒVƒ‡ƒ“ƒuƒ‰[‚ğ‚©‚¯‚é
+		//ç§»å‹•ã«å¿œã˜ã¦ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ãƒ–ãƒ©ãƒ¼ã‚’ã‹ã‘ã‚‹
 		float MotionBlurAmount = isMove ? (m_bIsPassedRing ? m_MotionBlurAmount : m_MotionBlurAmount * 0.8f) : 0.5f;
 		float MotionBlurMax = isMove ? (m_bIsPassedRing ? m_MotionBlurMax : m_MotionBlurMax * 0.8f) : 5.f;
 		int32 MotionBlurTargetFPS = isMove ? (m_bIsPassedRing ? m_MotionBlurTargetFPS : m_MotionBlurTargetFPS * 0.8f) : 30;
@@ -552,13 +552,13 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	else 
 	{
 		bool isReplayMove = !m_Velocity.IsNearlyZero();
-		//ˆÚ“®‚É‰‚¶‚Ä‹–ìŠp‚ğ•ÏX
+		//ç§»å‹•ã«å¿œã˜ã¦è¦–é‡è§’ã‚’å¤‰æ›´
 		float FOV = isReplayMove ? (m_bIsPassedRing ? 125.f : 105.f) : 90.f;
 		float FOVAttenRate = FMath::Clamp(DeltaTime * 3.f, 0.f, 1.f);
 		float NewFOV = FMath::Lerp(m_pCamera->FieldOfView, FOV, FOVAttenRate);
 		m_pCamera->SetFieldOfView(NewFOV);
 
-		//ˆÚ“®‚É‰‚¶‚Äƒ‚[ƒVƒ‡ƒ“ƒuƒ‰[‚ğ‚©‚¯‚é
+		//ç§»å‹•ã«å¿œã˜ã¦ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ãƒ–ãƒ©ãƒ¼ã‚’ã‹ã‘ã‚‹
 		float MotionBlurAmount = isReplayMove ? (m_bIsPassedRing ? m_MotionBlurAmount : m_MotionBlurAmount * 0.8f) : 0.5f;
 		float MotionBlurMax = isReplayMove ? (m_bIsPassedRing ? m_MotionBlurMax : m_MotionBlurMax * 0.8f) : 5.f;
 		int32 MotionBlurTargetFPS = isReplayMove ? (m_bIsPassedRing ? m_MotionBlurTargetFPS : m_MotionBlurTargetFPS * 0.8f) : 30;
@@ -568,32 +568,32 @@ void APlayerDrone::UpdateCamera(const float& DeltaTime)
 	}
 }
 
-//ƒJƒƒ‰‚Æ‚ÌÕ•Á•¨‚ÌƒRƒŠƒWƒ‡ƒ“”»’è
+//ã‚«ãƒ¡ãƒ©ã¨ã®é®è”½ç‰©ã®ã‚³ãƒªã‚¸ãƒ§ãƒ³åˆ¤å®š
 void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
 {
 	if (!m_pCamera) { return; }
 	if (!m_pSpringArm) { return; }
 	if (!m_pBodyMesh) { return; }
 
-	//ƒŒƒC‚Ìn“_‚ÆI“_‚ğİ’è(ƒhƒ[ƒ“‚©‚çƒJƒƒ‰‚Ü‚Å‚Ì‹——£)
+	//ãƒ¬ã‚¤ã®å§‹ç‚¹ã¨çµ‚ç‚¹ã‚’è¨­å®š(ãƒ‰ãƒ­ãƒ¼ãƒ³ã‹ã‚‰ã‚«ãƒ¡ãƒ©ã¾ã§ã®è·é›¢)
 	FVector DroneLocation = GetActorLocation();
 	FVector CameraLocation = m_pCamera->GetComponentLocation();
-	//ƒJƒƒ‰‚Ì¶‰E‚ÌÀ•W
+	//ã‚«ãƒ¡ãƒ©ã®å·¦å³ã®åº§æ¨™
 	float Len = m_pSpringArm->TargetArmLength;
 	//FVector CameraRightVec = GetActorRightVector();
 	FVector CameraUp = DroneLocation + (GetActorUpVector() * Len);
 	//FVector CameraLeft = DroneLocation - (CameraRightVec * Len);
 	//FVector CameraRight = DroneLocation + (CameraRightVec * Len);
 	
-	//ƒqƒbƒgŒ‹‰Ê‚ğŠi”[‚·‚é”z—ñ
+	//ãƒ’ãƒƒãƒˆçµæœã‚’æ ¼ç´ã™ã‚‹é…åˆ—
 	//FHitResult OutSpringArmHit;
 	//TArray<FHitResult> OutCameraWidthHits;
 	TArray<FHitResult> OutCameraVerticalHits;
 
-	//ƒgƒŒ[ƒX‚·‚é‘ÎÛ(©g‚Í‘ÎÛ‚©‚çŠO‚·)
+	//ãƒˆãƒ¬ãƒ¼ã‚¹ã™ã‚‹å¯¾è±¡(è‡ªèº«ã¯å¯¾è±¡ã‹ã‚‰å¤–ã™)
 	FCollisionQueryParams CollisionParam;
 	CollisionParam.AddIgnoredActor(this);
-	//ƒŒƒC‚ğ”ò‚Î‚µAWorldStatic‚ÌƒRƒŠƒWƒ‡ƒ“ƒ`ƒƒƒ“ƒlƒ‹‚ğ‚ÂƒIƒuƒWƒFƒNƒg‚Ìƒqƒbƒg”»’è‚ğæ“¾‚·‚é
+	//ãƒ¬ã‚¤ã‚’é£›ã°ã—ã€WorldStaticã®ã‚³ãƒªã‚¸ãƒ§ãƒ³ãƒãƒ£ãƒ³ãƒãƒ«ã‚’æŒã¤ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ãƒ’ãƒƒãƒˆåˆ¤å®šã‚’å–å¾—ã™ã‚‹
 	//bool isSpringArmHit = GetWorld()->LineTraceSingleByObjectType(OutSpringArmHit, DroneLocation, CameraLocation, ECollisionChannel::ECC_WorldStatic, CollisionParam);
 	//bool isCameraWidthHit = GetWorld()->LineTraceMultiByObjectType(OutCameraWidthHits, CameraLeft, CameraRight, ECollisionChannel::ECC_WorldStatic, CollisionParam);
 	bool isCameraVerticalHit = GetWorld()->LineTraceMultiByObjectType(OutCameraVerticalHits, DroneLocation, CameraUp, ECollisionChannel::ECC_WorldStatic, CollisionParam);
@@ -606,12 +606,12 @@ void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
 	//FRotator DroneRotation = GetActorRotation();
 	//DroneRotation.Yaw += 90.f;
 
-	////ƒXƒvƒŠƒ“ƒOƒA[ƒ€‚ÌƒI[ƒo[ƒ‰ƒbƒv”»’è
+	////ã‚¹ãƒ—ãƒªãƒ³ã‚°ã‚¢ãƒ¼ãƒ ã®ã‚ªãƒ¼ãƒãƒ¼ãƒ©ãƒƒãƒ—åˆ¤å®š
 	//if (isSpringArmHit)
 	//{
 	//	if (AActor* pHitActor = OutSpringArmHit.GetActor())
 	//	{
-	//		//ƒJƒƒ‰‚ğƒuƒƒbƒN‚·‚éƒIƒuƒWƒFƒNƒg‚ª‚ ‚éê‡‚ÍƒIƒtƒZƒbƒgˆÊ’u‚ğ’²®‚·‚é
+	//		//ã‚«ãƒ¡ãƒ©ã‚’ãƒ–ãƒ­ãƒƒã‚¯ã™ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒã‚ã‚‹å ´åˆã¯ã‚ªãƒ•ã‚»ãƒƒãƒˆä½ç½®ã‚’èª¿æ•´ã™ã‚‹
 	//		if (pHitActor->ActorHasTag(TEXT("CameraBlocking")))
 	//		{
 	//			TargetOffset2D.Y = -OutSpringArmHit.Distance;
@@ -619,17 +619,17 @@ void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
 	//	}
 	//}
 
-	////ƒJƒƒ‰‚Ì‰¡”»’è
+	////ã‚«ãƒ¡ãƒ©ã®æ¨ªåˆ¤å®š
 	//if (isCameraWidthHit)
 	//{		
-	//	//ƒJƒƒ‰‚Éd‚È‚Á‚½ƒIƒuƒWƒFƒNƒg‚ğŠm”F
+	//	//ã‚«ãƒ¡ãƒ©ã«é‡ãªã£ãŸã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ç¢ºèª
 	//	if (OutCameraWidthHits.Num() > 0)
 	//	{
 	//		for (const FHitResult& hitResult : OutCameraWidthHits)
 	//		{
 	//			if (AActor* pHitActor = hitResult.GetActor())
 	//			{
-	//				//ƒJƒƒ‰‚ğƒuƒƒbƒN‚·‚éƒIƒuƒWƒFƒNƒg‚ª‚ ‚éê‡‚ÍƒIƒtƒZƒbƒgˆÊ’u‚ğ’²®‚·‚é
+	//				//ã‚«ãƒ¡ãƒ©ã‚’ãƒ–ãƒ­ãƒƒã‚¯ã™ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒã‚ã‚‹å ´åˆã¯ã‚ªãƒ•ã‚»ãƒƒãƒˆä½ç½®ã‚’èª¿æ•´ã™ã‚‹
 	//				if (pHitActor->ActorHasTag(TEXT("CameraBlocking")))
 	//				{
 	//					float LeftDist = FVector::Dist2D(CameraLeft, hitResult.Location);
@@ -647,17 +647,17 @@ void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
 	//	}
 	//}
 
-	//ƒJƒƒ‰‚Ìc”»’è
+	//ã‚«ãƒ¡ãƒ©ã®ç¸¦åˆ¤å®š
 	if (isCameraVerticalHit)
 	{
-		//ƒJƒƒ‰‚Éd‚È‚Á‚½ƒIƒuƒWƒFƒNƒg‚ğŠm”F
+		//ã‚«ãƒ¡ãƒ©ã«é‡ãªã£ãŸã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ç¢ºèª
 		if (OutCameraVerticalHits.Num() > 0)
 		{
 			for (const FHitResult& hitResult : OutCameraVerticalHits)
 			{
 				if (AActor* pHitActor = hitResult.GetActor())
 				{
-					//ƒJƒƒ‰‚ğƒuƒƒbƒN‚·‚éƒIƒuƒWƒFƒNƒg‚ª‚ ‚éê‡‚ÍƒIƒtƒZƒbƒgˆÊ’u‚ğ’²®‚·‚é
+					//ã‚«ãƒ¡ãƒ©ã‚’ãƒ–ãƒ­ãƒƒã‚¯ã™ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒã‚ã‚‹å ´åˆã¯ã‚ªãƒ•ã‚»ãƒƒãƒˆä½ç½®ã‚’èª¿æ•´ã™ã‚‹
 					if (pHitActor->ActorHasTag(TEXT("CameraBlocking")))
 					{
 						ZOffset = FMath::Lerp(-OFFSET_MAX, 20.f, FMath::Clamp(hitResult.Distance / Len, 0.f, 1.f));
@@ -668,19 +668,19 @@ void  APlayerDrone::UpdateCameraCollsion(const float& DeltaTime)
 		}
 	}
 
-	//ƒJƒƒ‰‚ÌƒIƒtƒZƒbƒg‚ğ•ÏX
+	//ã‚«ãƒ¡ãƒ©ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’å¤‰æ›´
 	FVector TargetOffset = FVector(0.f, 0.f, ZOffset);
 	FVector NewCameraOffset = FMath::Lerp(m_pSpringArm->TargetOffset, TargetOffset, Atten * 0.5f);
 	m_pSpringArm->TargetOffset = (NewCameraOffset - TargetOffset).IsNearlyZero(0.3f) ? TargetOffset : NewCameraOffset;
 }
 
-//•—‚ÌƒGƒtƒFƒNƒg‚ÌXVˆ—
+//é¢¨ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®æ›´æ–°å‡¦ç†
 void APlayerDrone::UpdateWindEffect(const float& DeltaTime)
 {
 	Super::UpdateWindEffect(DeltaTime);
 }
 
-//ƒŠƒvƒŒƒC‚Ì‰Šúİ’è
+//ãƒªãƒ—ãƒ¬ã‚¤ã®åˆæœŸè¨­å®š
 void APlayerDrone::InitializeReplay()
 {
 	SetActorLocation(m_StartLocation);
@@ -688,25 +688,25 @@ void APlayerDrone::InitializeReplay()
 	m_PlaybackFlame = 0;
 	m_isReplay = true;
 
-	//“dÔ‚ğ‰ŠúˆÊ’u‚É”z’u
+	//é›»è»Šã‚’åˆæœŸä½ç½®ã«é…ç½®
 	if (ATrain* pTrain = CGameUtility::GetActorFromTag<ATrain>(this, TEXT("Train")))
 	{
 		pTrain->InitReplay();
 	}
 }
-//ƒŠƒvƒŒƒCXVˆ—
+//ãƒªãƒ—ãƒ¬ã‚¤æ›´æ–°å‡¦ç†
 void APlayerDrone::UpdateReplay(const float& DeltaTime)
 {
 	if (!m_isReplay || IsEndPlayBackReplay()) { return; }
 
 	m_PlaybackFlame++;
 }
-//ƒŒ[ƒX‚ÌÀ•W•Û‘¶
+//ãƒ¬ãƒ¼ã‚¹ã®åº§æ¨™ä¿å­˜
 void APlayerDrone::WritingBestRaceVector()
 {
 	if (m_SaveVelocityText.Num() != m_SaveVelocityLoadPath.Num()) { return; }
 
-	//ƒeƒLƒXƒgƒtƒ@ƒCƒ‹‘‚«‚İ
+	//ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«æ›¸ãè¾¼ã¿
 	int index = 0;
 	for (const TArray<FString>& SaveVelocityText : m_SaveVelocityText)
 	{
@@ -716,12 +716,12 @@ void APlayerDrone::WritingBestRaceVector()
 	}
 }
 
-//ƒŒ[ƒX‚ÌƒNƒI[ƒ^ƒjƒIƒ“•Û‘¶
+//ãƒ¬ãƒ¼ã‚¹ã®ã‚¯ã‚ªãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³ä¿å­˜
 void APlayerDrone::WritingBestRaceQuaternion()
 {
 	if (m_SaveQuatText.Num() != m_SaveQuatLoadPath.Num()) { return; }
 
-	//ƒeƒLƒXƒgƒtƒ@ƒCƒ‹‘‚«‚İ
+	//ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«æ›¸ãè¾¼ã¿
 	int index = 0;
 	for (const TArray<FString> SaveQuatText : m_SaveQuatText)
 	{
@@ -731,12 +731,12 @@ void APlayerDrone::WritingBestRaceQuaternion()
 	}
 }
 
-//ƒŠƒvƒŒƒC‚ÌƒŒ[ƒX‚ÌÀ•Wƒtƒ@ƒCƒ‹‘‚«‚İ
+//ãƒªãƒ—ãƒ¬ã‚¤ã®ãƒ¬ãƒ¼ã‚¹ã®åº§æ¨™ãƒ•ã‚¡ã‚¤ãƒ«æ›¸ãè¾¼ã¿
 void APlayerDrone::WritingReplayRaceVector()
 {
 	if (m_SaveVelocityText.Num() != m_SaveVelocityLoadPath.Num()) { return; }
 
-	//ƒeƒLƒXƒgƒtƒ@ƒCƒ‹‘‚«‚İ
+	//ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«æ›¸ãè¾¼ã¿
 	int index = 0;
 	for (const TArray<FString>& SaveVelocityText : m_SaveVelocityText)
 	{
@@ -746,12 +746,12 @@ void APlayerDrone::WritingReplayRaceVector()
 	}
 }
 
-//ƒŠƒvƒŒƒC‚ÌƒŒ[ƒX‚ÌƒNƒI[ƒ^ƒjƒIƒ“ƒtƒ@ƒCƒ‹‘‚«‚İ
+//ãƒªãƒ—ãƒ¬ã‚¤ã®ãƒ¬ãƒ¼ã‚¹ã®ã‚¯ã‚ªãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³ãƒ•ã‚¡ã‚¤ãƒ«æ›¸ãè¾¼ã¿
 void APlayerDrone::WritingReplayRaceQuaternion()
 {
 	if (m_SaveQuatText.Num() != m_SaveQuatLoadPath.Num()) { return; }
 
-	//ƒeƒLƒXƒgƒtƒ@ƒCƒ‹‘‚«‚İ
+	//ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«æ›¸ãè¾¼ã¿
 	int index = 0;
 	for (const TArray<FString> SaveQuatText : m_SaveQuatText)
 	{
@@ -761,24 +761,24 @@ void APlayerDrone::WritingReplayRaceQuaternion()
 	}
 }
 
-//ƒhƒ[ƒ“‚ÌŒ»İ‰ñ“]—Êæ“¾(ƒ}ƒ‹ƒ`—p)
+//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®ç¾åœ¨å›è»¢é‡å–å¾—(ãƒãƒ«ãƒç”¨)
 FRotator APlayerDrone::GetDroneRotation() const
 {
 	return m_pBodyMesh->GetComponentRotation();
 }
 
-//y“ü—ÍƒoƒCƒ“ƒhzƒRƒ“ƒgƒ[ƒ‰[“ü—Íİ’è
+//ã€å…¥åŠ›ãƒã‚¤ãƒ³ãƒ‰ã€‘ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼å…¥åŠ›è¨­å®š
 void APlayerDrone::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	//²ƒ}ƒbƒsƒ“ƒO
+	//è»¸ãƒãƒƒãƒ”ãƒ³ã‚°
 	InputComponent->BindAxis(TEXT("Throttle"), this, &APlayerDrone::Input_Throttle);
 	InputComponent->BindAxis(TEXT("Elevator"), this, &APlayerDrone::Input_Elevator);
 	InputComponent->BindAxis(TEXT("Aileron"), this, &APlayerDrone::Input_Aileron);
 	InputComponent->BindAxis(TEXT("Ladder"), this, &APlayerDrone::Input_Ladder);
 }
 
-//y“ü—ÍƒoƒCƒ“ƒhzƒXƒƒbƒgƒ‹(ã‰º)‚Ì“ü—Í‚ª‚ ‚Á‚½ê‡ŒÄ‚Ño‚³‚ê‚éŠÖ”
+//ã€å…¥åŠ›ãƒã‚¤ãƒ³ãƒ‰ã€‘ã‚¹ãƒ­ãƒƒãƒˆãƒ«(ä¸Šä¸‹)ã®å…¥åŠ›ãŒã‚ã£ãŸå ´åˆå‘¼ã³å‡ºã•ã‚Œã‚‹é–¢æ•°
 void APlayerDrone::Input_Throttle(float _axisValue)
 {
 	if (m_isControl)
@@ -792,7 +792,7 @@ void APlayerDrone::Input_Throttle(float _axisValue)
 	}
 }
 
-//y“ü—ÍƒoƒCƒ“ƒhzƒGƒŒƒx[ƒ^[(‘OŒã)‚Ì“ü—Í‚ª‚ ‚Á‚½ê‡ŒÄ‚Ño‚³‚ê‚éŠÖ”
+//ã€å…¥åŠ›ãƒã‚¤ãƒ³ãƒ‰ã€‘ã‚¨ãƒ¬ãƒ™ãƒ¼ã‚¿ãƒ¼(å‰å¾Œ)ã®å…¥åŠ›ãŒã‚ã£ãŸå ´åˆå‘¼ã³å‡ºã•ã‚Œã‚‹é–¢æ•°
 void APlayerDrone::Input_Elevator(float _axisValue)
 {
 	if (m_isControl)
@@ -806,7 +806,7 @@ void APlayerDrone::Input_Elevator(float _axisValue)
 	}
 }
 
-//y“ü—ÍƒoƒCƒ“ƒhzƒGƒ‹ƒƒ“(¶‰E)‚Ì“ü—Í‚ª‚ ‚Á‚½ê‡ŒÄ‚Ño‚³‚ê‚éŠÖ”
+//ã€å…¥åŠ›ãƒã‚¤ãƒ³ãƒ‰ã€‘ã‚¨ãƒ«ãƒ­ãƒ³(å·¦å³)ã®å…¥åŠ›ãŒã‚ã£ãŸå ´åˆå‘¼ã³å‡ºã•ã‚Œã‚‹é–¢æ•°
 void APlayerDrone::Input_Aileron(float _axisValue)
 {
 	if (m_isControl)
@@ -820,7 +820,7 @@ void APlayerDrone::Input_Aileron(float _axisValue)
 	}
 }
 
-//y“ü—ÍƒoƒCƒ“ƒhzƒ‰ƒ_[(ù‰ñ)‚Ì“ü—Í‚ª‚ ‚Á‚½ê‡ŒÄ‚Ño‚³‚ê‚éŠÖ”
+//ã€å…¥åŠ›ãƒã‚¤ãƒ³ãƒ‰ã€‘ãƒ©ãƒ€ãƒ¼(æ—‹å›)ã®å…¥åŠ›ãŒã‚ã£ãŸå ´åˆå‘¼ã³å‡ºã•ã‚Œã‚‹é–¢æ•°
 void APlayerDrone::Input_Ladder(float _axisValue)
 {
 	if (m_isControl)

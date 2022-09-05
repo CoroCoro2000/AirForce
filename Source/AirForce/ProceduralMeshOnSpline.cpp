@@ -1,11 +1,11 @@
+ï»¿//--------------------------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:ProceduralMeshOnSpline.cpp
+// æ¦‚è¦				:ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ä¸Šã«æŒ‡å®šæ•°ã®ãƒ¡ãƒƒã‚·ãƒ¥ã‚’è‡ªå‹•ç”Ÿæˆã™ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2021/08/06
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹			:
 //--------------------------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:ProceduralMeshOnSpline.cpp
-// ŠT—v				:ƒXƒvƒ‰ƒCƒ“ã‚Éw’è”‚ÌƒƒbƒVƒ…‚ğ©“®¶¬‚·‚éƒAƒNƒ^[ƒNƒ‰ƒX
-// ì¬“ú			:2021/08/06
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e			:
-//--------------------------------------------------------------------------------------------
-//ƒCƒ“ƒNƒ‹[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #include "ProceduralMeshOnSpline.h"
 #include "Components/SplineComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -16,17 +16,17 @@ AProceduralMeshOnSpline::AProceduralMeshOnSpline()
 	, m_pMeshes(NULL)
 	, m_MeshCount(1)
 {
-	//ˆ—‚ÍƒGƒfƒBƒ^ã‚Å‚µ‚©Às‚µ‚È‚¢ˆ×ATick‚Í–³Œø‚É‚·‚é
+	//å‡¦ç†ã¯ã‚¨ãƒ‡ã‚£ã‚¿ä¸Šã§ã—ã‹å®Ÿè¡Œã—ãªã„ç‚ºã€Tickã¯ç„¡åŠ¹ã«ã™ã‚‹
 	PrimaryActorTick.bCanEverTick = false;
 
-	//ƒXƒvƒ‰ƒCƒ“¶¬
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ç”Ÿæˆ
 	m_pSpline = CreateDefaultSubobject<USplineComponent>(TEXT("Spline"));
 	if (m_pSpline)
 	{
 		RootComponent = m_pSpline;
 	}
 
-	//ƒƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg¶¬
+	//ãƒ¡ãƒƒã‚·ãƒ¥ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆç”Ÿæˆ
 	m_pMeshes = CreateDefaultSubobject<UInstancedStaticMeshComponent>("Meshes");
 	if (m_pMeshes && m_pSpline)
 	{
@@ -49,34 +49,34 @@ void AProceduralMeshOnSpline::Tick(float DeltaTime)
 
 }
 
-//ƒXƒvƒ‰ƒCƒ“ã‚ÉƒƒbƒVƒ…‚ğ¶¬‚·‚éˆ—
+//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ä¸Šã«ãƒ¡ãƒƒã‚·ãƒ¥ã‚’ç”Ÿæˆã™ã‚‹å‡¦ç†
 void AProceduralMeshOnSpline::UpdateMeshOnSpline()
 {
-	//NULLƒ`ƒFƒbƒN
+	//NULLãƒã‚§ãƒƒã‚¯
 	if (m_MeshCount == 0) { return; }
 	if (!m_pSpline) { return; }
 	if (!m_pMeshes) { return; }
 	if (!m_pMeshes->GetStaticMesh()) { return; }
 
-	//•ÏX‘O‚ÌƒƒbƒVƒ…î•ñ‚ğíœ
+	//å¤‰æ›´å‰ã®ãƒ¡ãƒƒã‚·ãƒ¥æƒ…å ±ã‚’å‰Šé™¤
 	if ((int)m_pMeshes->GetInstanceCount() > 0) { m_pMeshes->ClearInstances(); }
 
-	//ƒXƒvƒ‰ƒCƒ“‚Ì’·‚³‚ğæ“¾
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®é•·ã•ã‚’å–å¾—
 	const float splineLength = m_pSpline->GetSplineLength();
 
-	//”z’u‚·‚éƒƒbƒVƒ…‚Ì”‚¾‚¯¶¬ˆ—‚ğs‚¤
+	//é…ç½®ã™ã‚‹ãƒ¡ãƒƒã‚·ãƒ¥ã®æ•°ã ã‘ç”Ÿæˆå‡¦ç†ã‚’è¡Œã†
 	for (int index = 0; index < m_MeshCount; ++index)
 	{
-		//ƒXƒvƒ‰ƒCƒ“ã‚Ì‚Ç‚ÌˆÊ’u‚É‚ÉƒƒbƒVƒ…‚ğ¶¬‚·‚é‚©Œˆ‚ß‚é
+		//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ä¸Šã®ã©ã®ä½ç½®ã«ã«ãƒ¡ãƒƒã‚·ãƒ¥ã‚’ç”Ÿæˆã™ã‚‹ã‹æ±ºã‚ã‚‹
 		const float rate = (float)index / (float)m_MeshCount;
 		const float distance = rate * splineLength;
 		const FVector initLocation = m_pSpline->GetLocationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local);
 		FRotator initRotation = m_pSpline->GetRotationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local);
 
-		//”z’u‚·‚éƒƒbƒVƒ…‚Ìƒgƒ‰ƒ“ƒXƒtƒH[ƒ€‚ğİ’è
+		//é…ç½®ã™ã‚‹ãƒ¡ãƒƒã‚·ãƒ¥ã®ãƒˆãƒ©ãƒ³ã‚¹ãƒ•ã‚©ãƒ¼ãƒ ã‚’è¨­å®š
 		const FTransform initTransform = FTransform(initRotation, initLocation);
 
-		//ƒƒbƒVƒ…ƒCƒ“ƒXƒ^ƒ“ƒX‚ğ’Ç‰Á
+		//ãƒ¡ãƒƒã‚·ãƒ¥ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’è¿½åŠ 
 		m_pMeshes->AddInstance(initTransform);
 
 #ifdef DEBUG_TRANSFORM
@@ -88,9 +88,9 @@ void AProceduralMeshOnSpline::UpdateMeshOnSpline()
 #endif // DEBUG_INCTANCECOUNT
 }
 
-//ƒGƒfƒBƒ^ã‚Å”z’uA‚Ü‚½‚Í“à•”‚Ì’l‚ª•ÏX‚³‚ê‚½‚ÉŒÄ‚Ño‚³‚ê‚éŠÖ”
+//ã‚¨ãƒ‡ã‚£ã‚¿ä¸Šã§é…ç½®æ™‚ã€ã¾ãŸã¯å†…éƒ¨ã®å€¤ãŒå¤‰æ›´ã•ã‚ŒãŸæ™‚ã«å‘¼ã³å‡ºã•ã‚Œã‚‹é–¢æ•°
 void AProceduralMeshOnSpline::OnConstruction(const FTransform& Transform)
 {
-	//ƒXƒvƒ‰ƒCƒ“ã‚ÉƒƒbƒVƒ…‚ğ¶¬
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ä¸Šã«ãƒ¡ãƒƒã‚·ãƒ¥ã‚’ç”Ÿæˆ
 	UpdateMeshOnSpline();
 }

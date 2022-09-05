@@ -1,9 +1,9 @@
-//------------------------------------------------------------------------------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:TickLODManager.h
-// ŠT—v				:ƒAƒNƒ^[‚ÌTickLODƒŒƒxƒ‹‚ğŠÇ—‚·‚éƒ}ƒl[ƒWƒƒ[ƒNƒ‰ƒX
-// ì¬“ú			:2022/03/09
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e			:2021/03/09		:ƒvƒŒƒCƒ„[‚©‚ç—£‚ê‚½ˆÊ’u‚É‚ ‚éƒŠƒ“ƒO‚ÌFPS‚ğ‰º‚°‚éˆ—‚Ì’Ç‰Á
+ï»¿//------------------------------------------------------------------------------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:TickLODManager.h
+// æ¦‚è¦				:ã‚¢ã‚¯ã‚¿ãƒ¼ã®TickLODãƒ¬ãƒ™ãƒ«ã‚’ç®¡ç†ã™ã‚‹ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2022/03/09
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹			:2021/03/09		:ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‹ã‚‰é›¢ã‚ŒãŸä½ç½®ã«ã‚ã‚‹ãƒªãƒ³ã‚°ã®FPSã‚’ä¸‹ã’ã‚‹å‡¦ç†ã®è¿½åŠ 
 //------------------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
@@ -15,7 +15,7 @@
 class APlayerCameraManager;
 class ATickLODActor;
 
-//ƒAƒNƒ^[‚ÌTickLODİ’è‚Ìƒpƒ‰ƒ[ƒ^[\‘¢‘Ì
+//ã‚¢ã‚¯ã‚¿ãƒ¼ã®TickLODè¨­å®šã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒ¼æ§‹é€ ä½“
 USTRUCT(BlueprintType)
 struct FTickLODSetting
 {
@@ -33,9 +33,9 @@ public:
 	{}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
-		float FrameRate;														//İ’è‚³‚ê‚½‹——£‚æ‚è‹ß‚¢‚É“K—p‚·‚éFPS‚ÌŠ„‡
+		float FrameRate;														//è¨­å®šã•ã‚ŒãŸè·é›¢ã‚ˆã‚Šè¿‘ã„æ™‚ã«é©ç”¨ã™ã‚‹FPSã®å‰²åˆ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float Distance;															//FPS‚ÌŠ„‡‚ğ“K—p‚·‚é‹——£
+		float Distance;															//FPSã®å‰²åˆã‚’é©ç”¨ã™ã‚‹è·é›¢
 };
 
 UCLASS()
@@ -50,7 +50,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	//”z’u‚ÉÀs‚³‚ê‚éŠÖ”
+	//é…ç½®æ™‚ã«å®Ÿè¡Œã•ã‚Œã‚‹é–¢æ•°
 	virtual void OnConstruction(const FTransform& Transform)override;
 
 public:	
@@ -58,16 +58,16 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	//LOD‚ÌƒAƒNƒ^[”z—ñ‚Ì‰Šú‰»
+	//LODã®ã‚¢ã‚¯ã‚¿ãƒ¼é…åˆ—ã®åˆæœŸåŒ–
 	void InitializeActorArray();
-	//LOD‚ÌXV
+	//LODã®æ›´æ–°
 	void UpdateLOD(const float& DeltaTime);
 
 private:
 	UPROPERTY(EditAnywhere)
-		TArray<FTickLODSetting> m_TickLODSettings;								//‹——£‚É‰‚¶‚½ƒŠƒ“ƒO‚ÌFPS‚ğ‰Â•Ï‚·‚éİ’è€–ÚA”z—ñ‚Í‹——£‚ª‹ß‚¢‡‚Éƒ\[ƒg‚³‚ê‚é
+		TArray<FTickLODSetting> m_TickLODSettings;								//è·é›¢ã«å¿œã˜ãŸãƒªãƒ³ã‚°ã®FPSã‚’å¯å¤‰ã™ã‚‹è¨­å®šé …ç›®ã€é…åˆ—ã¯è·é›¢ãŒè¿‘ã„é †ã«ã‚½ãƒ¼ãƒˆã•ã‚Œã‚‹
 	UPROPERTY(EditAnywhere)
-		APlayerCameraManager* m_pPlayerCamera;											//ƒvƒŒƒCƒ„[‚ÌƒJƒƒ‰
+		APlayerCameraManager* m_pPlayerCamera;											//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚«ãƒ¡ãƒ©
 	UPROPERTY(EditAnywhere)
-		TArray<ATickLODActor*> m_pTickLODActors;										//LOD‚Ìİ’è‚ğ‚·‚éƒAƒNƒ^[‚ğŠi”[‚·‚é”z—ñ
+		TArray<ATickLODActor*> m_pTickLODActors;										//LODã®è¨­å®šã‚’ã™ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼ã‚’æ ¼ç´ã™ã‚‹é…åˆ—
 };

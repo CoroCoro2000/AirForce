@@ -1,12 +1,12 @@
-//----------------------------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:GameUtility.cpp
-// ŠT—v				:‚Ç‚±‚©‚ç‚Å‚àŒÄ‚Ño‚¹‚éŠÖ”‚Ìˆ—‚ğ‚Ü‚Æ‚ß‚½ƒ†[ƒeƒBƒŠƒeƒBƒNƒ‰ƒX
-// ì¬“ú			:2021/07/26
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e			:
+ï»¿//----------------------------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:GameUtility.cpp
+// æ¦‚è¦				:ã©ã“ã‹ã‚‰ã§ã‚‚å‘¼ã³å‡ºã›ã‚‹é–¢æ•°ã®å‡¦ç†ã‚’ã¾ã¨ã‚ãŸãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2021/07/26
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹			:
 //----------------------------------------------------------------------------------------------
 
-//ƒCƒ“ƒNƒ‹[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #include "GameUtility.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
@@ -15,7 +15,7 @@
 
 //#define DEBUG_LOG
 
-//¬”‘ænˆÊ–¢–Ø‚èÌ‚Ä
+//å°æ•°ç¬¬nä½æœªæº€åˆ‡ã‚Šæ¨ã¦
 float CGameUtility::SetDecimalTruncation(float value, int n)
 {
     value = value * FMath::Pow(10, n);
@@ -24,7 +24,7 @@ float CGameUtility::SetDecimalTruncation(float value, int n)
     return value;
 }
 
-//¬”‘ænˆÊ–¢–Ø‚èÌ‚Ä
+//å°æ•°ç¬¬nä½æœªæº€åˆ‡ã‚Šæ¨ã¦
 FVector CGameUtility::SetDecimalTruncation(FVector value, int n)
 {
     value = value * FMath::Pow(10, n);
@@ -35,30 +35,30 @@ FVector CGameUtility::SetDecimalTruncation(FVector value, int n)
     return value;
 }
 
-//ƒ^ƒO‚©‚çƒAƒNƒ^[‚ğæ“¾‚·‚éŠÖ”(‘æ1ˆø”F‚±‚ÌŠÖ”‚ğŒÄ‚Ño‚·ƒAƒNƒ^[A‘æ2ˆø”FŒŸõ‚·‚éƒAƒNƒ^[‚Ìƒ^ƒO–¼)
+//ã‚¿ã‚°ã‹ã‚‰ã‚¢ã‚¯ã‚¿ãƒ¼ã‚’å–å¾—ã™ã‚‹é–¢æ•°(ç¬¬1å¼•æ•°ï¼šã“ã®é–¢æ•°ã‚’å‘¼ã³å‡ºã™ã‚¢ã‚¯ã‚¿ãƒ¼ã€ç¬¬2å¼•æ•°ï¼šæ¤œç´¢ã™ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼ã®ã‚¿ã‚°å)
 AActor* CGameUtility::GetActorFromTag(AActor* _pOwnerActor, const FName& _tag)
 {
-    //NULLƒ`ƒFƒbƒN
+    //NULLãƒã‚§ãƒƒã‚¯
     if (!_pOwnerActor) { return NULL; }
 
-    //ŒŸõ‘ÎÛ‚Í‘S‚Ä‚ÌActor
+    //æ¤œç´¢å¯¾è±¡ã¯å…¨ã¦ã®Actor
     TSubclassOf<AActor> findClass;
     findClass = AActor::StaticClass();
     TArray<AActor*> actors;
     UGameplayStatics::GetAllActorsOfClass(_pOwnerActor->GetWorld(), findClass, actors);
 
-    //ŒŸõŒ‹‰ÊAActor‚ª‚ ‚ê‚Î
+    //æ¤œç´¢çµæœã€ActorãŒã‚ã‚Œã°
     if (actors.Num() > 0)
     {
-        //‚»‚ÌActor‚Ì’†‚ğ‡”Ô‚ÉŒŸõ
+        //ãã®Actorã®ä¸­ã‚’é †ç•ªã«æ¤œç´¢
         for (AActor* pActor : actors)
         {
-            //ƒ^ƒO–¼‚Å”»•Ê‚·‚é
+            //ã‚¿ã‚°åã§åˆ¤åˆ¥ã™ã‚‹
             if (pActor->ActorHasTag(_tag))
             {
 #ifdef DEBUG_LOG
-                //Šm”F—pƒƒbƒZ[ƒWo—Í
-                FString message = FString("Founded ActorF") + pActor->GetName();
+                //ç¢ºèªç”¨ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡ºåŠ›
+                FString message = FString("Founded Actorï¼š") + pActor->GetName();
                 UE_LOG(LogTemp, Warning, TEXT("%s"), *message);
 #endif // DEBUG_LOG
                 return pActor;

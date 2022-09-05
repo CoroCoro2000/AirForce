@@ -1,9 +1,9 @@
-
+ï»¿
 #include "SaveRecord.h"
 
 #define LOCTEXT_NAMESPACE "Record"
 
-//‹L˜^‚·‚éŠÔ‚ÌãŒÀ(10:00;00)
+//è¨˜éŒ²ã™ã‚‹æ™‚é–“ã®ä¸Šé™(10:00;00)
 const float FRecordTime::RECORDTICKS_MAX = 600.f;
 const FRecordTime FRecordTime::RECORDTIME_MAX = FRecordTime(RECORDTICKS_MAX);
 
@@ -42,7 +42,7 @@ FRecordTime::FRecordTime(const float& ticks)
 	}
 	else
 	{
-		//Œo‰ßŠÔ‚ğ•ª/•b/ƒ~ƒŠ•b‚É•ª‰ğ
+		//çµŒéæ™‚é–“ã‚’åˆ†/ç§’/ãƒŸãƒªç§’ã«åˆ†è§£
 		Minutes = Ticks / 60;
 		Second = (int32)Ticks % 60;
 		Millisecond = (Ticks - (int32)ticks) * (10 ^ MillisecondTextFormat.MaximumIntegralDigits);
@@ -62,7 +62,7 @@ void FRecordTime::UpdateTime(const float& deltaTime)
 	}
 	else
 	{
-		//Œo‰ßŠÔ‚ğ•ª/•b/ƒ~ƒŠ•b‚É•ª‰ğ
+		//çµŒéæ™‚é–“ã‚’åˆ†/ç§’/ãƒŸãƒªç§’ã«åˆ†è§£
 		Minutes = Ticks / 60;
 		Second = (int32)Ticks % 60;
 		Millisecond = (Ticks - (int32)Ticks) * 1000;
@@ -71,7 +71,7 @@ void FRecordTime::UpdateTime(const float& deltaTime)
 
 FText FRecordTime::ToText()const
 {
-	//•¶š‹l‚ßİ’è
+	//æ–‡å­—è©°ã‚è¨­å®š
 	FText minutesText = FText::AsNumber(Minutes, &MinutesTextFormat);
 	FText secondText = FText::AsNumber(Second, &SecondTextFormat);
 	FText millisecondText = FText::AsNumber(Millisecond, &MillisecondTextFormat);
@@ -118,7 +118,7 @@ bool FRecordTime::operator!=(const FRecordTime& Time)const
 
 void FRecordTime::Initialize()
 {
-	//•„†AƒJƒ“ƒ}‹æØ‚è‚Í•\¦‚µ‚È‚¢İ’è
+	//ç¬¦å·ã€ã‚«ãƒ³ãƒåŒºåˆ‡ã‚Šã¯è¡¨ç¤ºã—ãªã„è¨­å®š
 	MinutesTextFormat.AlwaysSign = false;
 	MinutesTextFormat.UseGrouping = false;
 	SecondTextFormat.AlwaysSign = false;
@@ -126,7 +126,7 @@ void FRecordTime::Initialize()
 	MillisecondTextFormat.AlwaysSign = false;
 	MillisecondTextFormat.UseGrouping = false;
 
-	//•\¦‚·‚éŒ…”‚ÌãŒÀ‚Æ‰ºŒÀ‚ğİ’è
+	//è¡¨ç¤ºã™ã‚‹æ¡æ•°ã®ä¸Šé™ã¨ä¸‹é™ã‚’è¨­å®š
 	MinutesTextFormat.MinimumIntegralDigits = 2;
 	MinutesTextFormat.MaximumIntegralDigits = 2;
 	SecondTextFormat.MinimumIntegralDigits = 2;
@@ -138,7 +138,7 @@ void FRecordTime::Initialize()
 //-------------------------------------------------------------------------------------------------
 
 
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 USaveRecord::USaveRecord(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -10,8 +10,8 @@ namespace EINPUTKEY
 {
 	enum Type
 	{
-		EINPUTKEY_VERTICAL = 0		UMETA(DisPlayName = "VERTICAL"),		//ã‰º“ü—Í
-		EINPUTKEY_HORIZONTAL 		UMETA(DisPlayName = "HORIZONTAL"),	//¶‰E“ü—Í
+		EINPUTKEY_VERTICAL = 0		UMETA(DisPlayName = "VERTICAL"),		//ä¸Šä¸‹å…¥åŠ›
+		EINPUTKEY_HORIZONTAL 		UMETA(DisPlayName = "HORIZONTAL"),	//å·¦å³å…¥åŠ›
 	};
 }
 
@@ -32,7 +32,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	//y“ü—ÍƒoƒCƒ“ƒhzƒRƒ“ƒgƒ[ƒ‰[“ü—Íİ’è
+	//ã€å…¥åŠ›ãƒã‚¤ãƒ³ãƒ‰ã€‘ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼å…¥åŠ›è¨­å®š
 	void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent);
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
@@ -46,32 +46,32 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 		void InputA();
 
-	//“ü—Í‰Â”\ƒtƒ‰ƒOİ’è
+	//å…¥åŠ›å¯èƒ½ãƒ•ãƒ©ã‚°è¨­å®š
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		void SetInputEnable(bool _flag) { m_isInputEnable = _flag; }
-	//“ü—Í‰Â”\ƒtƒ‰ƒOæ“¾
+	//å…¥åŠ›å¯èƒ½ãƒ•ãƒ©ã‚°å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		bool GetInputEnable() const { return m_isInputEnable; }
 
-	//Œ»İ‘I‘ğ‚µ‚½ƒŒƒxƒ‹”Ô†æ“¾
+	//ç¾åœ¨é¸æŠã—ãŸãƒ¬ãƒ™ãƒ«ç•ªå·å–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		int GetLevelIndex() const { return m_LevelIndex; }
 
-	//Œ»İ‘I‘ğ‚µ‚½ƒŒƒxƒ‹–¼æ“¾
+	//ç¾åœ¨é¸æŠã—ãŸãƒ¬ãƒ™ãƒ«åå–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Flag")
 		FName GetLevelName() const { return m_LevelName.IsValidIndex(m_LevelIndex) ? m_LevelName[m_LevelIndex] : NAME_None; }
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Flag")
-		bool m_isInputEnable;						//“ü—Í‰Â”\ƒtƒ‰ƒO
+		bool m_isInputEnable;						//å…¥åŠ›å¯èƒ½ãƒ•ãƒ©ã‚°
 
 	UPROPERTY(EditAnywhere, Category = "Level")
-		TArray<FName> m_LevelName;					//‘JˆÚ‚·‚éƒŒƒxƒ‹–¼
+		TArray<FName> m_LevelName;					//é·ç§»ã™ã‚‹ãƒ¬ãƒ™ãƒ«å
 	UPROPERTY(VisibleAnywhere, Category = "Level")
-		int m_LevelIndex;							//Œ»İ‘I‘ğ‚µ‚Ä‚¢‚éƒŒƒxƒ‹”Ô†
+		int m_LevelIndex;							//ç¾åœ¨é¸æŠã—ã¦ã„ã‚‹ãƒ¬ãƒ™ãƒ«ç•ªå·
 	UPROPERTY(EditAnywhere, Category = "Level")
-		TArray<int> m_LevelAddValue;				//Še²‚ÅƒŒƒxƒ‹”Ô†‚ğ‰ÁZ‚·‚é—Ê
+		TArray<int> m_LevelAddValue;				//å„è»¸ã§ãƒ¬ãƒ™ãƒ«ç•ªå·ã‚’åŠ ç®—ã™ã‚‹é‡
 	UPROPERTY(EditAnywhere, Category = "Level")
-		TArray<int> m_LevelIndexMin;				//Še²‚ÅƒŒƒxƒ‹”Ô†‚ğ‰ÁZ‚·‚é‰ºŒÀ
+		TArray<int> m_LevelIndexMin;				//å„è»¸ã§ãƒ¬ãƒ™ãƒ«ç•ªå·ã‚’åŠ ç®—ã™ã‚‹ä¸‹é™
 	UPROPERTY(EditAnywhere, Category = "Level")
-		TArray<int> m_LevelIndexMax;				//Še²‚ÅƒŒƒxƒ‹”Ô†‚ğ‰ÁZ‚·‚éãŒÀ
+		TArray<int> m_LevelIndexMax;				//å„è»¸ã§ãƒ¬ãƒ™ãƒ«ç•ªå·ã‚’åŠ ç®—ã™ã‚‹ä¸Šé™
 };

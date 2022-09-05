@@ -1,9 +1,9 @@
-//------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:Ring.h
-// ŠT—v				:ƒR[ƒX‚Ìisæ‚ğ¦‚·ƒŠƒ“ƒO‚ÌƒNƒ‰ƒX
-// ì¬“ú			:2021/06/04
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e			:2021/06/04
+ï»¿//------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:Ring.h
+// æ¦‚è¦				:ã‚³ãƒ¼ã‚¹ã®é€²è¡Œå…ˆã‚’ç¤ºã™ãƒªãƒ³ã‚°ã®ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2021/06/04
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹			:2021/06/04
 //------------------------------------------------------------------------
 
 #pragma once
@@ -13,7 +13,7 @@
 #include "NiagaraComponentPool.h"
 #include "Ring.generated.h"
 
-//‘O•ûéŒ¾
+//å‰æ–¹å®£è¨€
 class UStaticMeshComponent;
 class UNiagaraComponent;
 class UNiagaraSystem;
@@ -21,24 +21,24 @@ class ADroneBase;
 class USoundBase;
 class UCurveLinearColor;
 
-//•R•t‚¯‚³‚ê‚½ƒhƒ[ƒ“‚ÆƒGƒtƒFƒNƒg‚ğŠi”[‚·‚é\‘¢‘Ì
+//ç´ä»˜ã‘ã•ã‚ŒãŸãƒ‰ãƒ­ãƒ¼ãƒ³ã¨ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’æ ¼ç´ã™ã‚‹æ§‹é€ ä½“
 USTRUCT(BlueprintType)
 struct FFollowingDroneAndEffect
 {
 	GENERATED_BODY()
 public:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	FFollowingDroneAndEffect();
 	FFollowingDroneAndEffect(ADroneBase* pDrone, UNiagaraComponent* pNiagaraEffect = (UNiagaraComponent*)nullptr);
-	//ƒfƒXƒgƒ‰ƒNƒ^
+	//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	~FFollowingDroneAndEffect();
-	//ƒhƒ[ƒ“æ“¾
+	//ãƒ‰ãƒ­ãƒ¼ãƒ³å–å¾—
 	ADroneBase* GetDrone()const { return m_pDrone.Get(); }
-	//ƒGƒtƒFƒNƒgæ“¾
+	//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆå–å¾—
 	UNiagaraComponent* GetEffect()const { return m_pNiagaraEffect.Get(); }
-	//ƒGƒtƒFƒNƒg‚ª¶¬Ï‚İ‚©‚Ç‚¤‚©
+	//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãŒç”Ÿæˆæ¸ˆã¿ã‹ã©ã†ã‹
 	bool IsEffectSpawned() const { return m_bIsEffectSpawned; }
-	//ƒGƒtƒFƒNƒg‚ğ¶¬
+	//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆ
 	void SpawnEffectAtLocation(const UObject* WorldContextObject, UNiagaraSystem* SystemTemplate, FVector SpawnLocation, FRotator SpawnRotation = FRotator::ZeroRotator, FVector Scale = FVector(1.F), bool bAutoDestroy = true, bool bAutoActivate = true, ENCPoolMethod PoolingMethod = ENCPoolMethod::None);
 
 public:
@@ -56,65 +56,65 @@ class AIRFORCE_API ARing : public ATickLODActor
 	GENERATED_BODY()
 	
 public:	
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	ARing();
 
 protected:
-	//ƒQ[ƒ€ŠJn‚Ü‚½‚Í‚±‚ÌƒNƒ‰ƒX‚ÌƒIƒuƒWƒFƒNƒg‚ªƒXƒ|[ƒ“‚³‚ê‚½‚P“x‚¾‚¯ŒÄ‚Ño‚³‚ê‚éŠÖ”
+	//ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã¾ãŸã¯ã“ã®ã‚¯ãƒ©ã‚¹ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒã‚¹ãƒãƒ¼ãƒ³ã•ã‚ŒãŸæ™‚ï¼‘åº¦ã ã‘å‘¼ã³å‡ºã•ã‚Œã‚‹é–¢æ•°
 	virtual void BeginPlay() override;
 
 public:	
-	//–ˆƒtƒŒ[ƒ€ŒÄ‚Ño‚³‚ê‚éŠÖ”
+	//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‘¼ã³å‡ºã•ã‚Œã‚‹é–¢æ•°
 	virtual void Tick(float DeltaTime) override;
 
 protected:
-	//ƒI[ƒo[ƒ‰ƒbƒv‚ÉŒÄ‚Î‚ê‚éƒCƒxƒ“ƒgŠÖ”‚ğ“o˜^
+	//ã‚ªãƒ¼ãƒãƒ¼ãƒ©ãƒƒãƒ—æ™‚ã«å‘¼ã°ã‚Œã‚‹ã‚¤ãƒ™ãƒ³ãƒˆé–¢æ•°ã‚’ç™»éŒ²
 	UFUNCTION()
 		virtual void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 public:
-	//’Ê‰ß‚³‚ê‚Ä‚¢‚é‚©‚Ìƒtƒ‰ƒOæ“¾
+	//é€šéã•ã‚Œã¦ã„ã‚‹ã‹ã®ãƒ•ãƒ©ã‚°å–å¾—
 	bool GetIsPassed()const { return m_bIsPassed; }
-	//ƒƒbƒVƒ…æ“¾
+	//ãƒ¡ãƒƒã‚·ãƒ¥å–å¾—
 	UStaticMeshComponent* GetMesh()const { return m_pRingMesh; }
 
 private:
-	//ƒTƒCƒ“ƒJ[ƒu‚Ì’l‚ğXV
+	//ã‚µã‚¤ãƒ³ã‚«ãƒ¼ãƒ–ã®å€¤ã‚’æ›´æ–°
 	void UpdateSineCurve(const float& CurrentTime);
-	//ƒŠƒ“ƒO‚ÌƒTƒCƒYXV
+	//ãƒªãƒ³ã‚°ã®ã‚µã‚¤ã‚ºæ›´æ–°
 	void UpdateScale(const float& DeltaTime);
-	//ƒŠƒ“ƒO‚Ìƒ}ƒeƒŠƒAƒ‹XV
+	//ãƒªãƒ³ã‚°ã®ãƒãƒ†ãƒªã‚¢ãƒ«æ›´æ–°
 	void UpdateMaterial();
-	//ƒŠƒ“ƒO‚ÌƒGƒtƒFƒNƒgXV
+	//ãƒªãƒ³ã‚°ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ›´æ–°
 	void UpdateEffect();
 
 protected:
 	UPROPERTY(EditAnywhere)
-		UStaticMeshComponent* m_pRingMesh;														//ƒŠƒ“ƒO‚ÌƒƒbƒVƒ…
+		UStaticMeshComponent* m_pRingMesh;														//ãƒªãƒ³ã‚°ã®ãƒ¡ãƒƒã‚·ãƒ¥
 	UPROPERTY(EditAnywhere)
-		TArray<struct FFollowingDroneAndEffect> m_pFollowingDroneAndEffect;			//’Ê‰ß‚µ‚½ƒhƒ[ƒ“
+		TArray<struct FFollowingDroneAndEffect> m_pFollowingDroneAndEffect;			//é€šéã—ãŸãƒ‰ãƒ­ãƒ¼ãƒ³
 	UPROPERTY(EditAnywhere)
-		UNiagaraSystem* m_pEffect;																		//’Ê‰ß‚Éo‚·ƒGƒtƒFƒNƒg
+		UNiagaraSystem* m_pEffect;																		//é€šéæ™‚ã«å‡ºã™ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
 	UPROPERTY(VisibleAnywhere)
-		bool m_bIsPassed;																						//‚±‚ÌƒŠƒ“ƒO‚ª’Ê‰ß‚³‚ê‚½‚©”»’è
+		bool m_bIsPassed;																						//ã“ã®ãƒªãƒ³ã‚°ãŒé€šéã•ã‚ŒãŸã‹åˆ¤å®š
 	UPROPERTY(VisibleAnywhere)
-		float m_PassedTime;																					//’Ê‰ßŒã‚ÌŠÔ‚ğŒv‘ª
+		float m_PassedTime;																					//é€šéå¾Œã®æ™‚é–“ã‚’è¨ˆæ¸¬
 	UPROPERTY(VisibleAnywhere)
-		float m_ResetTime;																					//’Ê‰ßŒã‚ÌŠÔ‚ğŒv‘ª
+		float m_ResetTime;																					//é€šéå¾Œã®æ™‚é–“ã‚’è¨ˆæ¸¬
 	UPROPERTY(EditAnywhere)
-		float m_SineWidth;																						//ƒTƒCƒ“”g‚ÌŠÔŠu
+		float m_SineWidth;																						//ã‚µã‚¤ãƒ³æ³¢ã®é–“éš”
 	UPROPERTY(EditAnywhere)
-		float m_SineScaleMin;																					//ƒTƒCƒ“”g‚ÌÅ¬’l
+		float m_SineScaleMin;																					//ã‚µã‚¤ãƒ³æ³¢ã®æœ€å°å€¤
 	UPROPERTY(EditAnywhere)
-		float m_SineScaleMax;																				//ƒTƒCƒ“”g‚ÌÅ‘å’l
+		float m_SineScaleMax;																				//ã‚µã‚¤ãƒ³æ³¢ã®æœ€å¤§å€¤
 	UPROPERTY(EditAnywhere)
-		float m_SineCurveValue;																				//ƒTƒCƒ“”g‚Ì’l
+		float m_SineCurveValue;																				//ã‚µã‚¤ãƒ³æ³¢ã®å€¤
 	UPROPERTY(VisibleAnywhere)
-		float m_RingScale;																						//ƒŠƒ“ƒO‚ÌƒXƒP[ƒ‹
+		float m_RingScale;																						//ãƒªãƒ³ã‚°ã®ã‚¹ã‚±ãƒ¼ãƒ«
 	UPROPERTY(EditAnywhere)
-		float m_RingMaxScale;																				//ƒŠƒ“ƒO‚ÌÅ‘åƒXƒP[ƒ‹
+		float m_RingMaxScale;																				//ãƒªãƒ³ã‚°ã®æœ€å¤§ã‚¹ã‚±ãƒ¼ãƒ«
 	UPROPERTY(EditAnywhere)
-		FLinearColor m_HSV;																					//ƒŠƒ“ƒO‚ÌF
+		FLinearColor m_HSV;																					//ãƒªãƒ³ã‚°ã®è‰²
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
-		USoundBase* m_pRingHitSE;																		//ƒŠƒ“ƒOÕ“ËSE
+		USoundBase* m_pRingHitSE;																		//ãƒªãƒ³ã‚°è¡çªSE
 };

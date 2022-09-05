@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -23,7 +23,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	//ƒI[ƒo[ƒ‰ƒbƒv‚ÉŒÄ‚Î‚ê‚éƒCƒxƒ“ƒgŠÖ”‚ğ“o˜^
+	//ã‚ªãƒ¼ãƒãƒ¼ãƒ©ãƒƒãƒ—æ™‚ã«å‘¼ã°ã‚Œã‚‹ã‚¤ãƒ™ãƒ³ãƒˆé–¢æ•°ã‚’ç™»éŒ²
 	UFUNCTION()
 		virtual void OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 public:	
@@ -33,9 +33,9 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere)
-		UStaticMeshComponent* m_pGateMash;								//ƒQ[ƒg‚ÌƒƒbƒVƒ…
+		UStaticMeshComponent* m_pGateMash;								//ã‚²ãƒ¼ãƒˆã®ãƒ¡ãƒƒã‚·ãƒ¥
 	UPROPERTY(EditAnywhere)
-		UBoxComponent* m_pGoalCollision;									//ƒS[ƒ‹‚Ì“–‚½‚è”»’è
+		UBoxComponent* m_pGoalCollision;									//ã‚´ãƒ¼ãƒ«ã®å½“ãŸã‚Šåˆ¤å®š
 	UPROPERTY(EditAnywhere)
 		AGameManager* m_pGameManager;
 };

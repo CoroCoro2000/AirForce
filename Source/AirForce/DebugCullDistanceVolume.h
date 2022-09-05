@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -18,11 +18,11 @@ public:
     ADebugCullDistanceVolume(const FObjectInitializer& ObjectInitializer);
 
 protected:
-    //ƒQ[ƒ€ŠJn‚É1“x‚¾‚¯Às‚³‚ê‚éŠÖ”
+    //ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã«1åº¦ã ã‘å®Ÿè¡Œã•ã‚Œã‚‹é–¢æ•°
     virtual void BeginPlay()override;
 
 public:
-    //–ˆƒtƒŒ[ƒ€Às‚³‚ê‚éŠÖ”
+    //æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å®Ÿè¡Œã•ã‚Œã‚‹é–¢æ•°
     virtual void Tick(float DeltaTime)override;
 
 #if WITH_EDITOR

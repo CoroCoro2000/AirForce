@@ -1,38 +1,38 @@
+ï»¿//------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:PlayerDrone.h
+// æ¦‚è¦				:ãƒ‰ãƒ­ãƒ¼ãƒ³ã®ãƒ™ãƒ¼ã‚¹ã‚’ç¶™æ‰¿ã—ãŸãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ãƒ‰ãƒ­ãƒ¼ãƒ³ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2021/04/19
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹		:
 //------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:PlayerDrone.h
-// ŠT—v				:ƒhƒ[ƒ“‚Ìƒx[ƒX‚ğŒp³‚µ‚½ƒvƒŒƒCƒ„[‚Ìƒhƒ[ƒ“ƒNƒ‰ƒX
-// ì¬“ú			:2021/04/19
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e		:
-//------------------------------------------------------------------------
-// XVÒ			:19CU0104 ’r“cãÄˆê˜Y
-// XV“à—e		:2021/06/07 ƒhƒ[ƒ“‚Ì‹OÕƒGƒtƒFƒNƒg‚ğ’Ç‰Á
+// æ›´æ–°è€…			:19CU0104 æ± ç”°ç¿”ä¸€éƒ
+// æ›´æ–°å†…å®¹		:2021/06/07 ãƒ‰ãƒ­ãƒ¼ãƒ³ã®è»Œè·¡ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’è¿½åŠ 
 //------------------------------------------------------------------------
 
-//ƒCƒ“ƒNƒ‹[ƒhƒK[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ã‚¬ãƒ¼ãƒ‰
 #pragma once
 
-//ƒCƒ“ƒNƒ‹[ƒh
+//ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #include "CoreMinimal.h"
 #include "DroneBase.h"
 #include "PlayerDrone.generated.h"
 
-//‘O•ûéŒ¾
+//å‰æ–¹å®£è¨€
 class USpringArmComponent;
 class UCameraComponent;
 class UNiagaraSystem;
 class UNiagaraComponent;
 
-//Še²‚Ì“ü—Íî•ñ‚ğŠÇ—‚·‚é—ñ‹“
+//å„è»¸ã®å…¥åŠ›æƒ…å ±ã‚’ç®¡ç†ã™ã‚‹åˆ—æŒ™
 UENUM(BlueprintType)
 namespace EINPUT_AXIS
 {
 	enum Type
 	{
-		THROTTLE				UMETA(DisplayName = "THROTTLE"),//ã‰º
-		ELEVATOR				UMETA(DisplayName = "ELEVATOR"),//‘OŒã
-		AILERON				UMETA(DisplayName = "AILERON"),	//¶‰E
-		LADDER					UMETA(DisplayName = "LADDER"),	//ù‰ñ
+		THROTTLE				UMETA(DisplayName = "THROTTLE"),//ä¸Šä¸‹
+		ELEVATOR				UMETA(DisplayName = "ELEVATOR"),//å‰å¾Œ
+		AILERON				UMETA(DisplayName = "AILERON"),	//å·¦å³
+		LADDER					UMETA(DisplayName = "LADDER"),	//æ—‹å›
 		NUM						UMETA(Hidden)
 	};
 }
@@ -41,8 +41,8 @@ namespace EPATH_DRONE
 {
 	enum Type
 	{
-		REPLAY					UMETA(DisplayName = "REPLAY"),	//ƒŠƒvƒŒƒC
-		BEST						UMETA(DisplayName = "BEST"),	//ƒxƒXƒgƒ^ƒCƒ€
+		REPLAY					UMETA(DisplayName = "REPLAY"),	//ãƒªãƒ—ãƒ¬ã‚¤
+		BEST						UMETA(DisplayName = "BEST"),	//ãƒ™ã‚¹ãƒˆã‚¿ã‚¤ãƒ 
 		NUM						UMETA(Hidden)
 	};
 }
@@ -53,141 +53,141 @@ class AIRFORCE_API APlayerDrone : public ADroneBase
 	GENERATED_BODY()
 
 public:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	APlayerDrone();
-	//ƒfƒXƒgƒ‰ƒNƒ^
+	//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	virtual ~APlayerDrone() {}
 
 protected:
-	//ƒQ[ƒ€ŠJn‚É1“x‚¾‚¯ˆ—
+	//ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã«1åº¦ã ã‘å‡¦ç†
 	virtual void BeginPlay() override;
-	//ƒŒƒvƒŠƒP[ƒg‚ğ“o˜^
+	//ãƒ¬ãƒ—ãƒªã‚±ãƒ¼ãƒˆã‚’ç™»éŒ²
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const override;
 
 public:
-	//–ˆƒtƒŒ[ƒ€ˆ—
+	//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
 	virtual void Tick(float DeltaTime) override;
 
-	//y“ü—ÍƒoƒCƒ“ƒhzƒRƒ“ƒgƒ[ƒ‰[“ü—Íİ’è
+	//ã€å…¥åŠ›ãƒã‚¤ãƒ³ãƒ‰ã€‘ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼å…¥åŠ›è¨­å®š
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	//“®‚¢‚Ä‚¢‚é‚©”»’è‚·‚é(ˆø”F“ü—Í²)
+	//å‹•ã„ã¦ã„ã‚‹ã‹åˆ¤å®šã™ã‚‹(å¼•æ•°ï¼šå…¥åŠ›è»¸)
 	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
 		bool IsMoving(const FVector _axisValue)const { return  (!_axisValue.IsZero() ? true : false); }
 
-	//ƒŠƒvƒŒƒC‚ªÄ¶I—¹‚µ‚½‚©”»’è‚·‚é
+	//ãƒªãƒ—ãƒ¬ã‚¤ãŒå†ç”Ÿçµ‚äº†ã—ãŸã‹åˆ¤å®šã™ã‚‹
 	UFUNCTION(BlueprintCallable, Category = "PlayerDrone")
 		bool IsEndPlayBackReplay()const { return  (m_PlaybackFlame > m_SaveVelocityText[EPATH_DRONE::REPLAY].Num() -1 ? true : false); }
 
-	//ƒŠƒvƒŒƒC‚ÌƒŒ[ƒX‚ÌÀ•Wƒtƒ@ƒCƒ‹‘‚«‚İ
+	//ãƒªãƒ—ãƒ¬ã‚¤ã®ãƒ¬ãƒ¼ã‚¹ã®åº§æ¨™ãƒ•ã‚¡ã‚¤ãƒ«æ›¸ãè¾¼ã¿
 	UFUNCTION(BlueprintCallable, Category = "SaveRecord")
 		void WritingReplayRaceVector();
-	//ƒŠƒvƒŒƒC‚ÌƒŒ[ƒX‚ÌƒNƒI[ƒ^ƒjƒIƒ“ƒtƒ@ƒCƒ‹‘‚«‚İ
+	//ãƒªãƒ—ãƒ¬ã‚¤ã®ãƒ¬ãƒ¼ã‚¹ã®ã‚¯ã‚ªãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³ãƒ•ã‚¡ã‚¤ãƒ«æ›¸ãè¾¼ã¿
 	UFUNCTION(BlueprintCallable, Category = "SaveRecord")
 		void WritingReplayRaceQuaternion();
 
-	//1ˆÊ‚ÌƒŒ[ƒX‚ÌÀ•Wƒtƒ@ƒCƒ‹‘‚«‚İ
+	//1ä½ã®ãƒ¬ãƒ¼ã‚¹ã®åº§æ¨™ãƒ•ã‚¡ã‚¤ãƒ«æ›¸ãè¾¼ã¿
 	UFUNCTION(BlueprintCallable, Category = "SaveRecord")
 		void WritingBestRaceVector();
-	//1ˆÊ‚ÌƒŒ[ƒX‚ÌƒNƒI[ƒ^ƒjƒIƒ“ƒtƒ@ƒCƒ‹‘‚«‚İ
+	//1ä½ã®ãƒ¬ãƒ¼ã‚¹ã®ã‚¯ã‚ªãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³ãƒ•ã‚¡ã‚¤ãƒ«æ›¸ãè¾¼ã¿
 	UFUNCTION(BlueprintCallable, Category = "SaveRecord")
 		void WritingBestRaceQuaternion();
-	//ƒŠƒvƒŒƒC‚Ì‰Šúİ’è
+	//ãƒªãƒ—ãƒ¬ã‚¤ã®åˆæœŸè¨­å®š
 	UFUNCTION(BlueprintCallable, Category = "Replay")
 		void InitializeReplay();
 	UFUNCTION(BlueprintCallable, Category = "Replay")
 		bool GetisReplay()const { return m_isReplay; }
 
-	//ƒhƒ[ƒ“‚ÌŒ»İ’næ“¾(ƒ}ƒ‹ƒ`—p)
+	//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®ç¾åœ¨åœ°å–å¾—(ãƒãƒ«ãƒç”¨)
 	UFUNCTION(BlueprintCallable, Category = "Replay")
 		FVector GetDroneLocation() const{ return GetActorLocation(); }
-	//ƒhƒ[ƒ“‚ÌŒ»İ‰ñ“]—Êæ“¾(ƒ}ƒ‹ƒ`—p)
+	//ãƒ‰ãƒ­ãƒ¼ãƒ³ã®ç¾åœ¨å›è»¢é‡å–å¾—(ãƒãƒ«ãƒç”¨)
 	UFUNCTION(BlueprintCallable, Category = "Replay")
 		FRotator GetDroneRotation() const;
 
-	//ƒvƒŒƒCƒ„[‚ÌIDİ’è
+	//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®IDè¨­å®š
 	UFUNCTION(BlueprintCallable, Category = "Replay")
 		void SetPlayerId(const int32& PlayerId) { m_PlayerId = PlayerId; }
-	//ƒvƒŒƒCƒ„[‚ÌIDæ“¾
+	//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®IDå–å¾—
 	UFUNCTION(BlueprintCallable, Category = "Replay")
 		int32 GetPlayerId()const { return m_PlayerId; }
 		
 private:
-	//y“ü—ÍƒoƒCƒ“ƒhzŠeƒXƒeƒBƒbƒN‚Ì“ü—Í
+	//ã€å…¥åŠ›ãƒã‚¤ãƒ³ãƒ‰ã€‘å„ã‚¹ãƒ†ã‚£ãƒƒã‚¯ã®å…¥åŠ›
 	void Input_Throttle(float _axisValue);
 	void Input_Elevator(float _axisValue);
 	void Input_Aileron(float _axisValue);
 	void Input_Ladder(float _axisValue);
 
 	UFUNCTION(BlueprintCallable, Category = "Target")
-		UCameraComponent* GetCamera() const { return m_pCamera; }	//ƒJƒƒ‰æ“¾
+		UCameraComponent* GetCamera() const { return m_pCamera; }	//ã‚«ãƒ¡ãƒ©å–å¾—
 
 	UFUNCTION(BlueprintCallable, Category = "InputAxis")
 		float GetInputValue(const TEnumAsByte<EINPUT_AXIS::Type> _Axis)const { return m_AxisValue[_Axis]; }
 
-	//ƒGƒtƒFƒNƒg‚Ì‰Šúİ’è
+	//ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®åˆæœŸè¨­å®š
 	void InitializeEmitter();
 
-	//ƒJƒƒ‰‚Ì‰Šúİ’è
+	//ã‚«ãƒ¡ãƒ©ã®åˆæœŸè¨­å®š
 	void InitializeCamera();
 
-	//ƒJƒƒ‰XVˆ—
+	//ã‚«ãƒ¡ãƒ©æ›´æ–°å‡¦ç†
 	void UpdateCamera(const float& DeltaTime);
 
-	//“ü—ÍƒXƒe[ƒg‚©‚ç‰H‚Ì‰Á‘¬“x‚É•ÏŠ·‚·‚éˆ—
+	//å…¥åŠ›ã‚¹ãƒ†ãƒ¼ãƒˆã‹ã‚‰ç¾½ã®åŠ é€Ÿåº¦ã«å¤‰æ›ã™ã‚‹å‡¦ç†
 	float RightInputValueToWingAcceleration(const int _arrayIndex);
 	float LeftInputValueToWingAcceleration(const int _arrayIndex);
 
-	//‰H‚Ì‰Á‘¬“xXVˆ—
+	//ç¾½ã®åŠ é€Ÿåº¦æ›´æ–°å‡¦ç†
 	virtual void UpdateWingAccle(const float& DeltaTime);
 	 
-	//“ü—Í‚Ì‰Á‘¬“xXVˆ—
+	//å…¥åŠ›ã®åŠ é€Ÿåº¦æ›´æ–°å‡¦ç†
 	virtual void UpdateAxisAcceleration(const float& DeltaTime);
 
-	//‰ñ“]ˆ—
+	//å›è»¢å‡¦ç†
 	void UpdateRotation(const float& DeltaTime);
 
-	//ˆÚ“®ˆ—
+	//ç§»å‹•å‡¦ç†
 	void UpdateSpeed(const float& DeltaTime)override;
 
-	//ƒJƒƒ‰‚Æ‚ÌÕ•Á•¨‚ÌƒRƒŠƒWƒ‡ƒ“”»’è
+	//ã‚«ãƒ¡ãƒ©ã¨ã®é®è”½ç‰©ã®ã‚³ãƒªã‚¸ãƒ§ãƒ³åˆ¤å®š
 	void UpdateCameraCollsion(const float& DeltaTime);
 
-	//•—‚ÌƒGƒtƒFƒNƒg‚ÌXVˆ—
+	//é¢¨ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®æ›´æ–°å‡¦ç†
 	void UpdateWindEffect(const float& DeltaTime);
 
-	//ƒŠƒvƒŒƒCXVˆ—
+	//ãƒªãƒ—ãƒ¬ã‚¤æ›´æ–°å‡¦ç†
 	void UpdateReplay(const float& DeltaTime);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerCamera")
-		USpringArmComponent* m_pSpringArm;									//ƒXƒvƒŠƒ“ƒOƒA[ƒ€
+		USpringArmComponent* m_pSpringArm;									//ã‚¹ãƒ—ãƒªãƒ³ã‚°ã‚¢ãƒ¼ãƒ 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerCamera")
-		UCameraComponent* m_pCamera;										//ƒJƒƒ‰
+		UCameraComponent* m_pCamera;										//ã‚«ãƒ¡ãƒ©
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
-		float m_CameraTargetLength;											//ƒvƒŒƒCƒ„[‚ÆƒJƒƒ‰‚Ì‹——£
+		float m_CameraTargetLength;											//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ã‚«ãƒ¡ãƒ©ã®è·é›¢
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
-		float m_FieldOfView;														//ƒJƒƒ‰‚Ì‹–ìŠp
+		float m_FieldOfView;														//ã‚«ãƒ¡ãƒ©ã®è¦–é‡è§’
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
-		FVector m_CameraSocketOffset;										//ƒJƒƒ‰‚ÌˆÊ’u
+		FVector m_CameraSocketOffset;										//ã‚«ãƒ¡ãƒ©ã®ä½ç½®
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
-		FVector m_CameraSocketOffsetMax;									//ƒJƒƒ‰‚ª’Ç]‚·‚é”ÍˆÍ‚ÌãŒÀ
+		FVector m_CameraSocketOffsetMax;									//ã‚«ãƒ¡ãƒ©ãŒè¿½å¾“ã™ã‚‹ç¯„å›²ã®ä¸Šé™
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
-		FVector m_CameraMoveLimit;											//ƒJƒƒ‰‚ÌˆÚ“®‚Å‚«‚éãŒÀ
+		FVector m_CameraMoveLimit;											//ã‚«ãƒ¡ãƒ©ã®ç§»å‹•ã§ãã‚‹ä¸Šé™
 
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
-		FRotator m_CameraRotationAttenRate;							//ƒJƒƒ‰‚ªŒX‚­‘¬‚³
+		FRotator m_CameraRotationAttenRate;							//ã‚«ãƒ¡ãƒ©ãŒå‚¾ãé€Ÿã•
 
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
-		float m_MotionBlurAmount;											//ƒ‚[ƒVƒ‡ƒ“ƒuƒ‰[‚Ì‹­“x
+		float m_MotionBlurAmount;											//ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ãƒ–ãƒ©ãƒ¼ã®å¼·åº¦
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
-		float m_MotionBlurMax;													//ƒ‚[ƒVƒ‡ƒ“ƒuƒ‰[‚ÌÅ‘å˜c‚İ
+		float m_MotionBlurMax;													//ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ãƒ–ãƒ©ãƒ¼ã®æœ€å¤§æ­ªã¿
 	UPROPERTY(EditAnywhere, Category = "PlayerCamera")
-		int32 m_MotionBlurTargetFPS;											//ƒ‚[ƒVƒ‡ƒ“ƒuƒ‰[‚Ìƒ^[ƒQƒbƒgFPS
+		int32 m_MotionBlurTargetFPS;											//ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ãƒ–ãƒ©ãƒ¼ã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆFPS
 	//-------------------------------------------------------------------------------------------------------
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Drone|Input")
-		FVector4 m_AxisValue;												//Še²‚Ì“ü—Í’l(0:AILERONA1:ELEVATORA2:THROTTLEA3:LADDER)
+		FVector4 m_AxisValue;												//å„è»¸ã®å…¥åŠ›å€¤(0:AILERONã€1:ELEVATORã€2:THROTTLEã€3:LADDER)
 	UPROPERTY(EditAnywhere, Category = "SaveFilePath")
 		TArray<FString> m_SaveTypeFolderPath;
 	UPROPERTY(EditAnywhere, Category = "Ghost")

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -6,7 +6,7 @@
 #include "TickLODActor.h"
 #include "Train.generated.h"
 
-//‘O•ûéŒ¾
+//å‰æ–¹å®£è¨€
 class UStaticMesh;
 class UStaticMeshComponent;
 class ASplineActor;
@@ -29,45 +29,45 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	//ƒƒbƒVƒ…‚Ì‰Šú‰»
+	//ãƒ¡ãƒƒã‚·ãƒ¥ã®åˆæœŸåŒ–
 	void InitializeMesh();
-	//‘¬“xXVˆ—
+	//é€Ÿåº¦æ›´æ–°å‡¦ç†
 	void UpdateSpeed(const float& DeltaTime);
-	//ˆÚ“®XVˆ—
+	//ç§»å‹•æ›´æ–°å‡¦ç†
 	void UpdateMove(const float& DeltaTime);
-	//‰ñ“]XVˆ—
+	//å›è»¢æ›´æ–°å‡¦ç†
 	void UpdateRotation(const float& DeltaTime);
-	//ƒXƒvƒ‰ƒCƒ“‚ÌI“_‚É“’…‚µ‚Ä‚¢‚é‚©Šm”F‚·‚éˆ—
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®çµ‚ç‚¹ã«åˆ°ç€ã—ã¦ã„ã‚‹ã‹ç¢ºèªã™ã‚‹å‡¦ç†
 	void CheckMoveDistance();
 
 public:
-	//‰Šú‰»
+	//åˆæœŸåŒ–
 	void InitReplay();
 
-	//ˆÚ“®ƒtƒ‰ƒO‚Ìİ’è
+	//ç§»å‹•ãƒ•ãƒ©ã‚°ã®è¨­å®š
 	void SetIsMove(const bool bCanMove) { m_bCanMove = bCanMove; }
 
 private:
 	UPROPERTY(EditAnywhere)
-		TArray<UStaticMesh*> m_pMeshes;										//“dÔ‚ÌƒƒbƒVƒ…
+		TArray<UStaticMesh*> m_pMeshes;										//é›»è»Šã®ãƒ¡ãƒƒã‚·ãƒ¥
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* m_pFrontTrainMesh;
 	UPROPERTY(VisibleAnywhere)
-		TArray<UStaticMeshComponent*> m_pTrainMeshes;				//“dÔ‚ÌƒƒbƒVƒ…
+		TArray<UStaticMeshComponent*> m_pTrainMeshes;				//é›»è»Šã®ãƒ¡ãƒƒã‚·ãƒ¥
 	UPROPERTY(EditAnywhere)
-		ASplineActor* m_pSplineActor;												//“dÔ‚ÌˆÚ“®‚Ég‚¤ƒXƒvƒ‰ƒCƒ“‚ğ‚ÂƒAƒNƒ^[
+		ASplineActor* m_pSplineActor;												//é›»è»Šã®ç§»å‹•ã«ä½¿ã†ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã‚’æŒã¤ã‚¢ã‚¯ã‚¿ãƒ¼
 	UPROPERTY(EditAnywhere)
-		float m_MaxSpeed;																	//Å‚‘¬“x
+		float m_MaxSpeed;																	//æœ€é«˜é€Ÿåº¦
 	UPROPERTY(VisibleAnywhere)
-		float m_CurrentSpeed;															//Œ»İ‚Ì‘¬“x
+		float m_CurrentSpeed;															//ç¾åœ¨ã®é€Ÿåº¦
 	UPROPERTY(EditAnywhere)
-		float m_Acceleration;																//‰Á‘¬“x
+		float m_Acceleration;																//åŠ é€Ÿåº¦
 	UPROPERTY(EditAnywhere)
-		float m_Deceleration;																//Œ¸‘¬“x
+		float m_Deceleration;																//æ¸›é€Ÿåº¦
 	UPROPERTY(VisibleAnywhere)
-		float m_MoveDistance;															//“dÔ‚ªƒXƒvƒ‰ƒCƒ“‚ÌŠJn“_‚©‚çi‚ñ‚¾‹——£
+		float m_MoveDistance;															//é›»è»ŠãŒã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®é–‹å§‹ç‚¹ã‹ã‚‰é€²ã‚“ã è·é›¢
 	UPROPERTY(EditAnywhere)
-		bool m_bLoop;																		//ƒXƒvƒ‰ƒCƒ“‚ÌI“_‚É“’…‚µ‚½‚çn“_‚©‚çƒ‹[ƒv‚·‚é‚©‚Ç‚¤‚©
+		bool m_bLoop;																		//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®çµ‚ç‚¹ã«åˆ°ç€ã—ãŸã‚‰å§‹ç‚¹ã‹ã‚‰ãƒ«ãƒ¼ãƒ—ã™ã‚‹ã‹ã©ã†ã‹
 	UPROPERTY(EditAnywhere)
-		bool m_bCanMove;																	//ˆÚ“®‰Â”\ƒtƒ‰ƒO
+		bool m_bCanMove;																	//ç§»å‹•å¯èƒ½ãƒ•ãƒ©ã‚°
 };

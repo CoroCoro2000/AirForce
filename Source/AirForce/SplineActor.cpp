@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "SplineActor.h"
@@ -32,7 +32,7 @@ void ASplineActor::Tick(float DeltaTime)
 
 }
 
-//i‚ñ‚¾‹——£‚©‚çƒXƒvƒ‰ƒCƒ“‚ÌÀ•W‚ðŽæ“¾
+//é€²ã‚“ã è·é›¢ã‹ã‚‰ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®åº§æ¨™ã‚’å–å¾—
 FVector ASplineActor::GetCurrentLocation(const float& length, const bool& bLoop)const
 {
 	FVector Location = FVector::ZeroVector;
@@ -44,13 +44,13 @@ FVector ASplineActor::GetCurrentLocation(const float& length, const bool& bLoop)
 			LocalLength = length / m_pSpline->GetSplineLength();
 		}
 
-		//ƒXƒvƒ‰ƒCƒ“‚Ì’·‚³‚ÌˆÊ’u‚ðŽæ“¾
+		//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®é•·ã•ã®ä½ç½®ã‚’å–å¾—
 		Location = m_pSpline->GetLocationAtDistanceAlongSpline(LocalLength, ESplineCoordinateSpace::World);
 	}
 	return Location;
 }
 
-//i‚ñ‚¾‹——£‚©‚çƒXƒvƒ‰ƒCƒ“‚Ì‰ñ“]‚ðŽæ“¾
+//é€²ã‚“ã è·é›¢ã‹ã‚‰ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®å›žè»¢ã‚’å–å¾—
 FRotator ASplineActor::GetCurrentRotation(const float& length, const bool& bLoop)const
 {
 	FRotator Rotation = FRotator::ZeroRotator;
@@ -62,7 +62,7 @@ FRotator ASplineActor::GetCurrentRotation(const float& length, const bool& bLoop
 			LocalLength = length / m_pSpline->GetSplineLength();
 		}
 
-		//ƒXƒvƒ‰ƒCƒ“‚Ì’·‚³‚Ì‰ñ“]‚ðŽæ“¾
+		//ã‚¹ãƒ—ãƒ©ã‚¤ãƒ³ã®é•·ã•ã®å›žè»¢ã‚’å–å¾—
 		Rotation = m_pSpline->GetRotationAtDistanceAlongSpline(LocalLength, ESplineCoordinateSpace::World);
 	}
 	return Rotation;

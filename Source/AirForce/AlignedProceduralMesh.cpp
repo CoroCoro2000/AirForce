@@ -1,9 +1,9 @@
-//--------------------------------------------------------------------------------------------
-// ƒtƒ@ƒCƒ‹–¼		:AlignedProceduralMesh.cpp
-// ŠT—v				:‹K‘¥“I‚É•À‚ÔƒƒbƒVƒ…‚ğ©“®¶¬‚·‚éƒAƒNƒ^[ƒNƒ‰ƒX
-// ì¬“ú			:2021/08/07
-// ì¬Ò			:19CU0105 ’r‘º—½‘¾
-// XV“à—e			:
+ï»¿//--------------------------------------------------------------------------------------------
+// ãƒ•ã‚¡ã‚¤ãƒ«å		:AlignedProceduralMesh.cpp
+// æ¦‚è¦				:è¦å‰‡çš„ã«ä¸¦ã¶ãƒ¡ãƒƒã‚·ãƒ¥ã‚’è‡ªå‹•ç”Ÿæˆã™ã‚‹ã‚¢ã‚¯ã‚¿ãƒ¼ã‚¯ãƒ©ã‚¹
+// ä½œæˆæ—¥			:2021/08/07
+// ä½œæˆè€…			:19CU0105 æ± æ‘å‡Œå¤ª
+// æ›´æ–°å†…å®¹			:
 //--------------------------------------------------------------------------------------------
 
 #include "AlignedProceduralMesh.h"
@@ -21,10 +21,10 @@ AAlignedProceduralMesh::AAlignedProceduralMesh()
 	, m_GridStatus()
 	, m_bFix(false)
 {
-	//ˆ—‚ÍƒGƒfƒBƒ^ã‚Å‚µ‚©Às‚µ‚È‚¢ˆ×ATick‚Í–³Œø‚É‚·‚é
+	//å‡¦ç†ã¯ã‚¨ãƒ‡ã‚£ã‚¿ä¸Šã§ã—ã‹å®Ÿè¡Œã—ãªã„ç‚ºã€Tickã¯ç„¡åŠ¹ã«ã™ã‚‹
 	PrimaryActorTick.bCanEverTick = false;
 
-	//ƒƒbƒVƒ…ƒCƒ“ƒXƒ^ƒ“ƒX¶¬
+	//ãƒ¡ãƒƒã‚·ãƒ¥ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ç”Ÿæˆ
 	m_pMeshes = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("Meshes"));
 	if (m_pMeshes)
 	{
@@ -48,13 +48,13 @@ void AAlignedProceduralMesh::Tick(float DeltaTime)
 
 }
 
-//’¼üó‚É¶¬‚·‚éˆ—
+//ç›´ç·šçŠ¶ã«ç”Ÿæˆã™ã‚‹å‡¦ç†
 void AAlignedProceduralMesh::CreateLinear()
 {
-	//ŒÅ’è‚³‚ê‚Ä‚¢‚È‚¯‚ê‚Îw’è‚µ‚½”‚¾‚¯¶¬‚·‚é
+	//å›ºå®šã•ã‚Œã¦ã„ãªã‘ã‚Œã°æŒ‡å®šã—ãŸæ•°ã ã‘ç”Ÿæˆã™ã‚‹
 	if (!m_bFix)
 	{
-		//ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€‚ÌƒŠƒZƒbƒg
+		//ãƒˆãƒ©ãƒ³ã‚¹ãƒ•ã‚©ãƒ¼ãƒ ã®ãƒªã‚»ãƒƒãƒˆ
 		if ((int)m_TempInstanceTransform.Num() > 0)
 		{
 			m_TempInstanceTransform.Empty();
@@ -67,35 +67,35 @@ void AAlignedProceduralMesh::CreateLinear()
 			initLocation.Y = (float)index * m_Distance;
 			float initScale = 1.f;
 
-			//ƒƒbƒVƒ…ŠÔ‚Ì‹——£‚ğƒ‰ƒ“ƒ_ƒ€‰»‚·‚é‚©‚Ç‚¤‚©
+			//ãƒ¡ãƒƒã‚·ãƒ¥é–“ã®è·é›¢ã‚’ãƒ©ãƒ³ãƒ€ãƒ åŒ–ã™ã‚‹ã‹ã©ã†ã‹
 			if (m_RandomizeStatus.bRandomizeDistance)
 			{
 				float RandomDistance = FMath::FRandRange(m_RandomizeStatus.RandomDistanceMin, m_RandomizeStatus.RandomDistanceMax);
 				initLocation.Y *= CGameUtility::SetDecimalTruncation(RandomDistance, 3);
 			}
-			//ƒƒbƒVƒ…‚ÌƒXƒP[ƒ‹‚ğƒ‰ƒ“ƒ_ƒ€‰»‚·‚é‚©‚Ç‚¤‚©
+			//ãƒ¡ãƒƒã‚·ãƒ¥ã®ã‚¹ã‚±ãƒ¼ãƒ«ã‚’ãƒ©ãƒ³ãƒ€ãƒ åŒ–ã™ã‚‹ã‹ã©ã†ã‹
 			if (m_RandomizeStatus.bRandomizeScale)
 			{
 				float RandomScale = FMath::FRandRange(m_RandomizeStatus.RandomScaleMin, m_RandomizeStatus.RandomScaleMax);
 				initScale *= CGameUtility::SetDecimalTruncation(RandomScale, 3);
 			}
-			//ƒƒbƒVƒ…‚Ì‰ñ“]‚ğƒ‰ƒ“ƒ_ƒ€‰»‚·‚é‚©‚Ç‚¤‚©
+			//ãƒ¡ãƒƒã‚·ãƒ¥ã®å›è»¢ã‚’ãƒ©ãƒ³ãƒ€ãƒ åŒ–ã™ã‚‹ã‹ã©ã†ã‹
 			if (m_RandomizeStatus.bRandomizeRotaion)
 			{
 				float RandomRotation = FMath::FRandRange(-m_RandomizeStatus.RandomRotaionYawAngle, m_RandomizeStatus.RandomRotaionYawAngle);
 				initRotation.Yaw += CGameUtility::SetDecimalTruncation(RandomRotation, 3);
 			}
 
-			//ƒƒbƒVƒ…‚Ìƒgƒ‰ƒ“ƒXƒtƒH[ƒ€‚ğİ’è
+			//ãƒ¡ãƒƒã‚·ãƒ¥ã®ãƒˆãƒ©ãƒ³ã‚¹ãƒ•ã‚©ãƒ¼ãƒ ã‚’è¨­å®š
 			FTransform initTransform = FTransform(initRotation, initLocation, FVector(initScale));
 
-			//ƒƒbƒVƒ…‚Ì’Ç‰Á
+			//ãƒ¡ãƒƒã‚·ãƒ¥ã®è¿½åŠ 
 			m_pMeshes->AddInstance(initTransform);
-			//ƒƒbƒVƒ…‚Ìƒgƒ‰ƒ“ƒXƒtƒH[ƒ€î•ñ‚ğ•Û‘¶
+			//ãƒ¡ãƒƒã‚·ãƒ¥ã®ãƒˆãƒ©ãƒ³ã‚¹ãƒ•ã‚©ãƒ¼ãƒ æƒ…å ±ã‚’ä¿å­˜
 			m_TempInstanceTransform.Add(initTransform);
 		}
 	}
-	//ŒÅ’è‚³‚ê‚Ä‚¢‚é‚Æ‚«‚Í•ÏX‘O‚Ìó‘Ô‚Å¶¬‚·‚é
+	//å›ºå®šã•ã‚Œã¦ã„ã‚‹ã¨ãã¯å¤‰æ›´å‰ã®çŠ¶æ…‹ã§ç”Ÿæˆã™ã‚‹
 	else
 	{
 		for (FTransform transform : m_TempInstanceTransform)
@@ -105,7 +105,7 @@ void AAlignedProceduralMesh::CreateLinear()
 	}
 }
 
-//Šiqó‚É¶¬‚·‚éˆ—
+//æ ¼å­çŠ¶ã«ç”Ÿæˆã™ã‚‹å‡¦ç†
 void AAlignedProceduralMesh::CreateGrid()
 {
 	FVector initLocation = FVector::ZeroVector;
@@ -126,12 +126,12 @@ void AAlignedProceduralMesh::CreateGrid()
 	}
 }
 
-//ƒƒbƒVƒ…î•ñ‚ÌXV
+//ãƒ¡ãƒƒã‚·ãƒ¥æƒ…å ±ã®æ›´æ–°
 void AAlignedProceduralMesh::UpdateMesh()
 {
 	if (!m_pMeshes) { return; }
 	if (!m_pMeshes->GetStaticMesh()) { return; }
-	//XV‚³‚ê‚é‘O‚ÌƒƒbƒVƒ…î•ñ‚ğƒŠƒZƒbƒg
+	//æ›´æ–°ã•ã‚Œã‚‹å‰ã®ãƒ¡ãƒƒã‚·ãƒ¥æƒ…å ±ã‚’ãƒªã‚»ãƒƒãƒˆ
 	if ((int)m_pMeshes->GetInstanceCount() > 0) { m_pMeshes->ClearInstances(); }
 
 	switch (m_ArrangementType)
@@ -151,11 +151,11 @@ void AAlignedProceduralMesh::UpdateMesh()
 #endif // DEBUG_INCTANCECOUNT
 }
 
-//ƒGƒfƒBƒ^ã‚Å”z’uA‚Ü‚½‚Í“à•”‚Ì’l‚ª•ÏX‚³‚ê‚½‚ÉŒÄ‚Ño‚³‚ê‚éŠÖ”
+//ã‚¨ãƒ‡ã‚£ã‚¿ä¸Šã§é…ç½®æ™‚ã€ã¾ãŸã¯å†…éƒ¨ã®å€¤ãŒå¤‰æ›´ã•ã‚ŒãŸæ™‚ã«å‘¼ã³å‡ºã•ã‚Œã‚‹é–¢æ•°
 void AAlignedProceduralMesh::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
-	//ƒƒbƒVƒ…‚ğ¶¬‚·‚é
+	//ãƒ¡ãƒƒã‚·ãƒ¥ã‚’ç”Ÿæˆã™ã‚‹
 	UpdateMesh();
 }

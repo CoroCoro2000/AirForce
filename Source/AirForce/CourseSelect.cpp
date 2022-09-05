@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "CourseSelect.h"
@@ -28,7 +28,7 @@ ACourseSelect::ACourseSelect()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	//ƒfƒtƒHƒ‹ƒgƒvƒŒƒCƒ„[‚Æ‚µ‚Äİ’è
+	//ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ã—ã¦è¨­å®š
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
 	if (m_pDummyComponent)
@@ -45,7 +45,7 @@ void ACourseSelect::BeginPlay()
 	Super::BeginPlay();
 	
 
-	//ƒf[ƒ^ƒe[ƒuƒ‹‚ÌŒŸõ
+	//ãƒ‡ãƒ¼ã‚¿ãƒ†ãƒ¼ãƒ–ãƒ«ã®æ¤œç´¢
 	if (m_pLevelDataTable)
 	{
 		TArray<FName> OutRowName;
@@ -53,13 +53,13 @@ void ACourseSelect::BeginPlay()
 
 		if (OutRowName.Num() > 0)
 		{
-			//0”Ô–Ú‚Íƒ^ƒCƒgƒ‹‚È‚Ì‚ÅœŠO
+			//0ç•ªç›®ã¯ã‚¿ã‚¤ãƒˆãƒ«ãªã®ã§é™¤å¤–
 			OutRowName.RemoveAt(0);
-			//ƒR[ƒX‚Ì‘”‚ğ•Û
+			//ã‚³ãƒ¼ã‚¹ã®ç·æ•°ã‚’ä¿æŒ
 			m_CourseTotal = OutRowName.Num();
 		}
 	}
-	//ƒƒbƒVƒ…‰Šú‰»
+	//ãƒ¡ãƒƒã‚·ãƒ¥åˆæœŸåŒ–
 	InitializeMesh();
 
 	//
@@ -71,20 +71,20 @@ void ACourseSelect::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//ƒƒbƒVƒ…‚Ì‰ñ“]XV
+	//ãƒ¡ãƒƒã‚·ãƒ¥ã®å›è»¢æ›´æ–°
 	UpdateMeshRotation(DeltaTime);
 
-	//ƒR[ƒX‘S‘Ì‚Ì‰ñ“]XV
+	//ã‚³ãƒ¼ã‚¹å…¨ä½“ã®å›è»¢æ›´æ–°
 	UpdateLocation(DeltaTime);
 }
 
-//ƒƒbƒVƒ…‰Šú‰»
+//ãƒ¡ãƒƒã‚·ãƒ¥åˆæœŸåŒ–
 void ACourseSelect::InitializeMesh()
 {
 	if (m_CourseTotal <= 0) { return; }
 	if (!m_pDummyComponent) { return; }
 
-	//ƒƒbƒVƒ…‚Ì‰Šúİ’è
+	//ãƒ¡ãƒƒã‚·ãƒ¥ã®åˆæœŸè¨­å®š
 	float Radius = 1000.f;
 	FVector Center = GetActorLocation();
 	FVector Dir = GetActorForwardVector() * Radius;
@@ -92,7 +92,7 @@ void ACourseSelect::InitializeMesh()
 	FRotator Rotation = FRotator(0.f, 360.f / m_CourseTotal, 0.f);
 	FTransform NewTransform(FRotator(0.f, 180.f, 45.f), Start, FVector(3.f, 6.f, 1.f));
 
-	//‘I‘ğƒR[ƒX‚Ì”‚¾‚¯ƒƒbƒVƒ…‚ğ¶¬
+	//é¸æŠã‚³ãƒ¼ã‚¹ã®æ•°ã ã‘ãƒ¡ãƒƒã‚·ãƒ¥ã‚’ç”Ÿæˆ
 	for (int i = 0; i < m_CourseTotal; ++i)
 	{
 		UStaticMeshComponent* pMesh = NewObject<UStaticMeshComponent>(this);
@@ -107,14 +107,14 @@ void ACourseSelect::InitializeMesh()
 			pMesh->SetWorldTransform(NewTransform);
 			m_pMinimapMeshes.Add(pMesh);
 
-			//¶¬²‚ğ‰ñ“]
+			//ç”Ÿæˆè»¸ã‚’å›è»¢
 			Dir = Rotation.RotateVector(Dir);
 			NewTransform.SetLocation(Center + Dir);
 		}
 	}
 }
 
-//ƒƒbƒVƒ…‚Ì‰ñ“]
+//ãƒ¡ãƒƒã‚·ãƒ¥ã®å›è»¢
 void ACourseSelect::UpdateMeshRotation(const float& DeltaTime)
 {
 	for (int i = 0; i < m_CourseTotal; ++i)
@@ -126,7 +126,7 @@ void ACourseSelect::UpdateMeshRotation(const float& DeltaTime)
 	}
 }
 
-//ƒƒbƒVƒ…‚ÌˆÚ“®
+//ãƒ¡ãƒƒã‚·ãƒ¥ã®ç§»å‹•
 void ACourseSelect::UpdateLocation(const float& DeltaTime)
 {
 	if (m_CourseTotal <= 0) { return; }
@@ -145,7 +145,7 @@ void ACourseSelect::UpdateLocation(const float& DeltaTime)
 	}
 }
 
-//‘I‘ğ’†‚ÌƒR[ƒX–¼æ“¾
+//é¸æŠä¸­ã®ã‚³ãƒ¼ã‚¹åå–å¾—
 FName ACourseSelect::GetSelectCourseName()const
 {
 	if (!m_pLevelDataTable) { return FName("None"); }
@@ -164,13 +164,13 @@ FName ACourseSelect::GetSelectCourseName()const
 }
 
 
-//‘I‘ğ’†‚ÌƒR[ƒX–¼æ“¾
+//é¸æŠä¸­ã®ã‚³ãƒ¼ã‚¹åå–å¾—
 FString ACourseSelect::GetSelectCourseBestTime(int _CourseNumber)const
 {
 	return m_pCourseBestTimeText[_CourseNumber] != TEXT("") ? m_pCourseBestTimeText[_CourseNumber]:TEXT("--------------");
 }
 
-//ƒR[ƒX•ÊƒxƒXƒgƒ^ƒCƒ€‚Ì‰Šú‰»
+//ã‚³ãƒ¼ã‚¹åˆ¥ãƒ™ã‚¹ãƒˆã‚¿ã‚¤ãƒ ã®åˆæœŸåŒ–
 void ACourseSelect::InitializeCourseBestTimeText()
 {
 	TArray<FName> OutRowName;
@@ -178,10 +178,10 @@ void ACourseSelect::InitializeCourseBestTimeText()
 	OutRowName.RemoveAt(0);
 
 	TArray<FString> BestTimeText;
-	//ƒXƒe[ƒW‚Ì”‚¾‚¯ŒJ‚è•Ô‚·
+	//ã‚¹ãƒ†ãƒ¼ã‚¸ã®æ•°ã ã‘ç¹°ã‚Šè¿”ã™
 	for (int i = 0; i < OutRowName.Num(); i++)
 	{
-		//ƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+		//ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿
 		bool b = FFileHelper::LoadFileToStringArray(BestTimeText, *(FPaths::ProjectDir() + "Record/" + OutRowName[i].ToString() + "/Record.txt"));
 
 #if WITH_EDITOR
@@ -190,7 +190,7 @@ void ACourseSelect::InitializeCourseBestTimeText()
 		UKismetSystemLibrary::PrintString(this, str, true, false);
 #endif // WITH_EDITOR
 
-		//1ˆÊ‚Ìƒ^ƒCƒ€‚¾‚¯æ‚èo‚·
+		//1ä½ã®ã‚¿ã‚¤ãƒ ã ã‘å–ã‚Šå‡ºã™
 		if (BestTimeText.IsValidIndex(0))
 		{
 			m_pCourseBestTimeText.Add(BestTimeText[0]);
@@ -208,7 +208,7 @@ void ACourseSelect::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	//²ƒ}ƒbƒsƒ“ƒO
+	//è»¸ãƒãƒƒãƒ”ãƒ³ã‚°
 	InputComponent->BindAction(TEXT("InputRight"), EInputEvent::IE_Pressed, this, &ACourseSelect::Input_Right);
 	InputComponent->BindAction(TEXT("InputLeft"), EInputEvent::IE_Pressed, this, &ACourseSelect::Input_Left);
 	InputComponent->BindAction(TEXT("InputA"), EInputEvent::IE_Pressed, this, &ACourseSelect::Input_Decide);
@@ -223,7 +223,7 @@ void ACourseSelect::Input_Right()
 		m_CourseNumber = (m_CourseNumber + m_CourseTotal - 1) % m_CourseTotal;
 		m_TargetRotation += 360.f / (float)m_CourseTotal;
 
-		//“ü—Í‚ª‚ ‚Á‚½‚ç‘I‘ğƒR[ƒX‚Ì3Dƒ~ƒjƒ}ƒbƒv‚ğ³–Ê‚ÉŒü‚¯‚é
+		//å…¥åŠ›ãŒã‚ã£ãŸã‚‰é¸æŠã‚³ãƒ¼ã‚¹ã®3DãƒŸãƒ‹ãƒãƒƒãƒ—ã‚’æ­£é¢ã«å‘ã‘ã‚‹
 		m_pMinimapMeshes[m_CourseNumber]->SetWorldRotation(FRotator(0.f, 0.f, 45.f));
 		m_bInputEnable = true;
 	}
@@ -237,7 +237,7 @@ void ACourseSelect::Input_Left()
 		m_CourseNumber = (m_CourseNumber + 1) % m_CourseTotal;
 		m_TargetRotation -= 360.f / (float)m_CourseTotal;
 
-		//“ü—Í‚ª‚ ‚Á‚½‚ç‘I‘ğƒR[ƒX‚Ì3Dƒ~ƒjƒ}ƒbƒv‚ğ³–Ê‚ÉŒü‚¯‚é
+		//å…¥åŠ›ãŒã‚ã£ãŸã‚‰é¸æŠã‚³ãƒ¼ã‚¹ã®3DãƒŸãƒ‹ãƒãƒƒãƒ—ã‚’æ­£é¢ã«å‘ã‘ã‚‹
 		m_pMinimapMeshes[m_CourseNumber]->SetWorldRotation(FRotator(0.f, 0.f, 45.f));
 		m_bInputEnable = true;
 	}
@@ -247,7 +247,7 @@ void ACourseSelect::Input_Decide()
 {
 	if (m_bInputEnable)
 	{
-		//ƒR[ƒX‘I‘ğ‚ğI—¹‚·‚é
+		//ã‚³ãƒ¼ã‚¹é¸æŠã‚’çµ‚äº†ã™ã‚‹
 		m_bCourseSelectCompleted = true;
 	}
 }

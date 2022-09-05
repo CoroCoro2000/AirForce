@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "WaterBox.h"
@@ -14,7 +14,7 @@ AWaterBox::AWaterBox()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	//ƒƒbƒVƒ…‰Šú‰»
+	//ãƒ¡ãƒƒã‚·ãƒ¥åˆæœŸåŒ–
 	InitializeMesh();
 }
 
@@ -41,7 +41,7 @@ void AWaterBox::OnConstruction(const FTransform& Transform)
 	m_pBackfaceMesh->SetRelativeLocation(FVector(0.f, 0.f, -m_BoundaryThickness));
 }
 
-//ƒƒbƒVƒ…‚Ì‰Šú‰»
+//ãƒ¡ãƒƒã‚·ãƒ¥ã®åˆæœŸåŒ–
 void AWaterBox::InitializeMesh()
 {
 	if (!m_pSurfaceMesh) { return; }

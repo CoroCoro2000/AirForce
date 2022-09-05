@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "GoalGate.h"
@@ -14,17 +14,17 @@ AGoalGate::AGoalGate()
 	, m_pGoalCollision(NULL)
 	, m_pGameManager(NULL)
 {
- 	//–ˆƒtƒŒ[ƒ€XV‚Ì•K—v‚ª‚È‚¢‚Ì‚ÅTick‚ÍØ‚é
+ 	//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°ã®å¿…è¦ãŒãªã„ã®ã§Tickã¯åˆ‡ã‚‹
 	PrimaryActorTick.bCanEverTick = false;
 
-	//ƒQ[ƒg‚ÌƒƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg¶¬
+	//ã‚²ãƒ¼ãƒˆã®ãƒ¡ãƒƒã‚·ãƒ¥ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆç”Ÿæˆ
 	m_pGateMash = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GateMesh"));
 	if (m_pGateMash)
 	{
 		RootComponent = m_pGateMash;
 	}
 
-	//ƒS[ƒ‹‚Ì“–‚½‚è”»’è¶¬
+	//ã‚´ãƒ¼ãƒ«ã®å½“ãŸã‚Šåˆ¤å®šç”Ÿæˆ
 	m_pGoalCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("GoalCollision"));
 	if (m_pGoalCollision)
 	{
@@ -38,13 +38,13 @@ void AGoalGate::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	//ƒI[ƒo[ƒ‰ƒbƒv‚ÌƒCƒxƒ“ƒgŠÖ”‚ğ“o˜^
+	//ã‚ªãƒ¼ãƒãƒ¼ãƒ©ãƒƒãƒ—æ™‚ã®ã‚¤ãƒ™ãƒ³ãƒˆé–¢æ•°ã‚’ç™»éŒ²
 	if (m_pGoalCollision)
 	{
 		m_pGoalCollision->OnComponentBeginOverlap.AddDynamic(this, &AGoalGate::OnComponentOverlapBegin);
 	}
 
-	//ƒQ[ƒ€ƒ}ƒl[ƒWƒƒ[‚ğŒŸõ‚µ‚Äî•ñ‚ğ•Û‚·‚é
+	//ã‚²ãƒ¼ãƒ ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã‚’æ¤œç´¢ã—ã¦æƒ…å ±ã‚’ä¿æŒã™ã‚‹
 	m_pGameManager = Cast<AGameManager>(CGameUtility::GetActorFromTag(this, TEXT("GameManager")));
 }
 
@@ -55,12 +55,12 @@ void AGoalGate::Tick(float DeltaTime)
 
 }
 
-//ƒI[ƒo[ƒ‰ƒbƒv‚ÉŒÄ‚Ño‚³‚ê‚éƒCƒxƒ“ƒgŠÖ”
+//ã‚ªãƒ¼ãƒãƒ¼ãƒ©ãƒƒãƒ—æ™‚ã«å‘¼ã³å‡ºã•ã‚Œã‚‹ã‚¤ãƒ™ãƒ³ãƒˆé–¢æ•°
 void AGoalGate::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor && OtherActor != this)
 	{
-		//ƒhƒ[ƒ“‚ªƒS[ƒ‹”»’è‚É“–‚½‚Á‚½‚çƒS[ƒ‹ƒtƒ‰ƒO‚ğ—§‚Ä‚é
+		//ãƒ‰ãƒ­ãƒ¼ãƒ³ãŒã‚´ãƒ¼ãƒ«åˆ¤å®šã«å½“ãŸã£ãŸã‚‰ã‚´ãƒ¼ãƒ«ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
 		if (OtherActor->ActorHasTag(TEXT("Drone")))
 		{
 			if (m_pGameManager)
