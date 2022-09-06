@@ -4,13 +4,27 @@
 #include "OnlineSubsystemUtils.h"
 #include "Kismet/GameplayStatics.h"
 
+const FName ANetworkPlayerController::SESSION_NAME = TEXT("SessionName");
+
 ANetworkPlayerController::ANetworkPlayerController()
-    : m_pSearchSettings()
+    : m_pSearchSettings(nullptr)
     , OnLoginCompleted()
     , OnCreateSessionCompleted()
     , OnFindSessionCompleted()
+    , OnJoinSessionCompleted()
+    , OnKillSessionCompleted()
 {
 
+}
+
+void ANetworkPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    Super::EndPlay(EndPlayReason);
+
+    if (m_pSearchSettings.IsValid())
+    {
+        m_pSearchSettings.Reset();
+    }
 }
 
 void ANetworkPlayerController::LoginEOS(const FLoginCompleted& _loginCompleted)
@@ -66,7 +80,7 @@ void ANetworkPlayerController::LoginEOS(const FLoginCompleted& _loginCompleted)
     _loginCompleted.ExecuteIfBound(false);
 }
 
-bool ANetworkPlayerController::CreateSession(const int32 _connection,const FString _searchKeyword, const FName _sessionName, const FCreateSessionCompleted& _createSessionCompleted)
+bool ANetworkPlayerController::CreateSession(const int32 _connection,const FString _searchKeyword, const FCreateSessionCompleted& _createSessionCompleted)
 {
     if (IOnlineSubsystem* const pOnlineSubsystem = Online::GetSubsystem(GetWorld()))
     {
@@ -102,7 +116,7 @@ bool ANetworkPlayerController::CreateSession(const int32 _connection,const FStri
 
             TSharedPtr<const FUniqueNetId> pUniqueNetIdptr = this->GetLocalPlayer()->GetPreferredUniqueNetId().GetUniqueNetId();
             //セッションの作成
-            bool bResult = Sessions->CreateSession(*pUniqueNetIdptr, _sessionName, *pSessionSettings);
+            bool bResult = Sessions->CreateSession(*pUniqueNetIdptr, ANetworkPlayerController::SESSION_NAME, *pSessionSettings);
 
             if (bResult) 
             {
@@ -154,6 +168,52 @@ bool ANetworkPlayerController::FindSession(const FString _searchKeyword, const i
 
     _findSessionCompleted.ExecuteIfBound(TArray<FBlueprintSessionResult>(), false);
     this->OnFindSessionCompleted.Clear();
+    return false;
+}
+
+bool ANetworkPlayerController::JoinSession(const FBlueprintSessionResult& _searchResult, const FJoinSessionCompleted& _joinSessionCompleted)
+{
+    if (IOnlineSubsystem* const pOnlineSubsystem = Online::GetSubsystem(GetWorld()))
+    {
+        IOnlineSessionPtr pSessions = pOnlineSubsystem->GetSessionInterface();
+        if (pSessions.IsValid())
+        {
+            if (_searchResult.OnlineResult.IsValid()) 
+            {
+                pSessions->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &ANetworkPlayerController::OnJoinSessionCompleted_Internal));
+
+                TSharedPtr<const FUniqueNetId> UniqueNetIdptr = GetLocalPlayer()->GetPreferredUniqueNetId().GetUniqueNetId();
+                this->OnJoinSessionCompleted = _joinSessionCompleted;
+                if (pSessions->JoinSession(*UniqueNetIdptr, ANetworkPlayerController::SESSION_NAME, _searchResult.OnlineResult))
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    _joinSessionCompleted.ExecuteIfBound(ANetworkPlayerController::SESSION_NAME, EJoinSessionState::UnknownError);
+    this->OnJoinSessionCompleted.Clear();
+    return false;
+}
+
+bool ANetworkPlayerController::KillSession(const FKillSessionCompleted& _killSessionCompleted)
+{
+    if (IOnlineSubsystem* const pOnlineSubsystem = Online::GetSubsystem(GetWorld()))
+    {
+        IOnlineSessionPtr pSessions = pOnlineSubsystem->GetSessionInterface();
+        if (pSessions.IsValid())
+        {
+            this->OnKillSessionCompleted = _killSessionCompleted;
+            if (pSessions->DestroySession(ANetworkPlayerController::SESSION_NAME, FOnDestroySessionCompleteDelegate::CreateUObject(this, &ANetworkPlayerController::OnKillSessionCompleted_Internal)))
+            {
+                return true;
+            }
+        }
+    }
+
+    _killSessionCompleted.ExecuteIfBound(NAME_None, false);
+    OnKillSessionCompleted.Clear();
     return false;
 }
 
@@ -237,4 +297,24 @@ void ANetworkPlayerController::OnFindSessionsCompleted_Internal(bool _bWasSucces
 
     this->OnFindSessionCompleted.ExecuteIfBound(TArray<FBlueprintSessionResult>(), false);
     this->OnFindSessionCompleted.Clear();
+}
+
+void ANetworkPlayerController::OnJoinSessionCompleted_Internal(FName _sessionName, EOnJoinSessionCompleteResult::Type _joinState)
+{
+    this->OnJoinSessionCompleted.ExecuteIfBound(_sessionName, static_cast<EJoinSessionState>(_joinState));
+    this->OnJoinSessionCompleted.Clear();
+}
+
+void ANetworkPlayerController::OnKillSessionCompleted_Internal(FName _sessionName, bool _bWasSuccessful)
+{
+    if (_bWasSuccessful)
+    {
+
+    }
+    else
+    {
+
+    }
+
+    this->OnKillSessionCompleted.ExecuteIfBound(_sessionName, _bWasSuccessful);
 }
