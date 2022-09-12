@@ -217,6 +217,11 @@ bool ANetworkPlayerController::KillSession(const FKillSessionCompleted& _killSes
     return false;
 }
 
+EServerRole ANetworkPlayerController::GetServerRole_Implementation() const
+{
+    return IRacingD_Session::Execute_GetServerRole(PlayerState);
+}
+
 void ANetworkPlayerController::OnLoginCompleted_Internal(int32 _localUserNum, bool _bWasSuccessful, const FUniqueNetId& _userId, const FString& _error)
 {
     //ログイン成功

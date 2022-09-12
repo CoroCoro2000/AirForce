@@ -129,3 +129,5 @@ void ADebugLevelStreamingVolume::OnConstruction(const FTransform& Transform)
 	m_pTextComponent->SetText(m_Text);
 }
 #endif // WITH_EDITOR
+
+#undef LOCTEXT_NAMESPACE

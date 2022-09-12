@@ -7,6 +7,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "FindSessionsCallbackProxy.h"
+#include "Interface/RacingD_Session.h"
 #include "NetworkPlayerController.generated.h"
 
 class FOnlineSessionSearch;
@@ -83,7 +84,7 @@ DECLARE_DYNAMIC_DELEGATE_TwoParams(FJoinSessionCompleted, const FName, sessionNa
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FKillSessionCompleted, const FName, sessionName, bool, success);
 
 UCLASS()
-class AIRFORCE_API ANetworkPlayerController : public APlayerController
+class AIRFORCE_API ANetworkPlayerController : public APlayerController, public IRacingD_Session
 {
 	GENERATED_BODY()
 	
@@ -141,6 +142,12 @@ public:
      * @return 
     */
     bool KillSession(const FKillSessionCompleted& _killSessionCompleted);
+
+    /**
+     * @brief セッションのロール取得
+     * @return 
+     */
+    EServerRole GetServerRole_Implementation() const override;
 
 private:
 	/**
