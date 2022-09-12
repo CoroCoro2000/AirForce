@@ -37,7 +37,7 @@ public:
      * @brief セッションのロール取得
      * @return 
      */
-    EServerRole GetServerRole_Implementation() const override;
+    virtual EServerRole GetServerRole_Implementation() const override;
     
 private:
     UPROPERTY(BlueprintReadOnly, Replicated, meta = (AllowPrivateAccess = true, DisplayName = "ServerRole"))

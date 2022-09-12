@@ -51,5 +51,4 @@ public:
      * @return 
      */
     EServerRole GetServerRole() const;
-    virtual EServerRole GetServerRole_Implementation() const;
 };
